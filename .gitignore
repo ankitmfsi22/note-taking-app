@@ -1,6 +1,10 @@
 node_modules/
 dist/
 coverage/
+backend/src/generated/
+e2e/.output/
+playwright-report/
+test-results/
 
 .env*
 !.env.example

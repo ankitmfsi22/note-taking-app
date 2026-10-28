@@ -1,0 +1,143 @@
+import js from '@eslint/js';
+import { defineConfig, globalIgnores } from 'eslint/config';
+import prettier from 'eslint-config-prettier/flat';
+import reactHooks from 'eslint-plugin-react-hooks';
+import { reactRefresh } from 'eslint-plugin-react-refresh';
+import globals from 'globals';
+import tseslint from 'typescript-eslint';
+
+// Rule 11: Zod schemas and API types live in packages/shared. Elsewhere zod is a types-only import.
+const zodTypesOnly = {
+  name: 'zod',
+  allowTypeImports: true,
+  message:
+    'Zod schemas live in packages/shared (Rule 11). Only `import type` from zod is allowed here.',
+};
+
+export default defineConfig(
+  globalIgnores([
+    '**/node_modules/',
+    '**/dist/',
+    '**/coverage/',
+    '**/src/generated/',
+    'e2e/.output/',
+    '**/playwright-report/',
+    '**/test-results/',
+    'frontend/src/components/ui/',
+    'docs/',
+    'openspec/',
+  ]),
+  js.configs.recommended,
+  { linterOptions: { reportUnusedDisableDirectives: 'error' } },
+  {
+    files: ['**/*.{ts,tsx,mts,cts}'],
+    extends: [tseslint.configs.recommendedTypeChecked],
+    languageOptions: {
+      parserOptions: {
+        projectService: true,
+        tsconfigRootDir: import.meta.dirname,
+      },
+    },
+    rules: {
+      '@typescript-eslint/consistent-type-imports': 'error',
+      '@typescript-eslint/no-unused-vars': [
+        'error',
+        { argsIgnorePattern: '^_', varsIgnorePattern: '^_' },
+      ],
+    },
+  },
+  {
+    files: ['backend/**/*.ts'],
+    languageOptions: { globals: globals.node },
+    rules: {
+      'no-console': 'error',
+      'no-restricted-syntax': [
+        'error',
+        {
+          selector: 'MemberExpression[property.name=/^\\$(queryRawUnsafe|executeRawUnsafe)$/]',
+          message: 'Unsafe raw SQL is banned. Use $queryRaw or $executeRaw as tagged templates.',
+        },
+        {
+          selector: 'MemberExpression[property.value=/^\\$(queryRawUnsafe|executeRawUnsafe)$/]',
+          message: 'Unsafe raw SQL is banned. Use $queryRaw or $executeRaw as tagged templates.',
+        },
+      ],
+      '@typescript-eslint/no-restricted-imports': [
+        'error',
+        {
+          paths: [zodTypesOnly],
+          patterns: [
+            {
+              group: ['**/generated/prisma/**', '@prisma/client', '@prisma/adapter-pg'],
+              allowTypeImports: true,
+              message: 'Only repositories and src/common/db touch Prisma (ADR-0001).',
+            },
+            {
+              group: ['**/common/db/**'],
+              message: 'Only server.ts and repositories may import the database module.',
+            },
+          ],
+        },
+      ],
+    },
+  },
+  {
+    // These files may use Prisma, but never define Zod schemas.
+    files: [
+      'backend/src/**/*.repository.ts',
+      'backend/src/common/db/**',
+      'backend/src/server.ts',
+      'backend/prisma.config.ts',
+    ],
+    rules: { '@typescript-eslint/no-restricted-imports': ['error', { paths: [zodTypesOnly] }] },
+  },
+  {
+    // Backend-only runtime configuration (the Env schema) and tests may use Zod directly.
+    files: ['backend/src/config/env.ts', 'backend/src/**/*.test.ts', 'backend/tests/**'],
+    rules: { '@typescript-eslint/no-restricted-imports': 'off' },
+  },
+  {
+    files: ['frontend/**/*.{ts,tsx}'],
+    extends: [reactHooks.configs.flat['recommended-latest'], reactRefresh.configs.vite()],
+    languageOptions: { globals: globals.browser },
+    rules: {
+      '@typescript-eslint/no-restricted-imports': ['error', { paths: [zodTypesOnly] }],
+      'no-restricted-globals': [
+        'error',
+        { name: 'fetch', message: 'Call the API through apiFetch in src/lib/api-client.ts.' },
+      ],
+      'no-restricted-syntax': [
+        'error',
+        {
+          selector: "JSXAttribute[name.name='dangerouslySetInnerHTML']",
+          message: 'Render text nodes. dangerouslySetInnerHTML is banned (SDS 9.5).',
+        },
+        {
+          selector: "AssignmentExpression[left.property.name='innerHTML']",
+          message: 'Render text nodes. innerHTML is banned (SDS 9.5).',
+        },
+      ],
+    },
+  },
+  {
+    files: ['frontend/src/lib/api-client.ts', 'frontend/src/**/*.test.{ts,tsx}'],
+    rules: { 'no-restricted-globals': 'off' },
+  },
+  {
+    files: ['frontend/src/**/*.test.{ts,tsx}', 'frontend/src/test/**'],
+    rules: {
+      'react-refresh/only-export-components': 'off',
+      '@typescript-eslint/no-restricted-imports': 'off',
+    },
+  },
+  {
+    files: ['e2e/**/*.ts'],
+    languageOptions: { globals: globals.node },
+  },
+  {
+    files: ['**/*.{js,mjs,cjs}'],
+    extends: [tseslint.configs.disableTypeChecked],
+    languageOptions: { globals: globals.node },
+  },
+  prettier,
+);

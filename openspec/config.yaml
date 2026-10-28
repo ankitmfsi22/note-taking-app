@@ -1,32 +1,40 @@
 schema: spec-driven
 
-# Project context (optional)
-# Add only constraints that should guide OpenSpec artifacts and workflows.
-# Include constraints an agent cannot infer by reading the code.
-# Keep general project documentation and discoverable codebase facts out.
-# Example:
-#   context: |
-#     Designs and tasks must cover Windows, macOS, and Linux
-#     Write all artifacts in Spanish
+context: |
+  Source of truth, in order: docs/reference/ASSIGNMENT.md, docs/FRS.md (business), docs/SDS.md (technical, binding), docs/decisions/ADR-*.md. A spec must not contradict the SDS. Mark anything those documents do not decide as [ASSUMPTION — confirm].
+  Tickets AB-1001 to AB-1016 are built strictly in order, one ticket per session.
+  Naming: the change folder is the lowercase ticket ID plus a slug (ab-1002-auth-register-login), because the OpenSpec CLI rejects uppercase. Scenario IDs are uppercase: S-AB1002-01, two digits, numbered from 01.
+  API: REST under /api/v1 (SDS section 7). Use only the error codes and statuses of SDS section 4.3. Another user's resource, or a soft-deleted note, is 404. Never use 403 for ownership, and never 410, 422 or 429.
+  Contracts: every Zod schema and API type lives in packages/shared (Rule 11). Backend and frontend only import them.
+  Soft delete sets Note.deletedAt only. A note row is never physically deleted inside the 30-day window (Rule 15).
+  Testing: one test per scenario, its title starts with the scenario ID, and scripts/check-scenarios.mjs enforces it. Coverage is at least 80% on new code.
 
-# Per-artifact rules (optional)
-# Add custom rules for specific artifacts.
-# Example:
-#   rules:
-#     proposal:
-#       - Keep proposals under 500 words
-#       - Always state what is out of scope
-#     tasks:
-#       - Break tasks into chunks of max 2 hours
+rules:
+  proposal:
+    - Link the ticket ID and list the FRS requirement IDs the change covers
+    - State impact, out of scope and a rollback plan
+  specs:
+    - Start a delta that creates a new capability with a ## Purpose section, because archiving otherwise writes a TBD placeholder that openspec validate --strict rejects
+    - Use WHEN/THEN scenarios named S-ABnnnn-nn
+    - Cover every FRS acceptance criterion and error scenario of the ticket
+    - Include an authorization-denied scenario and a validation-failure scenario for every endpoint, or say why one does not apply
+    - Name the exact HTTP status and error code in every error scenario
+  design:
+    - Define request and response schemas in packages/shared first
+    - Follow routes, controller, service, repository, with Prisma only in repositories
+    - Take every endpoint, status and error code from SDS section 7 and do not invent one
+  tasks:
+    - Write the test for a scenario before its implementation
+    - Keep backend and frontend tasks separate and mark independent ones [PARALLEL]
+    - End every phase with a build, lint and test checkpoint
+    - Mark a task for a subagent when it is estimated at more than 45 minutes
 
-# Per-operation guidance (optional)
-# Add advisory guidance for how apply and archive work should be conducted.
-# This is separate from artifact rules above.
-# Example:
-#   operations:
-#     apply:
-#       guidance:
-#         - Keep test summaries concise
-#     archive:
-#       guidance:
-#         - Summarize the archive outcome before finishing
+operations:
+  apply:
+    guidance:
+      - Verify every library API with Context7 before using it
+      - Ask before every file write and list the files before each step
+      - Run build, then lint with --max-warnings 0, then test, and never continue past a failure
+  archive:
+    guidance:
+      - Archive before opening the pull request, and run pnpm spec:validate and pnpm check:scenarios afterwards

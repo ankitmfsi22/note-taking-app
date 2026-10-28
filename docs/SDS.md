@@ -10,7 +10,7 @@
 
 This document says **how** the system is built. It does not add business rules: every behaviour traces to an FRS requirement. Anything the FRS does not decide is marked **[ASSUMPTION — confirm]** with an ID `(SA-nn)`, and all are listed in [Section 14](#14-assumptions-to-confirm). FRS assumptions keep their `A-nn` IDs.
 
-Per-ticket specs (`openspec/changes/AB-xxxx-*/`) SHALL NOT contradict this document. The HTTP status codes and error codes in Section 7 are **binding for every ticket**.
+Per-ticket specs (`openspec/changes/ab-xxxx-*/`, SA-56) SHALL NOT contradict this document. The HTTP status codes and error codes in Section 7 are **binding for every ticket**.
 
 ---
 
@@ -45,7 +45,7 @@ flowchart LR
 
 ### 1.1 Principles
 
-1. **Contract first.** Every request and response shape is a Zod schema in `packages/shared` (Rule 11). The backend validates input and parses output with it. The frontend parses responses with it. Nothing is redefined elsewhere.
+1. **Contract first.** Every request and response shape is a Zod schema in `packages/shared` (Rule 11). The backend validates input and parses output with it. The frontend parses responses with it. Nothing is redefined elsewhere. Rule 11 covers API contract schemas and types. Outside `packages/shared`, `zod` is a type-only import, which ESLint enforces; the single exception is the backend `Env` schema in `src/config/env.ts` (runtime configuration, not a contract), plus test-local schemas (AB-1001).
 2. **Layers do one thing.** `routes → controller → service → repository` (ADR-0001). Only repositories touch Prisma. Only services hold business rules. Controllers know HTTP and nothing else.
 3. **Ownership in the query.** Every repository method takes `userId` and puts it in the `WHERE` clause (FR-X-1). A foreign or missing resource is the same `404`.
 4. **Stateless API.** No server session. Access token is a JWT. The only server-side auth state is the hashed refresh token and OTP rows.
@@ -59,7 +59,7 @@ flowchart LR
 4. **Controller.** Reads `res.locals`, calls one service method, and maps the result to the response DTO. The DTO is parsed with the shared response schema before `res.json`, which strips any extra field (for example `passwordHash`).
 5. **Service.** Applies business rules, opens a transaction where needed, throws a typed `AppError` on a rule failure.
 6. **Repository.** Runs Prisma queries or tagged-template raw SQL, always scoped by `userId`.
-7. **Errors.** Express 5 forwards a rejected async handler to the error middleware. It maps `AppError`, `ZodError`, body-parser errors and unknown errors to the single error shape in Section 4. Unknown errors become `500 INTERNAL_ERROR` with no detail leaked and the stack logged with the request ID.
+7. **Errors.** Express 5 forwards a rejected async handler to the error middleware. It maps `AppError`, body-parser errors and unknown errors to the single error shape in Section 4. A `ZodError` that reaches it is a server bug (request validation is already converted to `VALIDATION_ERROR` by `validate()`, so a stray one comes from a response or internal parse), and becomes `500 INTERNAL_ERROR` (SA-54). Unknown errors become `500 INTERNAL_ERROR` with no detail leaked and the stack logged with the request ID.
 
 ```mermaid
 sequenceDiagram
@@ -270,8 +270,8 @@ Not added on purpose: `cors` (same-origin, SA-01), `dotenv` in runtime (Node 22 
 | zustand | 5.0.16 | Fixed by the assignment. | Verified: `create<State>()(...)`, `getState`, `useShallow`. |
 | @tiptap/react, @tiptap/core, @tiptap/pm, @tiptap/starter-kit | 3.32.0 each | Fixed by the assignment (TipTap). `core` and `pm` are required peers. StarterKit 3 includes link and underline. | Verified: `useEditor`, `StarterKit.configure`, `setContent`, `immediatelyRender`. |
 | tailwindcss, @tailwindcss/vite | 4.3.3 each | Required by shadcn/ui (v4 CLI path). | Verified: Vite plugin and `@import "tailwindcss"`. |
-| shadcn (CLI, run with `pnpm dlx`) | 4.23.0 | Fixed by the assignment. Copies components into `src/components/ui`. Never `@latest`. | Verified: `init`, `components.json`, `@/` alias. |
-| radix-ui or other primitives, class-variance-authority 0.7.1, clsx 2.1.1, tailwind-merge 3.7.0, lucide-react 1.63.0, sonner 2.0.8 | as added by the shadcn init | Dependencies of the generated components. The CLI installs them through pnpm, so they are pinned exactly by `savePrefix`. | Versions from registry. **[ASSUMPTION — confirm]** (SA-47) |
+| shadcn (CLI, run with `pnpm dlx`) | 4.23.0 | Fixed by the assignment. Copies components into `src/components/ui`. Never `@latest`. | Registry: 4.23.0 exists and is `latest`. Context7 (docs up to 4.21, shown as `@latest`): `init` for an existing project needs Tailwind and the `@/*` alias first and takes `--cwd`, `--base <base|radix|aria>` and `--yes`; `add` takes `--cwd`, `--yes`, `--dry-run`. `init` also needs `--preset` to stay non-interactive. We run `init --cwd frontend --base radix --preset nova --yes` and `add <name> --cwd frontend --yes`; the result is style `radix-nova` (Lucide icons, Geist font). The base and preset are our choice. **[ASSUMPTION — confirm]** (SA-55) |
+| radix-ui 1.8.1, class-variance-authority 0.7.1, cn 0.5.0, lucide-react 1.63.0, @fontsource-variable/geist 5.3.0 (runtime); tw-animate-css 1.4.0 and `shadcn` 4.23.0 (dev, build-time CSS imports) | as added by `shadcn init --base radix --preset nova` in AB-1001 | Dependencies of the generated components. `cn` (from the shadcn-ui org) replaced `clsx` + `tailwind-merge` in CLI 4.23.0. The CLI installs them through pnpm, so `savePrefix` pins them exactly. `sonner` is added with the first toast component. | Verified by running the CLI in a scratch project in AB-1001. **[ASSUMPTION — confirm]** (SA-55) |
 | react-hook-form | 7.91.0 | Form state for auth and tag forms (shadcn `Form` is built on it). | Registry. |
 | @hookform/resolvers | 6.0.2 | `zodResolver` for shared Zod schemas (AC-FEAUTH-02). | Verified: Zod 4 overloads. |
 
@@ -281,7 +281,7 @@ Not added on purpose: a date library (`Intl.DateTimeFormat` and `Intl.RelativeTi
 
 | Package | Version | Where | Reason | Context7 check |
 | --- | --- | --- | --- | --- |
-| vitest | 5.0.5 | all packages | Fixed by the assignment. Node `^22.12` satisfied. | Verified: v8 coverage thresholds, `exclude`, `setupFiles`. |
+| vitest | 5.0.5 | all packages | Fixed by the assignment. Node `^22.12` satisfied. Has `vite` as a required peer (`^6.4 \|\| ^7 \|\| ^8`); pnpm auto-installs it as 8.3.5, the same pin as the frontend, recorded in the lockfile. | Verified: v8 coverage thresholds, `exclude`, `setupFiles`; confirmed by running it in AB-1001. |
 | @vitest/coverage-v8 | 5.0.5 | all packages | Coverage. Must equal Vitest. | Verified. |
 | supertest | 7.3.1 | backend | Fixed by the assignment. | Verified: `request.agent` keeps cookies, `.bearer()`. |
 | @types/supertest | 7.2.1 | backend | Types. | Registry. |
@@ -290,8 +290,8 @@ Not added on purpose: a date library (`Intl.DateTimeFormat` and `Intl.RelativeTi
 | @testing-library/react | 16.3.3 | frontend | Component tests. | Registry. |
 | @testing-library/dom | 10.4.2 | frontend | Required peer of RTL 16. | Registry peers. |
 | @testing-library/user-event | 14.6.8 | frontend | Realistic input events. | Registry. |
-| @testing-library/jest-dom | 7.0.1 | frontend | DOM matchers via `@testing-library/jest-dom/vitest`. | Verified: Vitest setup import. |
-| msw | 2.15.0 | frontend | Network mocking in component tests. | Verified: `setupServer`, `http`, `HttpResponse`. |
+| @testing-library/jest-dom | 7.0.1 | frontend | DOM matchers. Its `/vitest` entry types clash with Vitest 5 (`Assertion<T>` against `Assertion<R, T>`, TS2428), so `src/test/setup.ts` registers the matchers with `expect.extend` from `/matchers` and `src/test/jest-dom.d.ts` augments Vitest's `Assertion` correctly (found in AB-1001). | Verified: Vitest setup import. |
+| msw | 2.15.0 | frontend | Network mocking in component tests. The unhandled-request option is `onUnhandledRequest` in 2.15 (Context7's newest snippets show `onUnhandledFrame`, which is not in the 2.15 types); the installed typings are the source of truth. One-shot handlers use `{ once: true }`. | Verified: `setupServer`, `http`, `HttpResponse`. |
 | pg | 8.23.1 | e2e | Truncate tables between E2E tests (SA-45). | Registry. |
 
 ### 3.5 Where the pin differs from the registry `latest`
@@ -486,7 +486,7 @@ Full rationale: ADR-0004.
 - Table and column names are Prisma defaults (`"Note"`, `"userId"`). Raw SQL quotes them.
 - Soft delete is one nullable column, `Note.deletedAt` (6.5). Nothing else is soft-deleted.
 - Every child table cascades from its parent (`onDelete: Cascade`). No `SetNull`, no `Restrict`.
-- Prisma 7: the `datasource` block has only `provider`. The URL lives in `prisma.config.ts` (`env("DATABASE_URL")`). The client is generated to `backend/src/generated/prisma` and used with `PrismaPg`.
+- Prisma 7: the `datasource` block has only `provider`. The URL lives in `prisma.config.ts` and is read as `process.env.DATABASE_URL ?? ''`, not with `env()`, because `env()` throws during `prisma generate` and would break `pnpm build` on a fresh clone or in CI where no database is configured (verified in AB-1001). Only `db` and `migrate` commands need the URL. The client is generated to `backend/src/generated/prisma` and used with `PrismaPg`.
 
 ### 6.2 Schema (`backend/prisma/schema.prisma`, final state after AB-1009)
 
@@ -1037,7 +1037,7 @@ The component renders each segment as a React text node, wrapping highlighted on
 
 - Every scenario in a ticket's spec delta carries an ID `S-AB<ticket>-<nn>` (two digits, from 01): `#### Scenario: S-AB1002-03 login with wrong password`.
 - The test title starts with the same ID: `it('S-AB1002-03: login with wrong password returns 401 INVALID_CREDENTIALS', ...)`.
-- `scripts/check-scenarios.mjs` (Node built-ins only) reads all `openspec/changes/**/specs/**/spec.md` (and `openspec/specs` after archive), extracts IDs, scans test files in all packages for titles, and **fails** if an ID has zero tests, more than one test, or if a test uses an ID that has no scenario. It runs in CI and in the `/sdd-review` checklist. **[ASSUMPTION — confirm]** (SA-37)
+- `scripts/check-scenarios.mjs` (Node built-ins only) reads `openspec/changes/*/specs/**/spec.md` (the `archive` folder is skipped because archiving merges its deltas into `openspec/specs`) and `openspec/specs/**/spec.md`, extracts IDs, scans test files in all packages for titles, and **fails** if an ID has zero tests, more than one test, or if a test uses an ID that has no scenario. It runs in CI and in the `/sdd-review` checklist. **[ASSUMPTION — confirm]** (SA-37)
 - Each spec delta SHALL include an authorization-denied scenario and a validation-failure scenario (guide rule), plus one per FRS error scenario of the ticket.
 
 ### 10.4 Coverage
@@ -1089,7 +1089,7 @@ The component renders each segment as a React text node, wrapping highlighted on
 
 ### 11.2 TypeScript
 
-- `tsconfig.base.json`: `strict`, `noUncheckedIndexedAccess`, `exactOptionalPropertyTypes`, `verbatimModuleSyntax`, `isolatedModules`, `skipLibCheck: false`. `types` is listed explicitly per package (TypeScript 6 changed defaults, so nothing relies on them).
+- `tsconfig.base.json`: `strict`, `noUncheckedIndexedAccess`, `exactOptionalPropertyTypes`, `verbatimModuleSyntax`, `isolatedModules`, `skipLibCheck: false`. `types` is listed explicitly per package (TypeScript 6 changed defaults, so nothing relies on them). `packages/shared` uses `types: ["node"]` in both its typecheck and build configs, because zod's declarations reference the global `URL` and `skipLibCheck: false` would otherwise fail the build (found in AB-1001).
 - `backend` and `packages/shared`: `module` and `moduleResolution` `NodeNext`, ESM (`"type": "module"`). Relative imports end in `.js`. **[ASSUMPTION — confirm]** (SA-30)
 - `frontend`: `module` `ESNext`, `moduleResolution` `Bundler`, `jsx` `react-jsx`. The `@/*` alias is set with `paths` only. **No `baseUrl`** (deprecated in TypeScript 6, error TS5101), and no `ignoreDeprecations`.
 - `packages/shared/package.json`: `exports` point to `dist/index.js` and `dist/index.d.ts`. Consumers need `shared` built first, which the root `build` and `dev` scripts guarantee. **[ASSUMPTION — confirm]** (SA-30)
@@ -1311,7 +1311,7 @@ SDS assumptions use `SA-nn`. FRS assumptions (`A-nn`) were already approved with
 | SA-36 | Coverage gate is 80% per package on all four metrics; "80% on new code" is checked per ticket by the reviewer. | 10.4 |
 | SA-37 | `scripts/check-scenarios.mjs` enforces exactly one test per `S-AB<ticket>-<nn>` scenario. | 10.3 |
 | SA-38 | The pre-commit hook skips build and test when only docs, openspec, `.claude` or markdown and yaml files are staged. | 11.3 |
-| SA-39 | commitlint: conventional rules, scope required, `references-empty` never with the `AB#` prefix. | 11.3 |
+| SA-39 | commitlint: conventional rules, scope required, `references-empty` never with the `AB#` prefix. Verified in AB-1001 by `scripts/commitlint-config.test.mjs` (7 cases pass). | 11.3 |
 | SA-40 | CI is GitHub Actions with `verify`, `commits`, `security` and `e2e` jobs. Every action is pinned to a full commit SHA with the version tag in a comment; the SHAs are resolved when the workflow file is created in AB-1001. | 11.6 |
 | SA-41 | Database image `postgres:16.15-bookworm`; dev DB on 5432 with a volume, test DB on 5433 on tmpfs with `noteapp_test` and `noteapp_e2e`. | 11.4 |
 | SA-42 | The six version pins in 3.5 differ from the registry `latest` on purpose. | 3.5 |
@@ -1319,7 +1319,14 @@ SDS assumptions use `SA-nn`. FRS assumptions (`A-nn`) were already approved with
 | SA-44 | OpenAPI is hand-maintained: baseline `paths: {}`, each ticket adds a `delta-openapi.yaml` merged at archive; no code generation; shared Zod schemas are the executable contract. | 11.7 |
 | SA-45 | E2E resets data by truncating `noteapp_e2e` with `pg` in a Playwright fixture, with `workers: 1`. | 10.2 |
 | SA-46 | Logs are pino JSON with the listed redactions; bodies are not logged. | 11.8 |
-| SA-47 | To verify with Context7 at first use: Prisma GIN index on the `Unsupported` column shows no drift; `@node-rs/argon2` default algorithm is Argon2id; the commitlint parser reads `AB#`; TipTap StarterKit option keys; the shadcn style and the packages it installs; the pnpm `onlyBuiltDependencies` list; versions of packages not queried for an API (cookie-parser, pg, tsx, prettier, the ESLint plugins, lucide-react, sonner, clsx, tailwind-merge, class-variance-authority). | 3, 5.4, 6.4, 9.4 |
+| SA-47 | To verify with Context7 at first use: Prisma GIN index on the `Unsupported` column shows no drift; `@node-rs/argon2` default algorithm is Argon2id; TipTap StarterKit option keys; APIs of packages not yet exercised by code (cookie-parser, sonner). The rest were exercised in AB-1001. | 3, 5.4, 6.4, 9.4 |
 | SA-48 | The public shared-note page is at `/s/:token`; list state lives in URL query parameters. | 9.1 |
 | SA-49 | The list `preview` is the first 150 characters of whitespace-collapsed `contentText`. | 8.1 |
 | SA-50 | `DELETE` on an already-deleted note returns `404 NOTE_NOT_FOUND` and does not change `deletedAt`. | 7.3 |
+| SA-51 | `.prettierignore` excludes `*.md`, `docs/` and `openspec/` (Prettier would reflow every table in the approved docs), so the docs-only pre-commit path effectively checks only staged code, json and yaml outside those folders. Root `pnpm test:tooling` (node:test, no extra dependency) runs the commitlint config test and is part of the pre-commit and CI checks; `pnpm test` stays `pnpm -r run test` so `--coverage` reaches Vitest. | 11.1, 11.3 |
+| SA-52 | One `.env` at the repository root, copied from the committed `.env.example`. `prisma.config.ts` loads it with `dotenv` (`path` as a URL, `quiet: true`); the backend dev script reads it with `--env-file`. A git worktree has its own copy with its own database name. | 11.5 |
+| SA-53 | pnpm does not run dependency build scripts. `@prisma/engines`, `prisma` and `esbuild` are listed under `ignoredBuiltDependencies` in `pnpm-workspace.yaml`, because Prisma 7 (schema engine present, query compiler) and `tsx` were verified to work without them. pnpm 10 still prints an informational "Ignored build scripts" box on install. | 2, 3 |
+| SA-54 | Error middleware: body-parser `entity.too.large` is `413 PAYLOAD_TOO_LARGE`; `entity.parse.failed`, `encoding.unsupported`, `charset.unsupported`, `request.aborted` and `request.size.invalid` are `400 MALFORMED_JSON`; a stray `ZodError` is `500`. A well-formed client `X-Request-Id` (`[\w.-]{1,128}`) is kept, otherwise a UUID is generated, and the value is returned in the response header and the error body. `GET /api/v1/health` is liveness only and does not query the database. `cookie-parser` and the other dependencies are added by the first ticket that uses them; the `Env` schema grows the same way. | 4, 7 |
+| SA-55 | Frontend shell: shadcn style `radix-nova` (`--base radix --preset nova`, Lucide icons, Geist font). `frontend/components.json` and the generated `src/lib/utils.ts`, `src/index.css` and `src/components/ui/**` are shadcn-owned: excluded from Prettier, and `components/ui` also from ESLint and coverage. `fetch` is called only in `src/lib/api-client.ts` (ESLint `no-restricted-globals`), and `dangerouslySetInnerHTML` and `innerHTML` are banned. Vite serves on port 5173 with `strictPort`, loads `VITE_*` from the root `.env` (`envDir`), and proxies `/api` to `VITE_API_PROXY_TARGET` (default `http://localhost:3000`). The AB-1001 home page is a placeholder that shows the API health and is replaced by AB-1010 and AB-1011. | 9 |
+| SA-56 | OpenSpec 1.15.0 only recognises lowercase kebab-case change names (`new change` rejects `AB-…`, and `validate` and `show` only find the lowercase folder). Change folders are therefore `openspec/changes/ab-xxxx-<slug>/`, for example `ab-1001-project-setup`. Scenario IDs keep the uppercase form `S-ABxxxx-nn`. The CLI creates the folder through the shell, so the `/spec` command writes the files with the Write tool instead. AB-1001 has a retroactive change because the `/spec` tooling was built inside that ticket. `openspec archive` writes a `TBD` Purpose into every new capability and `openspec validate --strict` rejects it, so a delta that creates a capability starts with a `## Purpose` section (verified in a scratch project). AB-1001 predates that rule, so its three Purpose lines were replaced by hand, the one direct edit under `openspec/specs/` that `guard-files` allows. | 10 |
+| SA-57 | E2E and CI details. Playwright runs the backend (`tsx`, `NODE_ENV=test`) on port 3100 and Vite on port 5174 against `noteapp_e2e`, and never reuses a running server, so it cannot touch the dev servers or `noteapp_dev`. The `e2e` package has no `test` script (only `test:e2e`), so `pnpm test` skips it. CI uses a PostgreSQL 16.15 service container, installs gitleaks v8.30.1 from its release with a verified sha256 and runs `gitleaks git`, checks commit messages with the pull request's base and head SHAs, and pins every action to a commit SHA (`pnpm/action-setup` v6.1.0 is an annotated tag, so its commit SHA is the dereferenced one). The workflow was parsed but not run through `actionlint` in AB-1001; its first real run is the first CI run. | 11.6 |
