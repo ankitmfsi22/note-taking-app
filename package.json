@@ -7,6 +7,7 @@
   },
   "scripts": {
     "prepare": "husky",
+    "postinstall": "pnpm --filter backend run prisma:generate",
     "dev": "pnpm -r --parallel run dev",
     "build": "pnpm -r run build",
     "typecheck": "pnpm -r run typecheck",
@@ -15,7 +16,9 @@
     "format:check": "prettier --check .",
     "test": "pnpm -r run test",
     "test:tooling": "node --test \"scripts/**/*.test.mjs\"",
-    "spec:validate": "openspec validate --all --strict"
+    "spec:validate": "openspec validate --all --strict",
+    "db:up": "docker compose up -d --wait",
+    "db:down": "docker compose down"
   },
   "devDependencies": {
     "@commitlint/cli": "21.2.4",

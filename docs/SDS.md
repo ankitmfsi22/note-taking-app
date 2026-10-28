@@ -486,7 +486,7 @@ Full rationale: ADR-0004.
 - Table and column names are Prisma defaults (`"Note"`, `"userId"`). Raw SQL quotes them.
 - Soft delete is one nullable column, `Note.deletedAt` (6.5). Nothing else is soft-deleted.
 - Every child table cascades from its parent (`onDelete: Cascade`). No `SetNull`, no `Restrict`.
-- Prisma 7: the `datasource` block has only `provider`. The URL lives in `prisma.config.ts` (`env("DATABASE_URL")`). The client is generated to `backend/src/generated/prisma` and used with `PrismaPg`.
+- Prisma 7: the `datasource` block has only `provider`. The URL lives in `prisma.config.ts` and is read as `process.env.DATABASE_URL ?? ''`, not with `env()`, because `env()` throws during `prisma generate` and would break `pnpm build` on a fresh clone or in CI where no database is configured (verified in AB-1001). Only `db` and `migrate` commands need the URL. The client is generated to `backend/src/generated/prisma` and used with `PrismaPg`.
 
 ### 6.2 Schema (`backend/prisma/schema.prisma`, final state after AB-1009)
 
@@ -1319,8 +1319,10 @@ SDS assumptions use `SA-nn`. FRS assumptions (`A-nn`) were already approved with
 | SA-44 | OpenAPI is hand-maintained: baseline `paths: {}`, each ticket adds a `delta-openapi.yaml` merged at archive; no code generation; shared Zod schemas are the executable contract. | 11.7 |
 | SA-45 | E2E resets data by truncating `noteapp_e2e` with `pg` in a Playwright fixture, with `workers: 1`. | 10.2 |
 | SA-46 | Logs are pino JSON with the listed redactions; bodies are not logged. | 11.8 |
-| SA-47 | To verify with Context7 at first use: Prisma GIN index on the `Unsupported` column shows no drift; `@node-rs/argon2` default algorithm is Argon2id; the commitlint parser reads `AB#`; TipTap StarterKit option keys; the shadcn style and the packages it installs; the pnpm `onlyBuiltDependencies` list; versions of packages not queried for an API (cookie-parser, pg, tsx, prettier, the ESLint plugins, lucide-react, sonner, clsx, tailwind-merge, class-variance-authority). | 3, 5.4, 6.4, 9.4 |
+| SA-47 | To verify with Context7 at first use: Prisma GIN index on the `Unsupported` column shows no drift; `@node-rs/argon2` default algorithm is Argon2id; TipTap StarterKit option keys; the shadcn style and the packages it installs; versions of packages not queried for an API (cookie-parser, pg, tsx, prettier, the ESLint plugins, lucide-react, sonner, clsx, tailwind-merge, class-variance-authority). | 3, 5.4, 6.4, 9.4 |
 | SA-48 | The public shared-note page is at `/s/:token`; list state lives in URL query parameters. | 9.1 |
 | SA-49 | The list `preview` is the first 150 characters of whitespace-collapsed `contentText`. | 8.1 |
 | SA-50 | `DELETE` on an already-deleted note returns `404 NOTE_NOT_FOUND` and does not change `deletedAt`. | 7.3 |
 | SA-51 | `.prettierignore` excludes `*.md`, `docs/` and `openspec/` (Prettier would reflow every table in the approved docs), so the docs-only pre-commit path effectively checks only staged code, json and yaml outside those folders. Root `pnpm test:tooling` (node:test, no extra dependency) runs the commitlint config test and is part of the pre-commit and CI checks; `pnpm test` stays `pnpm -r run test` so `--coverage` reaches Vitest. | 11.1, 11.3 |
+| SA-52 | One `.env` at the repository root, copied from the committed `.env.example`. `prisma.config.ts` loads it with `dotenv` (`path` as a URL, `quiet: true`); the backend dev script reads it with `--env-file`. A git worktree has its own copy with its own database name. | 11.5 |
+| SA-53 | pnpm does not run dependency build scripts. `@prisma/engines`, `prisma` and `esbuild` are listed under `ignoredBuiltDependencies` in `pnpm-workspace.yaml`, because Prisma 7 (schema engine present, query compiler) and `tsx` were verified to work without them. pnpm 10 still prints an informational "Ignored build scripts" box on install. | 2, 3 |

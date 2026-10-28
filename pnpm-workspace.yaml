@@ -4,3 +4,7 @@ packages:
   - e2e
   - packages/*
 savePrefix: ''
+ignoredBuiltDependencies:
+  - '@prisma/engines'
+  - esbuild
+  - prisma
