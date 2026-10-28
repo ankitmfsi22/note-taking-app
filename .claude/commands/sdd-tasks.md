@@ -6,7 +6,7 @@ allowed-tools: Read, Write, Edit, Grep, Glob, Bash(pnpm exec openspec:*)
 
 Write the task list for ticket $ARGUMENTS. This is Rule 3. Write no production code.
 
-1. Find `openspec/changes/$ARGUMENTS-*`. Read `approvals.md`. If it has no line for `plan`, stop and tell the user to approve the plan first.
+1. Find the change folder `openspec/changes/<ticket>-*`, where `<ticket>` is `$ARGUMENTS` in lowercase (for `AB-1001`: `ab-1001-*`). Read `approvals.md`. If it has no line for `plan`, stop and tell the user to approve the plan first.
 2. Read the approved spec and `design.md`.
 3. List the file you will write, then write `tasks.md` with its own [y/n]:
    - A checklist `- [ ] 1.1 ...` grouped into phases. Each phase ends with a checkpoint task: `pnpm build` (0 errors), `pnpm lint --max-warnings 0`, `pnpm test`.

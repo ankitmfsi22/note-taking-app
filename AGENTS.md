@@ -44,7 +44,7 @@ These scripts exist after AB-1001 scaffolding is complete.
 
 ## Architecture rules
 
-1. **Contract first.** Every request and response is a Zod schema in `packages/shared`. Backend validates input and parses output with it. Frontend parses responses with it. Never redefine a type elsewhere.
+1. **Contract first.** Every request and response is a Zod schema in `packages/shared`. Backend validates input and parses output with it. Frontend parses responses with it. Never redefine a type elsewhere. Outside shared, `zod` is a type-only import (lint enforces it); the one exception is the backend `Env` schema in `src/config/env.ts`, which is runtime config, not an API contract.
 2. **Layers.** routes (validate, auth) -> controller (HTTP only) -> service (business rules, transactions) -> repository (only place that touches Prisma). No Prisma outside repositories.
 3. **Ownership in the query.** Every repository method takes `userId` in its `WHERE`. Another user's or a missing resource is `404`, never `403`.
 4. **Dependency injection.** `createApp({ prisma, clock, emailService, env })`. Modules never import `env` or the Prisma singleton. Time comes from the injected `Clock`.

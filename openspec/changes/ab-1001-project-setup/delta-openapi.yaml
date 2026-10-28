@@ -1,0 +1,36 @@
+openapi: 3.1.0
+info:
+  title: Note Taking App API (AB-1001 delta)
+  version: 0.1.0
+  description: |
+    Delta for ticket AB-1001. It adds only the liveness endpoint. It is merged
+    into docs/api/openapi.yaml when the change is archived (docs/SDS.md SA-44).
+servers:
+  - url: /api/v1
+paths:
+  /health:
+    get:
+      operationId: getHealth
+      summary: Liveness check
+      description: Returns 200 while the process is serving requests. It does not query the database (SDS SA-29, SA-54).
+      tags: [health]
+      security: []
+      responses:
+        '200':
+          description: The API is up.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HealthResponse'
+        '500':
+          $ref: '#/components/responses/InternalError'
+components:
+  schemas:
+    HealthResponse:
+      type: object
+      required: [status]
+      additionalProperties: false
+      properties:
+        status:
+          type: string
+          enum: [ok]

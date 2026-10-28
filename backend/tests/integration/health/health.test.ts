@@ -4,7 +4,7 @@ import { describe, expect, it } from 'vitest';
 import { createTestApp } from '../../support/test-app.js';
 
 describe('GET /api/v1/health', () => {
-  it('returns 200 with the shared HealthResponse shape', async () => {
+  it('S-AB1001-01: returns 200 with the shared HealthResponse shape', async () => {
     const { app } = createTestApp();
     const response = await request(app).get('/api/v1/health').expect(200);
     expect(HealthResponseSchema.parse(response.body)).toEqual({ status: 'ok' });
@@ -45,7 +45,7 @@ describe('request id', () => {
 });
 
 describe('unknown routes', () => {
-  it('returns 404 ROUTE_NOT_FOUND in the standard error shape with the request id', async () => {
+  it('S-AB1001-02: returns 404 ROUTE_NOT_FOUND in the standard error shape with the request id', async () => {
     const { app } = createTestApp();
     const response = await request(app).get('/api/v1/nope').expect(404);
     const body = ErrorResponseSchema.parse(response.body);
@@ -61,7 +61,7 @@ describe('unknown routes', () => {
 });
 
 describe('logging', () => {
-  it('logs the request without the Authorization header value', async () => {
+  it('S-AB1001-08: logs the request without the Authorization header value', async () => {
     const { app, logs } = createTestApp();
     await request(app).get('/api/v1/health').set('Authorization', 'Bearer super-secret-token');
     expect(logs.text()).toContain('"url":"/api/v1/health"');

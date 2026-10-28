@@ -16,7 +16,7 @@ const sdsStatuses: Record<string, number> = Object.fromEntries(
 );
 
 describe('ERROR_STATUS', () => {
-  it('matches the binding table in docs/SDS.md section 4.3', () => {
+  it('S-AB1001-07: matches the binding table in docs/SDS.md section 4.3', () => {
     expect(Object.keys(sdsStatuses)).toHaveLength(17);
     expect(ERROR_STATUS).toEqual(sdsStatuses);
   });

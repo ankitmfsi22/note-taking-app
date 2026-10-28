@@ -6,7 +6,7 @@ allowed-tools: Read, Write, Edit, Grep, Glob, Bash(pnpm exec openspec:*), mcp__c
 
 Write the technical plan for ticket $ARGUMENTS. This is Rule 3. Write no production code.
 
-1. Find the change folder `openspec/changes/$ARGUMENTS-*`. Read its `approvals.md`. If it has no line for `spec`, stop and tell the user to approve the spec first (Rule 2).
+1. Find the change folder `openspec/changes/<ticket>-*`, where `<ticket>` is `$ARGUMENTS` in lowercase (for `AB-1001`: `ab-1001-*`). Read its `approvals.md`. If it has no line for `spec`, stop and tell the user to approve the spec first (Rule 2).
 2. Read the approved spec, `delta-openapi.yaml`, and the relevant parts of `docs/SDS.md` and ADRs.
 3. List the file you will write, then write `design.md` with its own [y/n]. Contents:
    - files to create or change, per layer (shared, backend module, migration, frontend feature)

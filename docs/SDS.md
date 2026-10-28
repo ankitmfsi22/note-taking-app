@@ -10,7 +10,7 @@
 
 This document says **how** the system is built. It does not add business rules: every behaviour traces to an FRS requirement. Anything the FRS does not decide is marked **[ASSUMPTION — confirm]** with an ID `(SA-nn)`, and all are listed in [Section 14](#14-assumptions-to-confirm). FRS assumptions keep their `A-nn` IDs.
 
-Per-ticket specs (`openspec/changes/AB-xxxx-*/`) SHALL NOT contradict this document. The HTTP status codes and error codes in Section 7 are **binding for every ticket**.
+Per-ticket specs (`openspec/changes/ab-xxxx-*/`, SA-56) SHALL NOT contradict this document. The HTTP status codes and error codes in Section 7 are **binding for every ticket**.
 
 ---
 
@@ -45,7 +45,7 @@ flowchart LR
 
 ### 1.1 Principles
 
-1. **Contract first.** Every request and response shape is a Zod schema in `packages/shared` (Rule 11). The backend validates input and parses output with it. The frontend parses responses with it. Nothing is redefined elsewhere.
+1. **Contract first.** Every request and response shape is a Zod schema in `packages/shared` (Rule 11). The backend validates input and parses output with it. The frontend parses responses with it. Nothing is redefined elsewhere. Rule 11 covers API contract schemas and types. Outside `packages/shared`, `zod` is a type-only import, which ESLint enforces; the single exception is the backend `Env` schema in `src/config/env.ts` (runtime configuration, not a contract), plus test-local schemas (AB-1001).
 2. **Layers do one thing.** `routes → controller → service → repository` (ADR-0001). Only repositories touch Prisma. Only services hold business rules. Controllers know HTTP and nothing else.
 3. **Ownership in the query.** Every repository method takes `userId` and puts it in the `WHERE` clause (FR-X-1). A foreign or missing resource is the same `404`.
 4. **Stateless API.** No server session. Access token is a JWT. The only server-side auth state is the hashed refresh token and OTP rows.
@@ -1037,7 +1037,7 @@ The component renders each segment as a React text node, wrapping highlighted on
 
 - Every scenario in a ticket's spec delta carries an ID `S-AB<ticket>-<nn>` (two digits, from 01): `#### Scenario: S-AB1002-03 login with wrong password`.
 - The test title starts with the same ID: `it('S-AB1002-03: login with wrong password returns 401 INVALID_CREDENTIALS', ...)`.
-- `scripts/check-scenarios.mjs` (Node built-ins only) reads all `openspec/changes/**/specs/**/spec.md` (and `openspec/specs` after archive), extracts IDs, scans test files in all packages for titles, and **fails** if an ID has zero tests, more than one test, or if a test uses an ID that has no scenario. It runs in CI and in the `/sdd-review` checklist. **[ASSUMPTION — confirm]** (SA-37)
+- `scripts/check-scenarios.mjs` (Node built-ins only) reads `openspec/changes/*/specs/**/spec.md` (the `archive` folder is skipped because archiving merges its deltas into `openspec/specs`) and `openspec/specs/**/spec.md`, extracts IDs, scans test files in all packages for titles, and **fails** if an ID has zero tests, more than one test, or if a test uses an ID that has no scenario. It runs in CI and in the `/sdd-review` checklist. **[ASSUMPTION — confirm]** (SA-37)
 - Each spec delta SHALL include an authorization-denied scenario and a validation-failure scenario (guide rule), plus one per FRS error scenario of the ticket.
 
 ### 10.4 Coverage
@@ -1328,3 +1328,4 @@ SDS assumptions use `SA-nn`. FRS assumptions (`A-nn`) were already approved with
 | SA-53 | pnpm does not run dependency build scripts. `@prisma/engines`, `prisma` and `esbuild` are listed under `ignoredBuiltDependencies` in `pnpm-workspace.yaml`, because Prisma 7 (schema engine present, query compiler) and `tsx` were verified to work without them. pnpm 10 still prints an informational "Ignored build scripts" box on install. | 2, 3 |
 | SA-54 | Error middleware: body-parser `entity.too.large` is `413 PAYLOAD_TOO_LARGE`; `entity.parse.failed`, `encoding.unsupported`, `charset.unsupported`, `request.aborted` and `request.size.invalid` are `400 MALFORMED_JSON`; a stray `ZodError` is `500`. A well-formed client `X-Request-Id` (`[\w.-]{1,128}`) is kept, otherwise a UUID is generated, and the value is returned in the response header and the error body. `GET /api/v1/health` is liveness only and does not query the database. `cookie-parser` and the other dependencies are added by the first ticket that uses them; the `Env` schema grows the same way. | 4, 7 |
 | SA-55 | Frontend shell: shadcn style `radix-nova` (`--base radix --preset nova`, Lucide icons, Geist font). `frontend/components.json` and the generated `src/lib/utils.ts`, `src/index.css` and `src/components/ui/**` are shadcn-owned: excluded from Prettier, and `components/ui` also from ESLint and coverage. `fetch` is called only in `src/lib/api-client.ts` (ESLint `no-restricted-globals`), and `dangerouslySetInnerHTML` and `innerHTML` are banned. Vite serves on port 5173 with `strictPort`, loads `VITE_*` from the root `.env` (`envDir`), and proxies `/api` to `VITE_API_PROXY_TARGET` (default `http://localhost:3000`). The AB-1001 home page is a placeholder that shows the API health and is replaced by AB-1010 and AB-1011. | 9 |
+| SA-56 | OpenSpec 1.15.0 only recognises lowercase kebab-case change names (`new change` rejects `AB-…`, and `validate` and `show` only find the lowercase folder). Change folders are therefore `openspec/changes/ab-xxxx-<slug>/`, for example `ab-1001-project-setup`. Scenario IDs keep the uppercase form `S-ABxxxx-nn`. The CLI creates the folder through the shell, so the `/spec` command writes the files with the Write tool instead. AB-1001 has a retroactive change because the `/spec` tooling was built inside that ticket. | 10 |

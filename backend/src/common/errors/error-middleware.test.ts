@@ -60,7 +60,7 @@ describe('error middleware', () => {
     expect(ErrorResponseSchema.parse(response.body).error.code).toBe('TAG_NOT_FOUND');
   });
 
-  it('turns an unknown error into 500 INTERNAL_ERROR without leaking details, and logs it', async () => {
+  it('S-AB1001-03: turns an unknown error into 500 INTERNAL_ERROR without leaking details, and logs it', async () => {
     const { app, logs } = buildApp((a) =>
       a.get('/x', () => {
         throw new Error('connection to db failed: password=hunter2');
@@ -85,7 +85,7 @@ describe('error middleware', () => {
     expect(ErrorResponseSchema.parse(response.body).error.code).toBe('INTERNAL_ERROR');
   });
 
-  it('maps unparseable JSON to 400 MALFORMED_JSON', async () => {
+  it('S-AB1001-04: maps unparseable JSON to 400 MALFORMED_JSON', async () => {
     const { app } = buildApp((a) => a.post('/x', (_req, res) => res.json({})));
     const response = await request(app)
       .post('/x')
@@ -95,7 +95,7 @@ describe('error middleware', () => {
     expect(ErrorResponseSchema.parse(response.body).error.code).toBe('MALFORMED_JSON');
   });
 
-  it('maps a body over the limit to 413 PAYLOAD_TOO_LARGE', async () => {
+  it('S-AB1001-05: maps a body over the limit to 413 PAYLOAD_TOO_LARGE', async () => {
     const { app } = buildApp((a) => a.post('/x', (_req, res) => res.json({})));
     const response = await request(app)
       .post('/x')

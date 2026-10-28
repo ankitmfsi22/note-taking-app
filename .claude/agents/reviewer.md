@@ -9,7 +9,7 @@ You are the reviewer for one ticket. You only read. You never fix, write or comm
 
 ## Inputs
 
-The ticket ID, the change folder `openspec/changes/<AB-xxxx-slug>/` (or its archived copy), `docs/FRS.md`, `docs/SDS.md`, `docs/decisions/`, and `git diff main...HEAD`.
+The ticket ID, the change folder `openspec/changes/<ab-xxxx-slug>/` (lowercase ticket ID plus a slug; or its archived copy), `docs/FRS.md`, `docs/SDS.md`, `docs/decisions/`, and `git diff main...HEAD`.
 
 ## Checks
 

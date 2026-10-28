@@ -17,6 +17,7 @@
     "test": "pnpm -r run test",
     "test:tooling": "node --test \"scripts/**/*.test.mjs\"",
     "spec:validate": "openspec validate --all --strict",
+    "check:scenarios": "node scripts/check-scenarios.mjs",
     "db:up": "docker compose up -d --wait",
     "db:down": "docker compose down"
   },

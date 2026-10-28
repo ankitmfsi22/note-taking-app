@@ -5,7 +5,7 @@ description: Format and coverage rules for OpenSpec requirements and scenarios i
 
 # Spec and scenario format
 
-A ticket's delta lives at `openspec/changes/AB-xxxx-<slug>/specs/<capability>/spec.md`.
+A ticket's delta lives at `openspec/changes/ab-xxxx-<slug>/specs/<capability>/spec.md`. The folder name is lowercase because the OpenSpec CLI rejects uppercase change names; scenario IDs stay uppercase.
 
 ```markdown
 ## ADDED Requirements

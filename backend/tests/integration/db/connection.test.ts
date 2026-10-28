@@ -3,7 +3,7 @@ import { createPrismaClient } from '../../../src/common/db/prisma.js';
 import { TEST_DATABASE_URL } from '../../support/test-app.js';
 
 describe('database connection', () => {
-  it('connects to the test database through the Prisma pg adapter', async () => {
+  it('S-AB1001-09: connects to PostgreSQL 16 through the Prisma pg adapter', async () => {
     const prisma = createPrismaClient(TEST_DATABASE_URL);
     try {
       const rows = await prisma.$queryRaw<{ db: string; major: string }[]>`

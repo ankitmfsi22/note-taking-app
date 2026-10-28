@@ -5,7 +5,7 @@ argument-hint: AB-xxxx
 
 Implement ticket $ARGUMENTS from its approved tasks.
 
-1. Find `openspec/changes/$ARGUMENTS-*`. Read `approvals.md`. If `spec`, `plan` and `tasks` are not all approved, stop. Check the current branch matches `feature/<domain>/AB-xxxx-*`; never work on `main`.
+1. Find the change folder `openspec/changes/<ticket>-*`, where `<ticket>` is `$ARGUMENTS` in lowercase (for `AB-1001`: `ab-1001-*`). Read `approvals.md`. If `spec`, `plan` and `tasks` are not all approved, stop. Check the current branch matches `feature/<domain>/AB-xxxx-*`; never work on `main`.
 2. Read `proposal.md`, the spec, `design.md`, `tasks.md`, and the CLAUDE.md of each layer you touch.
 3. Work one phase at a time, task by task:
    - Before using a library API, verify it with Context7 (Rule 9).

@@ -41,7 +41,7 @@ describe('validate', () => {
     expect(response.body).toEqual({ params: { id }, query: { page: 2 }, body: { title: 'hello' } });
   });
 
-  it('returns 400 VALIDATION_ERROR with a dotted field path per issue', async () => {
+  it('S-AB1001-06: returns 400 VALIDATION_ERROR with a dotted field path per issue', async () => {
     const app = buildApp((a) =>
       a.post(
         '/x',

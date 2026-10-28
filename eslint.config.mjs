@@ -6,6 +6,14 @@ import { reactRefresh } from 'eslint-plugin-react-refresh';
 import globals from 'globals';
 import tseslint from 'typescript-eslint';
 
+// Rule 11: Zod schemas and API types live in packages/shared. Elsewhere zod is a types-only import.
+const zodTypesOnly = {
+  name: 'zod',
+  allowTypeImports: true,
+  message:
+    'Zod schemas live in packages/shared (Rule 11). Only `import type` from zod is allowed here.',
+};
+
 export default defineConfig(
   globalIgnores([
     '**/node_modules/',
@@ -55,6 +63,7 @@ export default defineConfig(
       '@typescript-eslint/no-restricted-imports': [
         'error',
         {
+          paths: [zodTypesOnly],
           patterns: [
             {
               group: ['**/generated/prisma/**', '@prisma/client', '@prisma/adapter-pg'],
@@ -71,14 +80,18 @@ export default defineConfig(
     },
   },
   {
+    // These files may use Prisma, but never define Zod schemas.
     files: [
       'backend/src/**/*.repository.ts',
       'backend/src/common/db/**',
       'backend/src/server.ts',
       'backend/prisma.config.ts',
-      'backend/src/**/*.test.ts',
-      'backend/tests/**',
     ],
+    rules: { '@typescript-eslint/no-restricted-imports': ['error', { paths: [zodTypesOnly] }] },
+  },
+  {
+    // Backend-only runtime configuration (the Env schema) and tests may use Zod directly.
+    files: ['backend/src/config/env.ts', 'backend/src/**/*.test.ts', 'backend/tests/**'],
     rules: { '@typescript-eslint/no-restricted-imports': 'off' },
   },
   {
@@ -86,6 +99,7 @@ export default defineConfig(
     extends: [reactHooks.configs.flat['recommended-latest'], reactRefresh.configs.vite()],
     languageOptions: { globals: globals.browser },
     rules: {
+      '@typescript-eslint/no-restricted-imports': ['error', { paths: [zodTypesOnly] }],
       'no-restricted-globals': [
         'error',
         { name: 'fetch', message: 'Call the API through apiFetch in src/lib/api-client.ts.' },
@@ -109,7 +123,10 @@ export default defineConfig(
   },
   {
     files: ['frontend/src/**/*.test.{ts,tsx}', 'frontend/src/test/**'],
-    rules: { 'react-refresh/only-export-components': 'off' },
+    rules: {
+      'react-refresh/only-export-components': 'off',
+      '@typescript-eslint/no-restricted-imports': 'off',
+    },
   },
   {
     files: ['**/*.{js,mjs,cjs}'],
