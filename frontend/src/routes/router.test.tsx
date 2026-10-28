@@ -17,8 +17,14 @@ const renderRoute = (path: string) => {
 describe('routes', () => {
   it('createRouter builds a browser router from the route table', () => {
     const router = createRouter();
-    expect(router.routes.map((route) => route.path)).toEqual(['/', '*']);
+    expect(router.routes[0]?.children?.map((route) => route.path)).toEqual(['/', '*']);
     router.dispose();
+  });
+
+  it('shows a loading fallback while the first lazy route loads', async () => {
+    renderRoute('/');
+    expect(screen.getByText('Loading…')).toBeInTheDocument();
+    expect(await screen.findByRole('heading', { name: 'Note App' })).toBeInTheDocument();
   });
 
   it('renders the home page at / with the API status', async () => {

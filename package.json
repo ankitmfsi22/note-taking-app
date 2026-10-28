@@ -18,6 +18,7 @@
     "test:tooling": "node --test \"scripts/**/*.test.mjs\"",
     "spec:validate": "openspec validate --all --strict",
     "check:scenarios": "node scripts/check-scenarios.mjs",
+    "test:e2e": "pnpm --filter e2e run test:e2e",
     "db:up": "docker compose up -d --wait",
     "db:down": "docker compose down"
   },

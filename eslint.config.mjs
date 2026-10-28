@@ -21,6 +21,8 @@ export default defineConfig(
     '**/coverage/',
     '**/src/generated/',
     'e2e/.output/',
+    '**/playwright-report/',
+    '**/test-results/',
     'frontend/src/components/ui/',
     'docs/',
     'openspec/',
@@ -127,6 +129,10 @@ export default defineConfig(
       'react-refresh/only-export-components': 'off',
       '@typescript-eslint/no-restricted-imports': 'off',
     },
+  },
+  {
+    files: ['e2e/**/*.ts'],
+    languageOptions: { globals: globals.node },
   },
   {
     files: ['**/*.{js,mjs,cjs}'],

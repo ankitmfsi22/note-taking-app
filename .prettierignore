@@ -4,6 +4,8 @@ coverage
 pnpm-lock.yaml
 **/src/generated
 e2e/.output
+playwright-report
+test-results
 frontend/src/components/ui
 frontend/src/index.css
 frontend/src/lib/utils.ts

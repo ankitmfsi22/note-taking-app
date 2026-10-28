@@ -54,15 +54,16 @@
 - [x] 7.4 Scenario IDs on the nine existing backend tests
 - [x] 7.5 Tooling tests for scenarios 10 to 25
 - [x] 7.6 This change: proposal, specs, design, tasks and `delta-openapi.yaml`
-- [ ] 7.7 Human approvals: `/approve spec ab-1001`, `/approve plan`, `/approve tasks`
+- [x] 7.7 Human approvals: spec, plan and tasks recorded in `approvals.md` (2026-10-28)
 
 ## 8. Batch 6: remaining AB-1001 work
 
-- [ ] 8.1 `e2e/` package: Playwright config for Chromium with one worker, database reset fixture for `noteapp_e2e`, and a smoke test that loads the home page through the Vite proxy
-- [ ] 8.2 `test:e2e` root script and the `.gitignore` entries for Playwright output
-- [ ] 8.3 `.github/workflows/ci.yml` with the `verify`, `commits`, `security` and `e2e` jobs and every action pinned to a full commit SHA (SA-40)
-- [ ] 8.4 Fill `openspec/config.yaml` with the project context and per-artifact rules
-- [ ] 8.5 Checkpoint: build, lint, test with coverage, tooling tests, `check:scenarios`, `spec:validate`
+- [x] 8.1 `e2e/` package: Playwright config for Chromium with one worker, database reset fixture for `noteapp_e2e`, and a smoke test that loads the home page through the Vite proxy
+- [x] 8.2 `test:e2e` root script and the ESLint and Prettier ignores for Playwright output
+- [x] 8.3 `.github/workflows/ci.yml` with the `verify`, `commits`, `security` and `e2e` jobs and every action pinned to a full commit SHA (SA-40), plus `scripts/ci-workflow.test.mjs`
+- [x] 8.4 Fill `openspec/config.yaml` with the project context, per-artifact rules and apply and archive guidance
+- [x] 8.5 Fix found by the e2e run: a `HydrateFallback` for the lazy routes, with a test
+- [x] 8.6 Checkpoint: build, lint, test with coverage, tooling tests, `check:scenarios`, `spec:validate`, `test:e2e`
 
 ## 9. Close the ticket
 
