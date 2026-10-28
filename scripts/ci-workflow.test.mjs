@@ -8,7 +8,7 @@ const root = join(dirname(fileURLToPath(import.meta.url)), '..');
 const workflow = readFileSync(join(root, '.github', 'workflows', 'ci.yml'), 'utf8');
 
 // SA-40: no tag or branch reference, only a full commit SHA with the version tag as a comment.
-test('the CI workflow pins every action to a full commit SHA with its version tag in a comment', () => {
+test('S-AB1001-29: every action in the CI workflow is pinned to a full commit SHA with its version tag in a comment', () => {
   const uses = [...workflow.matchAll(/^\s*(?:-\s+)?uses:\s*(.+)$/gm)].map(
     (match) => match[1] ?? '',
   );
@@ -18,7 +18,7 @@ test('the CI workflow pins every action to a full commit SHA with its version ta
   }
 });
 
-test('the CI workflow never runs for main, writes nothing and runs the four jobs', () => {
+test('S-AB1001-30: the CI workflow is read-only, skips main and has the four jobs', () => {
   assert.match(workflow, /^permissions:\n {2}contents: read$/m);
   assert.match(workflow, /branches: \['feature\/\*\*'\]/);
   for (const job of ['verify', 'commits', 'security', 'e2e']) {

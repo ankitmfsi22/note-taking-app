@@ -10,14 +10,14 @@ The scenarios below were written to match behaviour that already exists, and eac
 
 ## What Changes
 
-- Adds the pnpm workspace (`backend`, `frontend`, `packages/shared`, and later `e2e`) with exact dependency versions (batches 1 to 5, done).
+- Adds the pnpm workspace (`backend`, `frontend`, `packages/shared` and `e2e`) with exact dependency versions (batches 1 to 6, done).
 - Adds PostgreSQL 16 for development and tests through `docker-compose.yml`, and Prisma 7 with the pg adapter (batch 3, done).
 - Adds the Express 5 app shell: request logging with redaction, the single error response shape, input validation, and `GET /api/v1/health` (batch 4, done).
 - Adds the Vite, React 19, Tailwind 4 and shadcn frontend shell with Testing Library and msw (batch 5, done).
 - Adds the quality gates: root `build`, `lint`, `test`, 80% coverage thresholds, Husky pre-commit, commitlint with `AB#`, and the Rule 11 lint guard (batches 1 to 5, done).
 - Adds the AI context: `AGENTS.md`, `CLAUDE.md`, three layer files, `.claude/` commands, agents, skills and hooks, and the Context7 MCP server (done).
 - Adds `scripts/check-scenarios.mjs`, which enforces one test per scenario (done in this step).
-- Still to do (batch 6): the Playwright `e2e/` package, the GitHub Actions workflow with commit-SHA-pinned actions, and `openspec/config.yaml`.
+- Adds the Playwright `e2e/` package with a smoke test, the GitHub Actions workflow with commit-SHA-pinned actions, a loading fallback for the lazy routes, and the filled `openspec/config.yaml` (batch 6, done).
 
 ## FRS coverage
 
@@ -36,6 +36,8 @@ The scenarios below were written to match behaviour that already exists, and eac
 | SDS SA-29 liveness endpoint | S-AB1001-01 |
 | Rule 11 types and schemas live in `packages/shared` | S-AB1001-16 |
 | SDS 10.3 one test per scenario | S-AB1001-26 to S-AB1001-28 |
+| SDS 11.6 and SA-40 the CI workflow is pinned, read-only and skips main | S-AB1001-29, S-AB1001-30 |
+| SDS 9.1 and SA-35 lazy routes show a loading fallback | S-AB1001-31 |
 
 FR-X-1, FR-X-2 and FR-X-6 apply to features with protected data (AB-1002 onward) and are not part of this change.
 
@@ -47,7 +49,7 @@ FR-X-1, FR-X-2 and FR-X-6 apply to features with protected data (AB-1002 onward)
 
 ## Impact
 
-- New capabilities: `api-foundation` and `project-tooling`.
+- New capabilities: `api-foundation`, `project-tooling` and `frontend-shell`.
 - API: `GET /api/v1/health` (see `delta-openapi.yaml`). No other endpoint.
 - No data migration. The Prisma schema has a generator and a datasource only.
 

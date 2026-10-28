@@ -64,6 +64,7 @@
 - [x] 8.4 Fill `openspec/config.yaml` with the project context, per-artifact rules and apply and archive guidance
 - [x] 8.5 Fix found by the e2e run: a `HydrateFallback` for the lazy routes, with a test
 - [x] 8.6 Checkpoint: build, lint, test with coverage, tooling tests, `check:scenarios`, `spec:validate`, `test:e2e`
+- [x] 8.7 Scenarios S-AB1001-29 to S-AB1001-31 for the CI workflow and the loading fallback, their test IDs, and corrections to the stale statements in the proposal and design (spec, plan and tasks need re-approval)
 
 ## 9. Close the ticket
 

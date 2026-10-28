@@ -99,3 +99,14 @@ The repository SHALL contain `AGENTS.md` (under 200 lines), `CLAUDE.md` (under 1
 #### Scenario: S-AB1001-28 check-scenarios fails on a duplicated or unknown reference
 - **WHEN** two tests claim one scenario, or a test cites an ID that has no scenario
 - **THEN** the script exits non-zero and names the ID
+
+### Requirement: Continuous integration (SDS 11.6, SA-40)
+The CI workflow SHALL run on pull requests and on pushes to `feature/**` branches only, never for `main`, with read-only token permissions and no step that pushes. It SHALL contain the jobs `verify`, `commits`, `security` and `e2e`, with PostgreSQL 16.x service containers. Every action SHALL be pinned to a full 40-character commit SHA, with its version tag in a trailing comment.
+
+#### Scenario: S-AB1001-29 every action in the CI workflow is pinned to a full commit SHA
+- **WHEN** the `uses:` lines of `.github/workflows/ci.yml` are read
+- **THEN** each is `owner/repo@<40 hex characters> # vX.Y.Z`, with no tag or branch reference
+
+#### Scenario: S-AB1001-30 the CI workflow is read-only, skips main and has the four jobs
+- **WHEN** `.github/workflows/ci.yml` is read
+- **THEN** the token permission is `contents: read`, the push trigger is limited to `feature/**`, the jobs `verify`, `commits`, `security` and `e2e` exist, the services use a `postgres:16.x` image, and no step runs `git push`

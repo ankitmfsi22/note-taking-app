@@ -21,7 +21,7 @@ describe('routes', () => {
     router.dispose();
   });
 
-  it('shows a loading fallback while the first lazy route loads', async () => {
+  it('S-AB1001-31: shows a loading fallback while the first lazy route loads', async () => {
     renderRoute('/');
     expect(screen.getByText('Loading…')).toBeInTheDocument();
     expect(await screen.findByRole('heading', { name: 'Note App' })).toBeInTheDocument();

@@ -26,7 +26,8 @@ AB-1001 delivers the foundations that AB-1002 to AB-1016 build on. The binding d
 ## How the scenarios are tested
 
 - Scenarios about the running API (01 to 09) are backend Vitest tests. The integration tests call `createApp()` through Supertest. Scenario 09 uses the real test database, so `pnpm db:up` must be running.
-- Scenarios about the repository setup (10 to 28) are `node:test` files in `scripts/` that run under `pnpm test:tooling`. The pre-commit scenarios run `scripts/pre-commit.sh` in a throwaway git repository with a fake `pnpm` on the `PATH`, so the real checks do not run recursively. The lint scenarios lint code from standard input as if it were an existing file.
+- Scenario 31 (the loading fallback) is a frontend Vitest test with Testing Library.
+- Scenarios about the repository setup and the CI workflow (10 to 30) are `node:test` files in `scripts/` that run under `pnpm test:tooling`. The pre-commit scenarios run `scripts/pre-commit.sh` in a throwaway git repository with a fake `pnpm` on the `PATH`, so the real checks do not run recursively. The lint scenarios lint code from standard input as if it were an existing file.
 - No test uses scenario IDs of another ticket. The IDs inside the `check-scenarios` fixtures are built at run time so this repository never matches them.
 
 ## Risks and trade-offs
@@ -35,7 +36,7 @@ AB-1001 delivers the foundations that AB-1002 to AB-1016 build on. The binding d
 - **Slow tooling tests.** The lint scenarios start ESLint with type information several times, so `pnpm test:tooling` takes a few seconds longer. They run in parallel with the other test files.
 - **No authorization-denied scenario.** AB-1001 has no protected endpoint, so the guide's authorization-denied scenario does not apply. S-AB1001-06 is the validation-failure scenario.
 - **Retroactive scenarios.** They describe behaviour that already existed, so a green run proves the behaviour, not that the scenarios drove the design. The reviewer (`/sdd-review`) should read them for gaps, not only for coverage.
-- **Batch 6 has no scenario.** The Playwright harness, the CI workflow and `openspec/config.yaml` are verified by the CI run and by review, because the FRS has no acceptance criterion for them. The CI workflow pins every action to a full commit SHA (SA-40).
+- **Some batch 6 work has no scenario.** The CI workflow's shape and pins have scenarios 29 and 30 (SA-40), and the loading fallback has scenario 31. The Playwright smoke test and `openspec/config.yaml` have none, because the FRS has no acceptance criterion for them; they are verified by the CI run and by review. The workflow was parsed but not linted with `actionlint` (SA-57), so its first CI run is its real validation.
 
 ## Migration
 
