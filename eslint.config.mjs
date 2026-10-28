@@ -1,6 +1,8 @@
 import js from '@eslint/js';
 import { defineConfig, globalIgnores } from 'eslint/config';
 import prettier from 'eslint-config-prettier/flat';
+import reactHooks from 'eslint-plugin-react-hooks';
+import { reactRefresh } from 'eslint-plugin-react-refresh';
 import globals from 'globals';
 import tseslint from 'typescript-eslint';
 
@@ -78,6 +80,36 @@ export default defineConfig(
       'backend/tests/**',
     ],
     rules: { '@typescript-eslint/no-restricted-imports': 'off' },
+  },
+  {
+    files: ['frontend/**/*.{ts,tsx}'],
+    extends: [reactHooks.configs.flat['recommended-latest'], reactRefresh.configs.vite()],
+    languageOptions: { globals: globals.browser },
+    rules: {
+      'no-restricted-globals': [
+        'error',
+        { name: 'fetch', message: 'Call the API through apiFetch in src/lib/api-client.ts.' },
+      ],
+      'no-restricted-syntax': [
+        'error',
+        {
+          selector: "JSXAttribute[name.name='dangerouslySetInnerHTML']",
+          message: 'Render text nodes. dangerouslySetInnerHTML is banned (SDS 9.5).',
+        },
+        {
+          selector: "AssignmentExpression[left.property.name='innerHTML']",
+          message: 'Render text nodes. innerHTML is banned (SDS 9.5).',
+        },
+      ],
+    },
+  },
+  {
+    files: ['frontend/src/lib/api-client.ts', 'frontend/src/**/*.test.{ts,tsx}'],
+    rules: { 'no-restricted-globals': 'off' },
+  },
+  {
+    files: ['frontend/src/**/*.test.{ts,tsx}', 'frontend/src/test/**'],
+    rules: { 'react-refresh/only-export-components': 'off' },
   },
   {
     files: ['**/*.{js,mjs,cjs}'],

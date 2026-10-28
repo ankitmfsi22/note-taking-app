@@ -22,7 +22,7 @@ const rules = [
     'Do not write files through the shell (Rule 10). Use the Write or Edit tool.',
   ],
   [
-    /\b(echo|printf|cat)\b[^\n|;&]*[^>&\d]>{1,2}\s*(?!\/dev\/null)[^\s&>]/,
+    /\b(echo|printf|cat)\b[^\n|;&]*[^>&\d=-]>{1,2}\s*(?!\/dev\/null)[^\s&>]/,
     'Do not write files through the shell (Rule 10). Use the Write or Edit tool.',
   ],
 ];

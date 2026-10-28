@@ -9,8 +9,8 @@ React 19 + Vite SPA. Design: `docs/SDS.md` section 9. Root rules in `AGENTS.md` 
 ## Commands
 
 - `pnpm --filter frontend run dev | build | typecheck | test | test --coverage`
-- Add a shadcn component from the repo root with the pinned CLI: `pnpm dlx shadcn@4.23.0 add <name> --cwd frontend --yes`. Preview first with `--dry-run`. Never use `@latest`.
-- One-time init (AB-1001, existing project, so no `--template`): `pnpm dlx shadcn@4.23.0 init --cwd frontend --base radix --yes`. Tailwind and the `@/*` alias must already be configured.
+- Add a shadcn component from the repo root with the pinned CLI: `pnpm dlx shadcn@4.23.0 add <name> --cwd frontend --yes`. Preview first with `--dry-run --view`, then write the file with the Write tool (Rule 10); `add` itself writes through the shell. Never use `@latest`.
+- One-time init (AB-1001, existing project, so no `--template`): `pnpm dlx shadcn@4.23.0 init --cwd frontend --base radix --preset nova --yes`. It was run in AB-1001 (style `radix-nova`); do not re-run it. The CLI writes many files at once, so run it in a scratch copy first and write the files with the Write tool (Rule 10). `components.json`, `src/lib/utils.ts` (re-exports `cn` from the `cn` package), `src/index.css` and `src/components/ui/` are shadcn-owned.
 
 ## Patterns
 
