@@ -1,0 +1,129 @@
+openapi: 3.1.0
+info:
+  title: Note Taking App API
+  version: 0.1.0
+  summary: REST API of the Note Taking App (baseline, no endpoints yet).
+  description: |
+    Baseline OpenAPI 3.1 document. It defines only what every endpoint shares:
+    the server base path, the security schemes and the binding error contract
+    (docs/SDS.md Section 4).
+
+    `paths` is intentionally empty. Each ticket adds its endpoints in its own
+    `openspec/changes/<change>/delta-openapi.yaml`, which is merged into this
+    file when the change is archived (docs/SDS.md SA-44). The executable
+    request and response contracts are the Zod schemas in `packages/shared`.
+servers:
+  - url: /api/v1
+    description: Same-origin API base path (SDS SA-01)
+tags:
+  - name: health
+  - name: auth
+  - name: notes
+  - name: tags
+  - name: search
+  - name: shares
+  - name: public
+  - name: versions
+paths: {}
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: Access token, valid 15 minutes. Kept in memory by the client.
+    refreshCookie:
+      type: apiKey
+      in: cookie
+      name: refresh_token
+      description: |
+        Opaque refresh token, HttpOnly, SameSite=Strict, Path=/api/v1/auth,
+        valid 7 days. Used only by /auth/refresh and /auth/logout.
+  schemas:
+    ErrorCode:
+      type: string
+      description: Stable machine-readable error code. Clients branch on this, never on `message`.
+      enum:
+        - VALIDATION_ERROR
+        - MALFORMED_JSON
+        - OTP_INVALID_OR_EXPIRED
+        - UNAUTHORIZED
+        - INVALID_CREDENTIALS
+        - INVALID_REFRESH_TOKEN
+        - FORBIDDEN_ORIGIN
+        - ROUTE_NOT_FOUND
+        - NOTE_NOT_FOUND
+        - TAG_NOT_FOUND
+        - VERSION_NOT_FOUND
+        - SHARE_LINK_NOT_FOUND
+        - EMAIL_TAKEN
+        - TAG_NAME_TAKEN
+        - VERSION_ALREADY_CURRENT
+        - PAYLOAD_TOO_LARGE
+        - INTERNAL_ERROR
+    ErrorDetail:
+      type: object
+      required: [field, message]
+      properties:
+        field:
+          type: string
+          description: Dotted path of the invalid field, for example `content.content.0.type`.
+        message:
+          type: string
+    ErrorResponse:
+      type: object
+      required: [error]
+      properties:
+        error:
+          type: object
+          required: [code, message, requestId]
+          properties:
+            code:
+              $ref: '#/components/schemas/ErrorCode'
+            message:
+              type: string
+              description: Short, human-readable, safe to display. Never contains stack traces or internal detail.
+            details:
+              type: array
+              description: Present only for VALIDATION_ERROR.
+              items:
+                $ref: '#/components/schemas/ErrorDetail'
+            requestId:
+              type: string
+              description: Value of the X-Request-Id response header.
+    PaginationMeta:
+      type: object
+      required: [page, pageSize, total, totalPages]
+      properties:
+        page:
+          type: integer
+          minimum: 1
+        pageSize:
+          type: integer
+          minimum: 1
+          maximum: 100
+        total:
+          type: integer
+          minimum: 0
+        totalPages:
+          type: integer
+          minimum: 0
+  responses:
+    Unauthorized:
+      description: Access token missing, malformed, invalid or expired (UNAUTHORIZED).
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    ValidationError:
+      description: Body, query or path parameter failed validation (VALIDATION_ERROR).
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    InternalError:
+      description: Unexpected failure (INTERNAL_ERROR).
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'

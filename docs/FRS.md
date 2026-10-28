@@ -77,6 +77,7 @@ A full-stack note taking application. Authenticated users create, organise, sear
 | AC-AUTH-09 | Logout SHALL revoke the presented refresh token. The access token expires naturally. Other devices stay signed in. **[ASSUMPTION — confirm]** (A-06) |
 | AC-AUTH-10 | Wrong email and wrong password SHALL produce the same error, so account existence is not revealed. **[ASSUMPTION — confirm]** (A-07) |
 | AC-AUTH-11 | An API response SHALL never contain the password or its hash. |
+| AC-AUTH-12 | Presenting a refresh token that was already revoked or rotated (reuse) SHALL be rejected and SHALL also revoke all active refresh tokens of the user it belonged to (token family revocation), so every device must log in again. An unknown or merely expired token is rejected without revoking anything. **[ASSUMPTION — confirm]** (A-05) |
 
 ### Error scenarios
 
@@ -468,7 +469,7 @@ Every item below is a choice made by the FRS author because the assignment does 
 | A-02 | Password: 8–128 characters, at least one letter and one digit. | AC-AUTH-03 |
 | A-03 | Email is unique case-insensitively and stored in lower case. | AC-AUTH-02 |
 | A-04 | Successful registration logs the user in (returns tokens). | AC-AUTH-04 |
-| A-05 | Refresh tokens rotate on each use. Reuse of a used token is rejected. | AC-AUTH-07, 08 |
+| A-05 | Refresh tokens rotate on each use. Reuse of a revoked or rotated token is rejected and revokes all active refresh tokens of that user (family revocation). | AC-AUTH-07, 08, 12 |
 | A-06 | Logout revokes only the presented refresh token (this device). Logout is idempotent. | AC-AUTH-09, ERR-AUTH-06 |
 | A-07 | Wrong email and wrong password give the same generic error. | AC-AUTH-10 |
 | A-08 | OTP is 6 digits, valid 10 minutes, single use, max 5 wrong attempts, and a new request invalidates the old OTP. | AC-PWD-03, 05, 07 |
@@ -536,7 +537,7 @@ Each ticket to the FRS requirements it must deliver. Every acceptance criterion 
 | Ticket | Title | Feature | Requirements | Error scenarios |
 | --- | --- | --- | --- | --- |
 | AB-1001 | Project setup | Infrastructure | AC-SETUP-01 to 07, FR-X-1 to FR-X-6 (foundations) | none |
-| AB-1002 | Auth: register, login, logout, JWT + refresh | Feature 1 | US-AUTH-1 to 4, AC-AUTH-01 to 11 | ERR-AUTH-01 to 07 |
+| AB-1002 | Auth: register, login, logout, JWT + refresh | Feature 1 | US-AUTH-1 to 4, AC-AUTH-01 to 12 | ERR-AUTH-01 to 07 |
 | AB-1003 | Auth: forgot password + OTP reset | Feature 2 | US-PWD-1 to 2, AC-PWD-01 to 11 | ERR-PWD-01 to 07 |
 | AB-1004 | Notes: CRUD + soft delete | Feature 3 | US-NOTE-1 to 3, AC-NOTE-01 to 10 | ERR-NOTE-01 to 07 |
 | AB-1005 | Notes: pagination, sorting, tag filtering | Feature 4 | US-LIST-1 to 3, AC-LIST-01 to 08 | ERR-LIST-01 to 05 |
