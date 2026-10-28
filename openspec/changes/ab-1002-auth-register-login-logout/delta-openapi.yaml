@@ -1,0 +1,228 @@
+openapi: 3.1.0
+info:
+  title: Note Taking App API (AB-1002 delta)
+  version: 0.1.0
+  description: |
+    Delta for ticket AB-1002. It adds only the four auth endpoints that use
+    the refresh cookie or issue tokens. It is merged into docs/api/openapi.yaml
+    when the change is archived (docs/SDS.md SA-44). Statuses and error codes
+    are binding (docs/SDS.md sections 4.3 and 7.1).
+servers:
+  - url: /api/v1
+paths:
+  /auth/register:
+    post:
+      operationId: register
+      summary: Register and log in
+      description: |
+        Creates the user and logs them in. Sets the `refresh_token` cookie.
+        The email is trimmed and stored in lower case (AC-AUTH-02).
+      tags: [auth]
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RegisterRequest'
+      responses:
+        '201':
+          description: User created and logged in.
+          headers:
+            Set-Cookie:
+              $ref: '#/components/headers/SetRefreshCookie'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthResponse'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '409':
+          description: The email is already registered, in any letter case (EMAIL_TAKEN).
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          $ref: '#/components/responses/InternalError'
+  /auth/login:
+    post:
+      operationId: login
+      summary: Log in
+      description: |
+        Returns an access token (15 minutes) and sets the `refresh_token`
+        cookie (7 days). Wrong email and wrong password give the same error
+        (AC-AUTH-10).
+      tags: [auth]
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+      responses:
+        '200':
+          description: Logged in.
+          headers:
+            Set-Cookie:
+              $ref: '#/components/headers/SetRefreshCookie'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthResponse'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '401':
+          description: Wrong email or password (INVALID_CREDENTIALS).
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          $ref: '#/components/responses/InternalError'
+  /auth/refresh:
+    post:
+      operationId: refresh
+      summary: Rotate the refresh token and get a new access token
+      description: |
+        Uses the `refresh_token` cookie. The presented token is revoked and a
+        new one is set (rotation, AC-AUTH-07). Presenting a token that was
+        already revoked or rotated revokes every active refresh token of that
+        user first (AC-AUTH-12). An unknown or expired token revokes nothing.
+        A present `Origin` header must equal the app origin.
+      tags: [auth]
+      security:
+        - refreshCookie: []
+      responses:
+        '200':
+          description: New access token and rotated cookie.
+          headers:
+            Set-Cookie:
+              $ref: '#/components/headers/SetRefreshCookie'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthResponse'
+        '401':
+          description: |
+            Refresh cookie missing, unknown, expired, revoked or already used
+            (INVALID_REFRESH_TOKEN). The cookie is cleared.
+          headers:
+            Set-Cookie:
+              $ref: '#/components/headers/ClearRefreshCookie'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenOrigin'
+        '500':
+          $ref: '#/components/responses/InternalError'
+  /auth/logout:
+    post:
+      operationId: logout
+      summary: Log out
+      description: |
+        Revokes the presented refresh token if it exists and is active, clears
+        the cookie, and always answers 204 (ERR-AUTH-06). Other sessions of the
+        user stay signed in. A present `Origin` header must equal the app origin.
+      tags: [auth]
+      security:
+        - refreshCookie: []
+      responses:
+        '204':
+          description: Logged out. The cookie is cleared. No body.
+          headers:
+            Set-Cookie:
+              $ref: '#/components/headers/ClearRefreshCookie'
+        '403':
+          $ref: '#/components/responses/ForbiddenOrigin'
+        '500':
+          $ref: '#/components/responses/InternalError'
+components:
+  headers:
+    SetRefreshCookie:
+      description: |
+        `refresh_token=<opaque>; HttpOnly; SameSite=Strict; Path=/api/v1/auth;
+        Max-Age=604800`, plus `Secure` in production. The only place the
+        refresh token is delivered (SDS SA-03).
+      schema:
+        type: string
+    ClearRefreshCookie:
+      description: The same cookie with an empty value and `Max-Age=0`.
+      schema:
+        type: string
+  responses:
+    ForbiddenOrigin:
+      description: The `Origin` header is present and is not the app origin (FORBIDDEN_ORIGIN).
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+  schemas:
+    PublicUser:
+      type: object
+      required: [id, email, displayName, createdAt]
+      additionalProperties: false
+      properties:
+        id:
+          type: string
+          format: uuid
+        email:
+          type: string
+          format: email
+          maxLength: 254
+        displayName:
+          type: [string, 'null']
+          minLength: 1
+          maxLength: 100
+        createdAt:
+          type: string
+          format: date-time
+    RegisterRequest:
+      type: object
+      required: [email, password]
+      properties:
+        email:
+          type: string
+          format: email
+          maxLength: 254
+          description: Trimmed and lower-cased before validation and storage.
+        password:
+          type: string
+          minLength: 8
+          maxLength: 128
+          description: At least one letter and one digit (AC-AUTH-03).
+        displayName:
+          type: string
+          minLength: 1
+          maxLength: 100
+          description: Trimmed. Optional.
+    LoginRequest:
+      type: object
+      required: [email, password]
+      properties:
+        email:
+          type: string
+          format: email
+          maxLength: 254
+        password:
+          type: string
+          minLength: 1
+          maxLength: 128
+          description: No strength rule on login.
+    AuthResponse:
+      type: object
+      required: [user, accessToken, expiresIn]
+      additionalProperties: false
+      properties:
+        user:
+          $ref: '#/components/schemas/PublicUser'
+        accessToken:
+          type: string
+          description: HS256 JWT, issuer `note-app`, audience `note-app-api`. Keep in memory only.
+        expiresIn:
+          type: integer
+          enum: [900]
+          description: Access token lifetime in seconds.

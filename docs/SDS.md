@@ -357,7 +357,7 @@ Never used: **403 for ownership** (another user's resource is `404`, FR-X-1), **
 | `OTP_INVALID_OR_EXPIRED` | 400 | Wrong, expired, used, exhausted or unknown-account OTP. One code for all, so nothing leaks (ERR-PWD-02 to 07). |
 | `UNAUTHORIZED` | 401 | Access token missing, malformed, invalid or expired. |
 | `INVALID_CREDENTIALS` | 401 | Wrong email or password (one message for both, AC-AUTH-10). |
-| `INVALID_REFRESH_TOKEN` | 401 | Refresh cookie missing, unknown, expired, revoked or already used. Reuse of a revoked token also revokes all the user's refresh tokens (AC-AUTH-12). |
+| `INVALID_REFRESH_TOKEN` | 401 | Refresh cookie missing, unknown, expired, revoked or already used. Reuse of a rotated token also revokes all the user's refresh tokens (AC-AUTH-12); a logged-out token revokes nothing else. |
 | `FORBIDDEN_ORIGIN` | 403 | `Origin` header present and not the allowed app origin, on a cookie-authenticated endpoint. |
 | `ROUTE_NOT_FOUND` | 404 | No such route. |
 | `NOTE_NOT_FOUND` | 404 | Note missing, not owned, soft-deleted (normal operations), or not restorable. |
@@ -390,7 +390,7 @@ Never used: **403 for ownership** (another user's resource is `404`, FR-X-1), **
 - Stored **hashed**: `SHA-256(token)` hex in `RefreshToken.tokenHash` (unique). A fast hash is safe here because the input is 256 random bits. The raw token exists only in the cookie. **[ASSUMPTION — confirm]** (SA-07)
 - Lifetime 7 days (`expiresAt`).
 - **Rotation (AC-AUTH-07).** `POST /auth/refresh` runs one transaction: find by hash, require `revokedAt IS NULL` and `expiresAt > now`, set `revokedAt = now` with a compare-and-set update (`updateMany ... where revokedAt is null`, count must be 1), insert a new token. Two concurrent refreshes with the same token: one wins, the other gets `401 INVALID_REFRESH_TOKEN`.
-- **Reuse (AC-AUTH-08, AC-AUTH-12).** An unknown or expired-but-never-revoked token is rejected with `401 INVALID_REFRESH_TOKEN` and nothing else changes. A token that is found with `revokedAt` set (already rotated or logged out) is **reuse**: in the same transaction every active refresh token of that token's user is revoked (`updateMany ... where userId and revokedAt is null`), the transaction commits, and then the service answers `401 INVALID_REFRESH_TOKEN` and clears the cookie. The revoke must be committed before the error is thrown (do not throw inside the transaction callback). Every device of that user must log in again. Access tokens already issued stay valid for up to 15 minutes (section 5.1). **[ASSUMPTION — confirm]** (SA-07)
+- **Reuse (AC-AUTH-08, AC-AUTH-12).** An unknown, expired-but-never-revoked or logged-out token (found with `revokedAt` set and `rotatedAt` null) is rejected with `401 INVALID_REFRESH_TOKEN` and nothing else changes. Rotation sets `revokedAt` and `rotatedAt` together; logout and family revocation set only `revokedAt`. A token that is found with `rotatedAt` set (already replaced by a newer token) is **reuse**: in the same transaction every active refresh token of that token's user is revoked (`updateMany ... where userId and revokedAt is null`), the transaction commits, and then the service answers `401 INVALID_REFRESH_TOKEN` and clears the cookie. The revoke must be committed before the error is thrown (do not throw inside the transaction callback). Every device of that user must log in again. Access tokens already issued stay valid for up to 15 minutes (section 5.1). **[ASSUMPTION — confirm]** (SA-07)
 - **Known cost.** Two refreshes with the same cookie at the same moment (two tabs) make the second one look like reuse and sign the user out everywhere. The single flight plus Web Locks in section 9.3 exist to prevent this, and a test covers it.
 - **Logout (AC-AUTH-09).** Revokes the presented token if it exists and is active. Always `204`, always clears the cookie (ERR-AUTH-06).
 - **Reset (AC-PWD-08).** Revokes every active refresh token of the user.
@@ -523,6 +523,7 @@ model RefreshToken {
   tokenHash String    @unique @db.Char(64)                       // SHA-256 hex
   expiresAt DateTime  @db.Timestamptz(3)
   revokedAt DateTime? @db.Timestamptz(3)
+  rotatedAt DateTime? @db.Timestamptz(3)                         // set with revokedAt only by rotation (reuse detection)
   createdAt DateTime  @default(now()) @db.Timestamptz(3)
 
   user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -706,7 +707,7 @@ Base path `/api/v1`. JSON only. Same-origin (SA-01). **[ASSUMPTION — confirm]*
 | 1 | AB-1001 | `GET /health` | none | none | 200 `HealthResponseSchema` | none **[ASSUMPTION — confirm]** (SA-29) |
 | 2 | AB-1002 | `POST /auth/register` | none | Req `RegisterRequestSchema` | 201 `AuthResponseSchema` + `Set-Cookie` | 400 `VALIDATION_ERROR`; 409 `EMAIL_TAKEN` |
 | 3 | AB-1002 | `POST /auth/login` | none | Req `LoginRequestSchema` | 200 `AuthResponseSchema` + `Set-Cookie` | 400 `VALIDATION_ERROR`; 401 `INVALID_CREDENTIALS` |
-| 4 | AB-1002 | `POST /auth/refresh` | Cookie | none (cookie) | 200 `AuthResponseSchema` + rotated `Set-Cookie` | 401 `INVALID_REFRESH_TOKEN` (cookie cleared; on reuse of a revoked token all the user's refresh tokens are revoked first, AC-AUTH-12); 403 `FORBIDDEN_ORIGIN` |
+| 4 | AB-1002 | `POST /auth/refresh` | Cookie | none (cookie) | 200 `AuthResponseSchema` + rotated `Set-Cookie` | 401 `INVALID_REFRESH_TOKEN` (cookie cleared; on reuse of a rotated token all the user's refresh tokens are revoked first, AC-AUTH-12); 403 `FORBIDDEN_ORIGIN` |
 | 5 | AB-1002 | `POST /auth/logout` | Cookie | none (cookie) | 204, cookie cleared, always | 403 `FORBIDDEN_ORIGIN` |
 | 6 | AB-1003 | `POST /auth/forgot-password` | none | Req `ForgotPasswordRequestSchema` | 204, identical for known and unknown email | 400 `VALIDATION_ERROR` |
 | 7 | AB-1003 | `POST /auth/reset-password` | none | Req `ResetPasswordRequestSchema` | 204 | 400 `VALIDATION_ERROR`; 400 `OTP_INVALID_OR_EXPIRED` |
@@ -1051,7 +1052,7 @@ The component renders each segment as a React text node, wrapping highlighted on
 - **Ownership.** For every resource endpoint, user B calling with user A's ID gets the same `404` as a missing ID.
 - **Soft delete.** A trashed note is absent from list, search, tag counts, share status and versions, and present in trash (AC-NOTE-07).
 - **Contract.** Integration tests parse every success response with the shared response schema, and every error response with `ErrorResponseSchema`.
-- **Concurrency.** 50 parallel public views give `viewCount` 50. Two parallel refreshes with one token give one success and one `401`, and the user's tokens are all revoked afterwards (AC-AUTH-12). Reuse of a revoked token for user A leaves user B's tokens untouched. Two parallel saves keep numbering gap-free.
+- **Concurrency.** 50 parallel public views give `viewCount` 50. Two parallel refreshes with one token give one success and one `401`, and the user's tokens are all revoked afterwards (AC-AUTH-12). Reuse of a rotated token for user A leaves user B's tokens untouched. Two parallel saves keep numbering gap-free.
 - **No secrets in logs.** A test logs a request with `Authorization`, `Cookie` and a password body and asserts the redaction.
 
 ---
@@ -1279,7 +1280,7 @@ SDS assumptions use `SA-nn`. FRS assumptions (`A-nn`) were already approved with
 | SA-04 | Cookie `refresh_token`, `Path=/api/v1/auth`, `SameSite=Strict`, `Secure` in production, `Max-Age` 7 days. | 5.3 |
 | SA-05 | Origin check on `refresh` and `logout`: a present `Origin` that differs from `APP_ORIGIN` gives `403`; an absent `Origin` is allowed. | 5.3 |
 | SA-06 | Access JWT: HS256, issuer `note-app`, audience `note-app-api`, claims `sub`, `iat`, `exp`; access tokens are not revocable and live up to 15 minutes after logout or reset. | 5.1 |
-| SA-07 | Refresh token hashed with SHA-256; rotated on each use; reuse of a revoked or rotated token returns 401 and revokes all active refresh tokens of that user (family revocation, AC-AUTH-12). Unknown or merely expired tokens revoke nothing. | 5.2 |
+| SA-07 | Refresh token hashed with SHA-256; rotated on each use; reuse of a rotated token (`rotatedAt` set) returns 401 and revokes all active refresh tokens of that user (family revocation, AC-AUTH-12). Unknown, merely expired and logged-out tokens revoke nothing else. | 5.2 |
 | SA-08 | Argon2id at the library defaults (19456 KiB, 2, 1); cheaper values allowed only outside production; login runs a dummy verify for unknown emails. | 5.4 |
 | SA-09 | OTP stored as HMAC-SHA256 with a server secret; forgot-password timing difference accepted. | 5.5 |
 | SA-10 | Test-only OTP file: `e2e/.output/otp.jsonl`, JSON Lines, set through `OTP_TEST_FILE`, three guards (env check, dynamic import in the test branch only, unit tests). | 5.6 |
