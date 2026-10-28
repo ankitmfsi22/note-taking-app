@@ -20,6 +20,7 @@ The system SHALL return an access token and set the refresh cookie for valid cre
 
 ## Rules
 
+- A delta that creates a **new capability** starts with a `## Purpose` section (one sentence, before `## ADDED Requirements`). Archiving copies it into the new main spec. Without it, archiving writes a `TBD` placeholder and `openspec validate --strict` fails. A Purpose in a delta for an existing capability is ignored.
 - Scenario ID: `S-AB<ticket>-<nn>`, two digits starting at 01, unique within the ticket. The test title must start with the same ID (SDS section 10.3). `pnpm check:scenarios` enforces one test per ID.
 - Requirements use SHALL. Scenarios use WHEN and THEN and name the exact status and `error.code`.
 - Every FRS AC and ERR ID of the ticket is covered by at least one scenario. Name the FRS ID in the requirement text.

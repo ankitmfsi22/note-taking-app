@@ -68,6 +68,6 @@
 
 ## 9. Close the ticket
 
-- [ ] 9.1 `/sdd-review ab-1001` in a fresh terminal shows all ✅
-- [ ] 9.2 Archive the change: `pnpm exec openspec archive ab-1001-project-setup --yes`
+- [x] 9.1 `/sdd-review ab-1001` in a fresh terminal shows all ✅ (verdict reported by the user, 2026-10-28)
+- [x] 9.2 Archive the change: `pnpm exec openspec archive ab-1001-project-setup --yes`
 - [ ] 9.3 Open the pull request with every FRS requirement and scenario listed (Rule 19)

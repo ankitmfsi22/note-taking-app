@@ -2,16 +2,17 @@ openapi: 3.1.0
 info:
   title: Note Taking App API
   version: 0.1.0
-  summary: REST API of the Note Taking App (baseline, no endpoints yet).
+  summary: REST API of the Note Taking App (AB-1001 baseline, health endpoint only).
   description: |
-    Baseline OpenAPI 3.1 document. It defines only what every endpoint shares:
-    the server base path, the security schemes and the binding error contract
+    OpenAPI 3.1 document. It defines what every endpoint shares: the server
+    base path, the security schemes and the binding error contract
     (docs/SDS.md Section 4).
 
-    `paths` is intentionally empty. Each ticket adds its endpoints in its own
-    `openspec/changes/<change>/delta-openapi.yaml`, which is merged into this
-    file when the change is archived (docs/SDS.md SA-44). The executable
-    request and response contracts are the Zod schemas in `packages/shared`.
+    `paths` grows ticket by ticket. Each ticket describes its endpoints in its
+    own `openspec/changes/<change>/delta-openapi.yaml`, which is merged into
+    this file when the change is archived (docs/SDS.md SA-44). AB-1001 added
+    `GET /health`. The executable request and response contracts are the Zod
+    schemas in `packages/shared`.
 servers:
   - url: /api/v1
     description: Same-origin API base path (SDS SA-01)
@@ -24,7 +25,23 @@ tags:
   - name: shares
   - name: public
   - name: versions
-paths: {}
+paths:
+  /health:
+    get:
+      operationId: getHealth
+      summary: Liveness check
+      description: Returns 200 while the process is serving requests. It does not query the database (SDS SA-29, SA-54).
+      tags: [health]
+      security: []
+      responses:
+        '200':
+          description: The API is up.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HealthResponse'
+        '500':
+          $ref: '#/components/responses/InternalError'
 components:
   securitySchemes:
     bearerAuth:
@@ -40,6 +57,14 @@ components:
         Opaque refresh token, HttpOnly, SameSite=Strict, Path=/api/v1/auth,
         valid 7 days. Used only by /auth/refresh and /auth/logout.
   schemas:
+    HealthResponse:
+      type: object
+      required: [status]
+      additionalProperties: false
+      properties:
+        status:
+          type: string
+          enum: [ok]
     ErrorCode:
       type: string
       description: Stable machine-readable error code. Clients branch on this, never on `message`.

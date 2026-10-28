@@ -14,6 +14,7 @@ rules:
     - Link the ticket ID and list the FRS requirement IDs the change covers
     - State impact, out of scope and a rollback plan
   specs:
+    - Start a delta that creates a new capability with a ## Purpose section, because archiving otherwise writes a TBD placeholder that openspec validate --strict rejects
     - Use WHEN/THEN scenarios named S-ABnnnn-nn
     - Cover every FRS acceptance criterion and error scenario of the ticket
     - Include an authorization-denied scenario and a validation-failure scenario for every endpoint, or say why one does not apply

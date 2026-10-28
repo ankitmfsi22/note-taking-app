@@ -11,7 +11,7 @@ Write the spec for ticket $ARGUMENTS. This is Rule 1. Write no production code.
 3. List the files you will write, then write each one with its own [y/n]:
    - `pnpm exec openspec new change ab-xxxx-<short-slug> --description "<one line>"` creates the folder `openspec/changes/ab-xxxx-<short-slug>/`. The CLI requires lowercase kebab-case names (it rejects `AB-…`), so the folder uses the lowercase ticket ID; scenario IDs keep the uppercase `S-ABxxxx-nn`. The CLI writes files through the shell, so create the folder files yourself with the Write tool (`.openspec.yaml` holds `schema: spec-driven` and `created: <today>`).
    - `proposal.md`: why, what, impact, out of scope, rollback
-   - `specs/<capability>/spec.md`: delta with `## ADDED Requirements`; each requirement uses SHALL
+   - `specs/<capability>/spec.md`: delta with `## ADDED Requirements`; each requirement uses SHALL. For a new capability, begin the file with a `## Purpose` section of one sentence, or archiving leaves a `TBD` placeholder that fails `openspec validate --strict`
    - `delta-openapi.yaml`: only this ticket's paths, copied from SDS section 7 with the exact status and error codes
 4. Scenarios follow the `spec-scenario-format` skill: `#### Scenario: S-ABxxxx-nn <title>` with WHEN and THEN, numbered from 01. Cover every FRS AC and ERR ID of the ticket, plus one authorization-denied and one validation-failure scenario.
 5. Verify any library API you cite with Context7. Mark anything the FRS and SDS do not decide as `[ASSUMPTION — confirm]`.
