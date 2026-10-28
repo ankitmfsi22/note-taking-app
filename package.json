@@ -1,0 +1,12 @@
+{
+  "name": "note-taking-app",
+  "private": true,
+  "packageManager": "pnpm@10.34.9",
+  "engines": {
+    "node": "22.x"
+  },
+  "devDependencies": {
+    "@fission-ai/openspec": "1.15.0",
+    "@upstash/context7-mcp": "4.4.4"
+  }
+}
