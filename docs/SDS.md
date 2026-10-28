@@ -1311,7 +1311,7 @@ SDS assumptions use `SA-nn`. FRS assumptions (`A-nn`) were already approved with
 | SA-36 | Coverage gate is 80% per package on all four metrics; "80% on new code" is checked per ticket by the reviewer. | 10.4 |
 | SA-37 | `scripts/check-scenarios.mjs` enforces exactly one test per `S-AB<ticket>-<nn>` scenario. | 10.3 |
 | SA-38 | The pre-commit hook skips build and test when only docs, openspec, `.claude` or markdown and yaml files are staged. | 11.3 |
-| SA-39 | commitlint: conventional rules, scope required, `references-empty` never with the `AB#` prefix. | 11.3 |
+| SA-39 | commitlint: conventional rules, scope required, `references-empty` never with the `AB#` prefix. Verified in AB-1001 by `scripts/commitlint-config.test.mjs` (7 cases pass). | 11.3 |
 | SA-40 | CI is GitHub Actions with `verify`, `commits`, `security` and `e2e` jobs. Every action is pinned to a full commit SHA with the version tag in a comment; the SHAs are resolved when the workflow file is created in AB-1001. | 11.6 |
 | SA-41 | Database image `postgres:16.15-bookworm`; dev DB on 5432 with a volume, test DB on 5433 on tmpfs with `noteapp_test` and `noteapp_e2e`. | 11.4 |
 | SA-42 | The six version pins in 3.5 differ from the registry `latest` on purpose. | 3.5 |
@@ -1323,3 +1323,4 @@ SDS assumptions use `SA-nn`. FRS assumptions (`A-nn`) were already approved with
 | SA-48 | The public shared-note page is at `/s/:token`; list state lives in URL query parameters. | 9.1 |
 | SA-49 | The list `preview` is the first 150 characters of whitespace-collapsed `contentText`. | 8.1 |
 | SA-50 | `DELETE` on an already-deleted note returns `404 NOTE_NOT_FOUND` and does not change `deletedAt`. | 7.3 |
+| SA-51 | `.prettierignore` excludes `*.md`, `docs/` and `openspec/` (Prettier would reflow every table in the approved docs), so the docs-only pre-commit path effectively checks only staged code, json and yaml outside those folders. Root `pnpm test:tooling` (node:test, no extra dependency) runs the commitlint config test and is part of the pre-commit and CI checks; `pnpm test` stays `pnpm -r run test` so `--coverage` reaches Vitest. | 11.1, 11.3 |

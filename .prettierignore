@@ -1,0 +1,10 @@
+node_modules
+dist
+coverage
+pnpm-lock.yaml
+**/src/generated
+e2e/.output
+frontend/src/components/ui
+*.md
+docs/
+openspec/

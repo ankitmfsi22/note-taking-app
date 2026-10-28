@@ -11,7 +11,10 @@ try {
 const name = path.split('/').pop() ?? '';
 
 const rules = [
-  [name.startsWith('.env') && name !== '.env.example', 'Never write .env files. Edit .env.example instead.'],
+  [
+    name.startsWith('.env') && name !== '.env.example',
+    'Never write .env files. Edit .env.example instead.',
+  ],
   [path.includes('/docs/reference/'), 'docs/reference is the read-only source material.'],
   [
     path.includes('/openspec/specs/') && name !== '.gitkeep',
