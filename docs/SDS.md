@@ -281,7 +281,7 @@ Not added on purpose: a date library (`Intl.DateTimeFormat` and `Intl.RelativeTi
 
 | Package | Version | Where | Reason | Context7 check |
 | --- | --- | --- | --- | --- |
-| vitest | 5.0.5 | all packages | Fixed by the assignment. Node `^22.12` satisfied. | Verified: v8 coverage thresholds, `exclude`, `setupFiles`. |
+| vitest | 5.0.5 | all packages | Fixed by the assignment. Node `^22.12` satisfied. Has `vite` as a required peer (`^6.4 \|\| ^7 \|\| ^8`); pnpm auto-installs it as 8.3.5, the same pin as the frontend, recorded in the lockfile. | Verified: v8 coverage thresholds, `exclude`, `setupFiles`; confirmed by running it in AB-1001. |
 | @vitest/coverage-v8 | 5.0.5 | all packages | Coverage. Must equal Vitest. | Verified. |
 | supertest | 7.3.1 | backend | Fixed by the assignment. | Verified: `request.agent` keeps cookies, `.bearer()`. |
 | @types/supertest | 7.2.1 | backend | Types. | Registry. |
@@ -1089,7 +1089,7 @@ The component renders each segment as a React text node, wrapping highlighted on
 
 ### 11.2 TypeScript
 
-- `tsconfig.base.json`: `strict`, `noUncheckedIndexedAccess`, `exactOptionalPropertyTypes`, `verbatimModuleSyntax`, `isolatedModules`, `skipLibCheck: false`. `types` is listed explicitly per package (TypeScript 6 changed defaults, so nothing relies on them).
+- `tsconfig.base.json`: `strict`, `noUncheckedIndexedAccess`, `exactOptionalPropertyTypes`, `verbatimModuleSyntax`, `isolatedModules`, `skipLibCheck: false`. `types` is listed explicitly per package (TypeScript 6 changed defaults, so nothing relies on them). `packages/shared` uses `types: ["node"]` in both its typecheck and build configs, because zod's declarations reference the global `URL` and `skipLibCheck: false` would otherwise fail the build (found in AB-1001).
 - `backend` and `packages/shared`: `module` and `moduleResolution` `NodeNext`, ESM (`"type": "module"`). Relative imports end in `.js`. **[ASSUMPTION — confirm]** (SA-30)
 - `frontend`: `module` `ESNext`, `moduleResolution` `Bundler`, `jsx` `react-jsx`. The `@/*` alias is set with `paths` only. **No `baseUrl`** (deprecated in TypeScript 6, error TS5101), and no `ignoreDeprecations`.
 - `packages/shared/package.json`: `exports` point to `dist/index.js` and `dist/index.d.ts`. Consumers need `shared` built first, which the root `build` and `dev` scripts guarantee. **[ASSUMPTION — confirm]** (SA-30)
