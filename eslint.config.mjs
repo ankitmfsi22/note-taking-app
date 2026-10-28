@@ -35,6 +35,51 @@ export default defineConfig(
     },
   },
   {
+    files: ['backend/**/*.ts'],
+    languageOptions: { globals: globals.node },
+    rules: {
+      'no-console': 'error',
+      'no-restricted-syntax': [
+        'error',
+        {
+          selector: 'MemberExpression[property.name=/^\\$(queryRawUnsafe|executeRawUnsafe)$/]',
+          message: 'Unsafe raw SQL is banned. Use $queryRaw or $executeRaw as tagged templates.',
+        },
+        {
+          selector: 'MemberExpression[property.value=/^\\$(queryRawUnsafe|executeRawUnsafe)$/]',
+          message: 'Unsafe raw SQL is banned. Use $queryRaw or $executeRaw as tagged templates.',
+        },
+      ],
+      '@typescript-eslint/no-restricted-imports': [
+        'error',
+        {
+          patterns: [
+            {
+              group: ['**/generated/prisma/**', '@prisma/client', '@prisma/adapter-pg'],
+              allowTypeImports: true,
+              message: 'Only repositories and src/common/db touch Prisma (ADR-0001).',
+            },
+            {
+              group: ['**/common/db/**'],
+              message: 'Only server.ts and repositories may import the database module.',
+            },
+          ],
+        },
+      ],
+    },
+  },
+  {
+    files: [
+      'backend/src/**/*.repository.ts',
+      'backend/src/common/db/**',
+      'backend/src/server.ts',
+      'backend/prisma.config.ts',
+      'backend/src/**/*.test.ts',
+      'backend/tests/**',
+    ],
+    rules: { '@typescript-eslint/no-restricted-imports': 'off' },
+  },
+  {
     files: ['**/*.{js,mjs,cjs}'],
     extends: [tseslint.configs.disableTypeChecked],
     languageOptions: { globals: globals.node },

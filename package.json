@@ -8,7 +8,7 @@
   "scripts": {
     "prepare": "husky",
     "postinstall": "pnpm --filter backend run prisma:generate",
-    "dev": "pnpm -r --parallel run dev",
+    "dev": "pnpm --filter @note-app/shared run build && pnpm -r --parallel run dev",
     "build": "pnpm -r run build",
     "typecheck": "pnpm -r run typecheck",
     "lint": "eslint .",
