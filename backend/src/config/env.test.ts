@@ -1,7 +1,11 @@
 import { describe, expect, it } from 'vitest';
 import { loadEnv } from './env.js';
 
-const valid = { DATABASE_URL: 'postgresql://u:p@localhost:5432/db' };
+const valid = {
+  DATABASE_URL: 'postgresql://u:p@localhost:5432/db',
+  JWT_ACCESS_SECRET: 'a'.repeat(32),
+  APP_ORIGIN: 'http://localhost:5173',
+};
 
 describe('loadEnv', () => {
   it('applies the defaults', () => {
@@ -10,7 +14,44 @@ describe('loadEnv', () => {
       PORT: 3000,
       DATABASE_URL: valid.DATABASE_URL,
       LOG_LEVEL: 'info',
+      JWT_ACCESS_SECRET: valid.JWT_ACCESS_SECRET,
+      APP_ORIGIN: valid.APP_ORIGIN,
+      COOKIE_SECURE: false,
+      ARGON2_MEMORY_KIB: 19456,
+      ARGON2_TIME_COST: 2,
     });
+  });
+
+  it('S-AB1002-32: a short JWT secret fails startup', () => {
+    expect(() => loadEnv({ ...valid, JWT_ACCESS_SECRET: 'a'.repeat(31) })).toThrow(
+      /JWT_ACCESS_SECRET/,
+    );
+    expect(loadEnv({ ...valid, JWT_ACCESS_SECRET: 'a'.repeat(32) }).JWT_ACCESS_SECRET).toHaveLength(
+      32,
+    );
+  });
+
+  it('S-AB1002-10: production rejects Argon2 parameters below the minimum', () => {
+    const production = { ...valid, NODE_ENV: 'production', COOKIE_SECURE: 'true' };
+    expect(() => loadEnv({ ...production, ARGON2_MEMORY_KIB: '19455' })).toThrow(
+      /ARGON2_MEMORY_KIB/,
+    );
+    expect(() => loadEnv({ ...production, ARGON2_TIME_COST: '1' })).toThrow(/ARGON2_TIME_COST/);
+    const low = { ARGON2_MEMORY_KIB: '1024', ARGON2_TIME_COST: '1' };
+    expect(loadEnv({ ...valid, ...low, NODE_ENV: 'test' })).toMatchObject({
+      ARGON2_MEMORY_KIB: 1024,
+      ARGON2_TIME_COST: 1,
+    });
+  });
+
+  it('requires COOKIE_SECURE=true in production and parses it elsewhere', () => {
+    expect(() => loadEnv({ ...valid, NODE_ENV: 'production' })).toThrow(/COOKIE_SECURE/);
+    expect(loadEnv({ ...valid, COOKIE_SECURE: 'true' }).COOKIE_SECURE).toBe(true);
+    expect(() => loadEnv({ ...valid, COOKIE_SECURE: 'yes' })).toThrow(/COOKIE_SECURE/);
+  });
+
+  it('requires APP_ORIGIN to be a URL', () => {
+    expect(() => loadEnv({ ...valid, APP_ORIGIN: 'not a url' })).toThrow(/APP_ORIGIN/);
   });
 
   it('coerces PORT from a string', () => {
@@ -18,7 +59,7 @@ describe('loadEnv', () => {
   });
 
   it('accepts the postgres:// scheme as well as postgresql://', () => {
-    expect(loadEnv({ DATABASE_URL: 'postgres://u:p@h/db' }).DATABASE_URL).toBe(
+    expect(loadEnv({ ...valid, DATABASE_URL: 'postgres://u:p@h/db' }).DATABASE_URL).toBe(
       'postgres://u:p@h/db',
     );
   });
@@ -28,7 +69,7 @@ describe('loadEnv', () => {
   });
 
   it('rejects a DATABASE_URL that is not a PostgreSQL URL', () => {
-    expect(() => loadEnv({ DATABASE_URL: 'mysql://u:p@h/db' })).toThrow(/PostgreSQL/);
+    expect(() => loadEnv({ ...valid, DATABASE_URL: 'mysql://u:p@h/db' })).toThrow(/PostgreSQL/);
   });
 
   it('rejects an out-of-range PORT', () => {

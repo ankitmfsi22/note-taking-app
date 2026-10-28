@@ -33,7 +33,15 @@ const unusablePrisma = new Proxy(
 
 export const createTestApp = (overrides: Partial<AppDeps> = {}) => {
   const logs = createLogCapture();
-  const env = loadEnv({ NODE_ENV: 'test', DATABASE_URL: TEST_DATABASE_URL, LOG_LEVEL: 'info' });
+  const env = loadEnv({
+    NODE_ENV: 'test',
+    DATABASE_URL: TEST_DATABASE_URL,
+    LOG_LEVEL: 'info',
+    JWT_ACCESS_SECRET: 'test-only-jwt-access-secret-at-least-32-bytes',
+    APP_ORIGIN: 'http://localhost:5173',
+    ARGON2_MEMORY_KIB: '1024',
+    ARGON2_TIME_COST: '1',
+  });
   const app = createApp({
     prisma: unusablePrisma,
     clock: fixedClock('2026-10-28T12:00:00.000Z'),

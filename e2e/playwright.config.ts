@@ -1,5 +1,13 @@
 import { defineConfig, devices } from '@playwright/test';
-import { BACKEND_PORT, E2E_DATABASE_URL, FRONTEND_PORT } from './support/env';
+import {
+  BACKEND_PORT,
+  E2E_APP_ORIGIN,
+  E2E_ARGON2_MEMORY_KIB,
+  E2E_ARGON2_TIME_COST,
+  E2E_DATABASE_URL,
+  E2E_JWT_ACCESS_SECRET,
+  FRONTEND_PORT,
+} from './support/env';
 
 const isCi = Boolean(process.env['CI']);
 
@@ -28,6 +36,11 @@ export default defineConfig({
         PORT: String(BACKEND_PORT),
         DATABASE_URL: E2E_DATABASE_URL,
         LOG_LEVEL: 'warn',
+        JWT_ACCESS_SECRET: E2E_JWT_ACCESS_SECRET,
+        APP_ORIGIN: E2E_APP_ORIGIN,
+        COOKIE_SECURE: 'false',
+        ARGON2_MEMORY_KIB: String(E2E_ARGON2_MEMORY_KIB),
+        ARGON2_TIME_COST: String(E2E_ARGON2_TIME_COST),
       },
     },
     {
