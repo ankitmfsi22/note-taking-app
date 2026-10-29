@@ -1,0 +1,140 @@
+openapi: 3.1.0
+info:
+  title: Note Taking App API (AB-1005 delta)
+  version: 0.1.0
+  description: |
+    Delta for ticket AB-1005. It adds only `GET /notes` (docs/SDS.md 7.1,
+    row 14). It is merged into docs/api/openapi.yaml when the change is
+    archived (docs/SDS.md SA-44). Statuses and error codes are binding
+    (docs/SDS.md sections 4.3 and 7.1).
+servers:
+  - url: /api/v1
+paths:
+  /notes:
+    get:
+      operationId: listNotes
+      summary: List the caller's notes
+      description: |
+        Returns the caller's non-deleted notes, paginated (AC-LIST-01,
+        AC-LIST-02). Sorted by `sortBy` and `sortOrder`, ties broken by `id`
+        (AC-LIST-03, AC-LIST-04). `tagIds` filters with OR, each note once
+        (AC-LIST-05). A page beyond the last returns empty `items` with
+        correct totals (AC-LIST-07). Any `tagIds` entry that is missing or
+        not the caller's gives `404 TAG_NOT_FOUND` (AC-LIST-08).
+      tags: [notes]
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: page
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            default: 1
+        - name: pageSize
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 20
+        - name: sortBy
+          in: query
+          required: false
+          schema:
+            type: string
+            enum: [updatedAt, createdAt, title]
+            default: updatedAt
+        - name: sortOrder
+          in: query
+          required: false
+          schema:
+            type: string
+            enum: [asc, desc]
+            default: desc
+        - name: tagIds
+          in: query
+          required: false
+          description: Comma-separated tag UUIDs, at most 10 after duplicates are removed (SDS SA-26).
+          style: form
+          explode: false
+          schema:
+            type: array
+            minItems: 1
+            maxItems: 10
+            items:
+              type: string
+              format: uuid
+      responses:
+        '200':
+          description: One page of note list items.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NoteListResponse'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          description: A `tagIds` entry does not exist or belongs to another user (TAG_NOT_FOUND).
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          $ref: '#/components/responses/InternalError'
+components:
+  schemas:
+    NoteListItem:
+      type: object
+      required: [id, title, preview, tags, createdAt, updatedAt]
+      properties:
+        id:
+          type: string
+          format: uuid
+        title:
+          type: string
+          minLength: 1
+          maxLength: 200
+        preview:
+          type: string
+          maxLength: 150
+          description: First 150 characters of the plain text, whitespace collapsed (SDS 8.1).
+        tags:
+          type: array
+          description: The note's tags, shaped as TagResponse (SDS 7.2).
+          items:
+            type: object
+            required: [id, name, color, createdAt]
+            properties:
+              id:
+                type: string
+                format: uuid
+              name:
+                type: string
+                maxLength: 30
+              color:
+                type: string
+                pattern: '^#[0-9A-Fa-f]{6}$'
+              createdAt:
+                type: string
+                format: date-time
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+    NoteListResponse:
+      allOf:
+        - $ref: '#/components/schemas/PaginationMeta'
+        - type: object
+          required: [items]
+          properties:
+            items:
+              type: array
+              items:
+                $ref: '#/components/schemas/NoteListItem'

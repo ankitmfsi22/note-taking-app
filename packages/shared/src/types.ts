@@ -18,11 +18,15 @@ import type { HealthResponseSchema } from './schemas/health.js';
 import type {
   NoteCreateRequestSchema,
   NoteIdParamsSchema,
+  NoteListItemSchema,
+  NoteListQuerySchema,
+  NoteListResponseSchema,
   NoteResponseSchema,
   NoteUpdateRequestSchema,
   TrashListItemSchema,
   TrashListResponseSchema,
 } from './schemas/note.js';
+import type { TagResponseSchema } from './schemas/tag.js';
 import type { TipTapDocSchema } from './schemas/tiptap.js';
 
 export type Id = z.infer<typeof IdSchema>;
@@ -44,3 +48,7 @@ export type NoteIdParams = z.infer<typeof NoteIdParamsSchema>;
 export type NoteResponse = z.infer<typeof NoteResponseSchema>;
 export type TrashListItem = z.infer<typeof TrashListItemSchema>;
 export type TrashListResponse = z.infer<typeof TrashListResponseSchema>;
+export type TagResponse = z.infer<typeof TagResponseSchema>;
+export type NoteListQuery = z.infer<typeof NoteListQuerySchema>;
+export type NoteListItem = z.infer<typeof NoteListItemSchema>;
+export type NoteListResponse = z.infer<typeof NoteListResponseSchema>;

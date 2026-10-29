@@ -1,6 +1,7 @@
 import {
   NoteCreateRequestSchema,
   NoteIdParamsSchema,
+  NoteListQuerySchema,
   NoteUpdateRequestSchema,
   PaginationQuerySchema,
 } from '@note-app/shared';
@@ -21,6 +22,7 @@ export const createNotesRouter = ({
   // Authentication runs before validation, so an anonymous caller always gets 401.
   router.use(requireAuth);
 
+  router.get('/', validate({ query: NoteListQuerySchema }), controller.list);
   router.post('/', validate({ body: NoteCreateRequestSchema }), controller.create);
   // Before /:noteId, or "trash" would be validated as a note id and fail with 400 (SDS 7.1).
   router.get('/trash', validate({ query: PaginationQuerySchema }), controller.listTrash);

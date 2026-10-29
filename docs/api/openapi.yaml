@@ -11,7 +11,7 @@ info:
     `paths` grows ticket by ticket. Each ticket describes its endpoints in its
     own `openspec/changes/<change>/delta-openapi.yaml`, which is merged into
     this file when the change is archived (docs/SDS.md SA-44). AB-1001 added
-    `GET /health`. AB-1002 added the four auth endpoints. AB-1003 added forgot-password and reset-password. AB-1004 added notes CRUD, trash and restore. The executable request and response contracts are the Zod
+    `GET /health`. AB-1002 added the four auth endpoints. AB-1003 added forgot-password and reset-password. AB-1004 added notes CRUD, trash and restore. AB-1005 added the paginated notes list. The executable request and response contracts are the Zod
     schemas in `packages/shared`.
 servers:
   - url: /api/v1
@@ -233,6 +233,68 @@ paths:
         '500':
           $ref: '#/components/responses/InternalError'
   /notes:
+    get:
+      operationId: listNotes
+      summary: List the caller's notes
+      description: |
+        Returns the caller's non-deleted notes, paginated (AC-LIST-01,
+        AC-LIST-02). Sorted by `sortBy` and `sortOrder`, ties broken by `id`
+        (AC-LIST-03, AC-LIST-04). `tagIds` filters with OR, each note once
+        (AC-LIST-05). A page beyond the last returns empty `items` with
+        correct totals (AC-LIST-07). Any `tagIds` entry that is missing or
+        not the caller's gives `404 TAG_NOT_FOUND` (AC-LIST-08).
+      tags: [notes]
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/PageSize'
+        - name: sortBy
+          in: query
+          required: false
+          schema:
+            type: string
+            enum: [updatedAt, createdAt, title]
+            default: updatedAt
+        - name: sortOrder
+          in: query
+          required: false
+          schema:
+            type: string
+            enum: [asc, desc]
+            default: desc
+        - name: tagIds
+          in: query
+          required: false
+          description: Comma-separated tag UUIDs, at most 10 after duplicates are removed (SDS SA-26).
+          style: form
+          explode: false
+          schema:
+            type: array
+            minItems: 1
+            maxItems: 10
+            items:
+              type: string
+              format: uuid
+      responses:
+        '200':
+          description: One page of note list items.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NoteListResponse'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          description: A `tagIds` entry does not exist or belongs to another user (TAG_NOT_FOUND).
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          $ref: '#/components/responses/InternalError'
     post:
       operationId: createNote
       summary: Create a note
@@ -623,6 +685,57 @@ components:
               type: array
               items:
                 $ref: '#/components/schemas/TrashListItem'
+    TagResponse:
+      type: object
+      required: [id, name, color, createdAt]
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+          maxLength: 30
+        color:
+          type: string
+          pattern: '^#[0-9A-Fa-f]{6}$'
+        createdAt:
+          type: string
+          format: date-time
+    NoteListItem:
+      type: object
+      required: [id, title, preview, tags, createdAt, updatedAt]
+      properties:
+        id:
+          type: string
+          format: uuid
+        title:
+          type: string
+          minLength: 1
+          maxLength: 200
+        preview:
+          type: string
+          maxLength: 150
+          description: First 150 characters of the plain text, whitespace collapsed (SDS 8.1).
+        tags:
+          type: array
+          items:
+            $ref: '#/components/schemas/TagResponse'
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+    NoteListResponse:
+      allOf:
+        - $ref: '#/components/schemas/PaginationMeta'
+        - type: object
+          required: [items]
+          properties:
+            items:
+              type: array
+              items:
+                $ref: '#/components/schemas/NoteListItem'
     ErrorCode:
       type: string
       description: Stable machine-readable error code. Clients branch on this, never on `message`.
