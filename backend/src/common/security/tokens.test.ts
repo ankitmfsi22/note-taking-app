@@ -2,6 +2,7 @@ import { SignJWT } from 'jose';
 import { describe, expect, it } from 'vitest';
 import { AppError } from '../errors/app-error.js';
 import {
+  generateOtp,
   generateRefreshToken,
   hashRefreshToken,
   signAccessToken,
@@ -146,5 +147,25 @@ describe('refresh token', () => {
     expect(hashRefreshToken(token)).toMatch(/^[0-9a-f]{64}$/);
     expect(hashRefreshToken(token)).toBe(hashRefreshToken(token));
     expect(hashRefreshToken(token)).not.toBe(token);
+  });
+});
+
+describe('generateOtp', () => {
+  it('is always six digits', () => {
+    for (let i = 0; i < 100; i += 1) expect(generateOtp()).toMatch(/^\d{6}$/);
+  });
+
+  it('zero-pads a value below 100000', () => {
+    expect(generateOtp(() => 42)).toBe('000042');
+  });
+
+  it('draws from 0 up to but not including 1000000', () => {
+    const calls: [number, number][] = [];
+    generateOtp((min, max) => {
+      calls.push([min, max]);
+      return 999_999;
+    });
+
+    expect(calls).toEqual([[0, 1_000_000]]);
   });
 });

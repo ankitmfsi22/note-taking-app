@@ -15,6 +15,10 @@ const EnvSchema = z
     JWT_ACCESS_SECRET: z
       .string()
       .refine((value) => Buffer.byteLength(value) >= 32, 'must be at least 32 bytes'),
+    OTP_HMAC_SECRET: z
+      .string()
+      .refine((value) => Buffer.byteLength(value) >= 32, 'must be at least 32 bytes'),
+    OTP_TEST_FILE: z.string().min(1).optional(),
     APP_ORIGIN: z.url(),
     COOKIE_SECURE: z
       .enum(['true', 'false'])
@@ -22,8 +26,28 @@ const EnvSchema = z
       .transform((value) => value === 'true'),
     ARGON2_MEMORY_KIB: z.coerce.number().int().positive().default(ARGON2_MIN_MEMORY_KIB),
     ARGON2_TIME_COST: z.coerce.number().int().positive().default(ARGON2_MIN_TIME_COST),
+    // SDS 8.5: the in-process purge scheduler; off when an external cron runs job:purge.
+    JOBS_ENABLED: z
+      .enum(['true', 'false'])
+      .default('true')
+      .transform((value) => value === 'true'),
   })
   .superRefine((env, ctx) => {
+    if (env.OTP_HMAC_SECRET === env.JWT_ACCESS_SECRET) {
+      ctx.addIssue({
+        code: 'custom',
+        path: ['OTP_HMAC_SECRET'],
+        message: 'must differ from JWT_ACCESS_SECRET',
+      });
+    }
+    // The OTP sink is test-only (ADR-0004); no other environment may enable it.
+    if (env.OTP_TEST_FILE !== undefined && env.NODE_ENV !== 'test') {
+      ctx.addIssue({
+        code: 'custom',
+        path: ['OTP_TEST_FILE'],
+        message: 'is allowed only when NODE_ENV is test',
+      });
+    }
     if (env.NODE_ENV !== 'production') return;
     if (!env.COOKIE_SECURE) {
       ctx.addIssue({

@@ -16,7 +16,10 @@ model User {
   createdAt    DateTime @default(now()) @db.Timestamptz(3)
   updatedAt    DateTime @updatedAt @db.Timestamptz(3)
 
-  refreshTokens RefreshToken[]
+  refreshTokens     RefreshToken[]
+  passwordResetOtps PasswordResetOtp[] // AB-1003
+  notes             Note[] // AB-1004
+  tags              Tag[] // SDS assigns AB-1006; created early by AB-1005
 }
 
 model RefreshToken {
@@ -32,4 +35,68 @@ model RefreshToken {
 
   @@index([userId])
   @@index([expiresAt]) // housekeeping purge
+}
+
+// ---- AB-1003 --------------------------------------------------------
+model PasswordResetOtp {
+  id            String    @id @default(uuid(7)) @db.Uuid
+  userId        String    @db.Uuid
+  otpHash       String    @db.Char(64) // HMAC-SHA256 hex
+  expiresAt     DateTime  @db.Timestamptz(3)
+  attempts      Int       @default(0)
+  usedAt        DateTime? @db.Timestamptz(3)
+  invalidatedAt DateTime? @db.Timestamptz(3)
+  createdAt     DateTime  @default(now()) @db.Timestamptz(3)
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt(sort: Desc)])
+}
+
+// ---- AB-1004 (indexes: AB-1004 / AB-1005; searchVector: AB-1007; lastVersionNumber: AB-1009)
+model Note {
+  id          String    @id @default(uuid(7)) @db.Uuid
+  userId      String    @db.Uuid
+  title       String    @db.VarChar(200)
+  content     Json      @db.JsonB // TipTap document
+  contentText String    @default("") @db.Text // derived plain text
+  deletedAt   DateTime? @db.Timestamptz(3) // soft delete
+  createdAt   DateTime  @default(now()) @db.Timestamptz(3)
+  updatedAt   DateTime  @updatedAt @db.Timestamptz(3)
+
+  user     User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  noteTags NoteTag[] // SDS assigns AB-1006; created early by AB-1005
+
+  @@index([userId, deletedAt, updatedAt(sort: Desc)]) // AB-1004: default list + trash
+  @@index([userId, deletedAt, createdAt(sort: Desc)]) // AB-1005
+  @@index([userId, deletedAt, title]) // AB-1005
+  @@index([deletedAt]) // AB-1004: purge scan
+}
+
+// ---- AB-1006 (tables created early by AB-1005 for the list tag filter; endpoints stay AB-1006)
+model Tag {
+  id        String   @id @default(uuid(7)) @db.Uuid
+  userId    String   @db.Uuid
+  name      String   @db.VarChar(30) // as typed (trimmed)
+  nameKey   String   @db.VarChar(30) // NFKC + lower-case, for uniqueness
+  color     String   @default("#6B7280") @db.VarChar(7)
+  createdAt DateTime @default(now()) @db.Timestamptz(3)
+  updatedAt DateTime @updatedAt @db.Timestamptz(3)
+
+  user     User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  noteTags NoteTag[]
+
+  @@unique([userId, nameKey])
+}
+
+model NoteTag {
+  noteId    String   @db.Uuid
+  tagId     String   @db.Uuid
+  createdAt DateTime @default(now()) @db.Timestamptz(3)
+
+  note Note @relation(fields: [noteId], references: [id], onDelete: Cascade)
+  tag  Tag  @relation(fields: [tagId], references: [id], onDelete: Cascade)
+
+  @@id([noteId, tagId])
+  @@index([tagId])
 }

@@ -1,5 +1,5 @@
-import { createHash, randomBytes } from 'node:crypto';
-import { ACCESS_TOKEN_TTL_SECONDS } from '@note-app/shared';
+import { createHash, randomBytes, randomInt } from 'node:crypto';
+import { ACCESS_TOKEN_TTL_SECONDS, OTP_LENGTH } from '@note-app/shared';
 import { jwtVerify, SignJWT } from 'jose';
 import { AppError } from '../errors/app-error.js';
 
@@ -51,3 +51,9 @@ export const generateRefreshToken = (): string => randomBytes(32).toString('base
 // Only this hash is stored, so a database leak does not yield usable refresh tokens.
 export const hashRefreshToken = (token: string): string =>
   createHash('sha256').update(token).digest('hex');
+
+// randomInt has no modulo bias; the parameter lets a test force a value that needs padding.
+export const generateOtp = (random: (min: number, max: number) => number = randomInt): string =>
+  random(0, 10 ** OTP_LENGTH)
+    .toString()
+    .padStart(OTP_LENGTH, '0');
