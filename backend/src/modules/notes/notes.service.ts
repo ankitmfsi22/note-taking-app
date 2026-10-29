@@ -8,6 +8,7 @@ import {
 import type { Clock } from '../../common/clock.js';
 import { AppError } from '../../common/errors/app-error.js';
 import { contentTextOf, previewOf } from './content-text.js';
+import { saveWithVersion } from '../versions/save-with-version.js';
 import type { NotesRepository } from './notes.repository.js';
 
 const DAY_MS = 24 * 60 * 60 * 1000;
@@ -38,16 +39,13 @@ export const createNotesService = ({
     return note;
   },
 
-  update: async (userId: string, noteId: string, { title, content }: NoteUpdateRequest) => {
-    const note = await repository.updateActiveForUser(
-      noteId,
-      userId,
-      { title, ...(content === undefined ? {} : contentFields(content)) },
-      clock.now(),
-    );
-    if (!note) throw noteNotFound();
-    return note;
-  },
+  update: (userId: string, noteId: string, { title, content }: NoteUpdateRequest) =>
+    repository.transaction((tx) =>
+      saveWithVersion(tx, userId, noteId, clock.now(), (current) => ({
+        title: title ?? current.title,
+        content: content ?? current.content,
+      })),
+    ),
 
   remove: async (userId: string, noteId: string): Promise<void> => {
     const now = clock.now();

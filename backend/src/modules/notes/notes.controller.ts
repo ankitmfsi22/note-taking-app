@@ -23,6 +23,7 @@ const toNoteResponse = (note: Note) =>
     title: note.title,
     content: note.content,
     tags: [],
+    latestVersion: note.lastVersionNumber,
     createdAt: note.createdAt.toISOString(),
     updatedAt: note.updatedAt.toISOString(),
   });

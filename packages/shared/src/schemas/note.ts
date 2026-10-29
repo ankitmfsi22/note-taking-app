@@ -27,6 +27,7 @@ export const NoteResponseSchema = z.object({
   content: TipTapDocSchema,
   // Always empty until AB-1006 replaces the item schema with TagResponseSchema.
   tags: z.array(z.never()),
+  latestVersion: z.int().min(1),
   createdAt: z.iso.datetime(),
   updatedAt: z.iso.datetime(),
 });
