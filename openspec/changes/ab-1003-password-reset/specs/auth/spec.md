@@ -114,7 +114,7 @@ Only when `NODE_ENV=test` in the real server entry, the console email service SH
 
 #### Scenario: S-AB1003-22 building the email service outside test never imports the sink
 - **WHEN** `buildEmailService` is called for `development` and for `production` with an injected, spied import function
-- **THEN** the spy is never called and the returned service is a `ConsoleEmailService` without a sink, and for `test` the spy is called once with the sink module path
+- **THEN** the spy is never called and the returned service is a `ConsoleEmailService` without a sink, and for `test` the spy is called once
 
 #### Scenario: S-AB1003-23 the console log is unchanged while the sink is active
 - **WHEN** `sendOtp("ada@example.com", "042517")` is called on a service built for `NODE_ENV=test` with a spy on the console logger
