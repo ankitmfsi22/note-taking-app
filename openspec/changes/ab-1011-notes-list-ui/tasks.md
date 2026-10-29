@@ -46,7 +46,7 @@ Estimates in minutes. Test first in each phase. Every checkpoint: `pnpm build`, 
 - [x] 7.2 `pnpm check:scenarios` (one test per S-AB1011-01 to 06), `pnpm spec:validate` (5)
 - [x] 7.3 `pnpm build`, `pnpm lint --max-warnings 0`; `grep` for `dangerouslySetInnerHTML` and `innerHTML` in `frontend/src` finds nothing (5)
 - [ ] 7.4 Manual smoke against `pnpm db:up` and the dev servers: register, list, filter by tag, sort, page, delete, Trash, restore, tag CRUD; reload keeps the URL view (20)
-- [ ] 7.5 Reminder for the user: run `/sdd-review AB-1011` in a fresh terminal; `/pr` only when all green (0)
+- [x] 7.5 Reminder for the user: run `/sdd-review AB-1011` in a fresh terminal; `/pr` only when all green (0)
 
 ## Mapping
 

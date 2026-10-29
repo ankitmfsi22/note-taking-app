@@ -30,7 +30,7 @@ Authorization-denied: S-AB1011-06 (guest at `/notes/trash` goes to login; a fail
 
 ## Assumptions to confirm
 
-- **[ASSUMPTION — confirm]** "New note" creates the note with the title `Untitled` and the default empty document, then navigates to `/notes/:noteId`. That route is built by AB-1012 (parallel); until it lands the router shows the not-found page, and the test only asserts the request and the navigation.
+- **[ASSUMPTION — confirm]** "New note" creates the note with the title `Untitled note` and the default empty document, then navigates to `/notes/:noteId`. That route is built by AB-1012 (parallel); until it lands the router shows the not-found page, and the test only asserts the request and the navigation.
 - **[ASSUMPTION — confirm]** Days remaining in Trash is computed in the browser from `deletedAt` plus `TRASH_RETENTION_DAYS` (30) with `Math.ceil`, the same rule as the server's `daysRemaining`, via a pure helper that takes `now`.
 - **[ASSUMPTION — confirm]** Invalid or missing `page`, `sortBy`, `sortOrder` or `tagIds` in the URL fall back to the defaults (page 1, `updatedAt`, `desc`, no tags) without an error.
 - **[ASSUMPTION — confirm]** Page size is fixed at the default 20; there is no page size control.
