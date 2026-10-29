@@ -20,7 +20,7 @@ const lint = (file, code) =>
   );
 
 const CONTROLLER = 'backend/src/modules/health/health.controller.ts';
-const PAGE = 'frontend/src/routes/home.tsx';
+const PAGE = 'frontend/src/routes/not-found.tsx';
 const ENV = 'backend/src/config/env.ts';
 const ZOD_SCHEMA = "import { z } from 'zod';\nexport const Schema = z.object({ a: z.string() });\n";
 
