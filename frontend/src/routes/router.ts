@@ -31,7 +31,14 @@ export const routes: RouteObject[] = [
         id: 'require-auth',
         loader: requireAuthLoader,
         lazy: () => import('./app-shell'),
-        children: [{ path: '/notes', lazy: () => import('./notes-placeholder') }],
+        children: [
+          { path: '/notes', lazy: () => import('@/features/notes/pages/notes-page') },
+          { path: '/notes/trash', lazy: () => import('@/features/trash/pages/trash-page') },
+          {
+            path: '/notes/:noteId',
+            lazy: () => import('@/features/editor/pages/note-editor-page'),
+          },
+        ],
       },
       { path: '*', lazy: () => import('./not-found') },
     ],

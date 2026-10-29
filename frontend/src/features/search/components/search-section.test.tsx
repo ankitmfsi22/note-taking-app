@@ -7,7 +7,7 @@ import { createMemoryRouter, RouterProvider } from 'react-router';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { useAuthStore } from '@/features/auth/session-store';
 import { routes } from '@/routes/router';
-import { authResponse, errorBody } from '@/test/fixtures';
+import { authResponse, errorBody, pageOf as notesPageOf } from '@/test/fixtures';
 import { createTestQueryClient } from '@/test/render';
 import { server } from '@/test/server';
 
@@ -33,11 +33,16 @@ const page = (items: SearchResultItem[], extra: Partial<SearchResponse> = {}): S
   ...extra,
 });
 
-const NORMAL_LIST = 'No notes to show yet.';
+// The AB-1011 notes page with an empty list.
+const NORMAL_LIST = 'No notes yet.';
 const LOAD = { timeout: 5000 };
 
 const setup = async (path = '/notes') => {
   useAuthStore.getState().setSession(authResponse());
+  server.use(
+    http.get('*/api/v1/tags', () => HttpResponse.json({ items: [] })),
+    http.get('*/api/v1/notes', () => HttpResponse.json(notesPageOf([]))),
+  );
   const router = createMemoryRouter(routes, { initialEntries: [path] });
   render(
     <QueryClientProvider client={createTestQueryClient()}>
