@@ -1,6 +1,7 @@
 import { test as base } from '@playwright/test';
 import pg from 'pg';
 import { E2E_DATABASE_URL } from './env';
+import { clearOtpFile } from './otp';
 
 const quote = (identifier: string) => `"${identifier.replaceAll('"', '""')}"`;
 
@@ -29,6 +30,7 @@ export const test = base.extend<{ cleanDatabase: void }>({
     // eslint-disable-next-line no-empty-pattern -- AB#1001 Playwright requires a destructured first argument
     async ({}, use) => {
       await resetDatabase();
+      await clearOtpFile();
       await use();
     },
     { auto: true },
