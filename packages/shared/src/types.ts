@@ -23,6 +23,11 @@ import type {
   TrashListItemSchema,
   TrashListResponseSchema,
 } from './schemas/note.js';
+import type {
+  SearchQuerySchema,
+  SearchResponseSchema,
+  SearchResultItemSchema,
+} from './schemas/search.js';
 import type { TipTapDocSchema } from './schemas/tiptap.js';
 
 export type Id = z.infer<typeof IdSchema>;
@@ -44,3 +49,6 @@ export type NoteIdParams = z.infer<typeof NoteIdParamsSchema>;
 export type NoteResponse = z.infer<typeof NoteResponseSchema>;
 export type TrashListItem = z.infer<typeof TrashListItemSchema>;
 export type TrashListResponse = z.infer<typeof TrashListResponseSchema>;
+export type SearchQuery = z.infer<typeof SearchQuerySchema>;
+export type SearchResultItem = z.infer<typeof SearchResultItemSchema>;
+export type SearchResponse = z.infer<typeof SearchResponseSchema>;

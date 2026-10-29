@@ -4,9 +4,9 @@ Every checkpoint: `pnpm build`, `pnpm lint --max-warnings 0`, `pnpm format:check
 
 ## 1. Shared contracts
 
-- [ ] 1.1 Support tests for the search schemas (q trim, min, max; pagination)
-- [ ] 1.2 `limits.ts`, `search.ts`, `types.ts`, `index.ts`
-- [ ] 1.3 Checkpoint
+- [x] 1.1 Support tests for the search schemas (q trim, min, max; pagination)
+- [x] 1.2 `limits.ts`, `search.ts`, `types.ts`, `index.ts`
+- [x] 1.3 Checkpoint
 
 ## 2. Database
 
