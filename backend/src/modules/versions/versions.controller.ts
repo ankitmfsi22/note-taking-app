@@ -1,5 +1,4 @@
 import {
-  NoteResponseSchema,
   VersionDetailSchema,
   VersionListResponseSchema,
   type NoteIdParams,
@@ -8,24 +7,11 @@ import {
 } from '@note-app/shared';
 import type { RequestHandler, Response } from 'express';
 import { validParams, validQuery } from '../../common/http/validate.js';
+import { toNoteResponse } from '../notes/notes.controller.js';
 import type { VersionsService } from './versions.service.js';
-
-type Note = Awaited<ReturnType<VersionsService['restore']>>;
 
 // requireAuth runs first on every versions route and always sets it.
 const userIdOf = (res: Response): string => String(res.locals.userId);
-
-// Same mapping as the notes controller; parsing drops userId, contentText and deletedAt.
-const toNoteResponse = (note: Note) =>
-  NoteResponseSchema.parse({
-    id: note.id,
-    title: note.title,
-    content: note.content,
-    tags: [],
-    latestVersion: note.lastVersionNumber,
-    createdAt: note.createdAt.toISOString(),
-    updatedAt: note.updatedAt.toISOString(),
-  });
 
 export const createVersionsController = ({ service }: { service: VersionsService }) => ({
   list: (async (_req, res) => {

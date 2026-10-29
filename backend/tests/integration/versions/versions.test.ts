@@ -155,6 +155,20 @@ describe('list, view and restore', () => {
     expect(errorOf(missing.body).code).toBe('VERSION_NOT_FOUND');
   });
 
+  it('returns the note tags when a version is restored', async () => {
+    const { api, createNote } = await setup();
+    const note = await createNote('A', 'one');
+    const { userId } = await prisma.note.findUniqueOrThrow({ where: { id: note.id } });
+    const tag = await prisma.tag.create({ data: { userId, name: 'Work', nameKey: 'work' } });
+    await prisma.noteTag.create({ data: { noteId: note.id, tagId: tag.id } });
+    await api.patch(note.id, { title: 'B', content: doc('two') });
+
+    const restored = NoteResponseSchema.parse((await api.restore(note.id, 1)).body);
+
+    expect(restored.title).toBe('A');
+    expect(restored.tags.map((item) => item.name)).toEqual(['Work']);
+  });
+
   it('S-AB1009-03: restore creates a new version and updates the note', async () => {
     const { api, noteWithThreeVersions } = await setup();
     const note = await noteWithThreeVersions();
