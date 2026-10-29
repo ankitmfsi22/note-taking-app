@@ -4,6 +4,7 @@ import { useCallback, useRef, useState } from 'react';
 import { Link, useParams } from 'react-router';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
+import { ShareButton } from '@/features/sharing/components/share-button';
 import { VersionDrawer } from '@/features/versions/components/version-drawer';
 import { ApiError } from '@/lib/api-client';
 import { LeaveGuard } from '../components/leave-guard';
@@ -55,16 +56,7 @@ function NoteEditorView({ note }: { note: NoteResponse }) {
         </Link>
         <div className="flex items-center gap-2">
           <SaveStatus />
-          {/* Share is enabled by AB-1014 (sharing). */}
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            disabled
-            title="Sharing is not available yet"
-          >
-            Share
-          </Button>
+          <ShareButton noteId={note.id} />
           <Button type="button" variant="outline" size="sm" onClick={() => setHistoryOpen(true)}>
             Version history
           </Button>

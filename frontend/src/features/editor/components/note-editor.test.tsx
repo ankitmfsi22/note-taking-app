@@ -52,7 +52,7 @@ describe('NoteEditor', () => {
 
     expect(await screen.findByDisplayValue('My note')).toBeInTheDocument();
     expect(screen.getByText('hello')).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'Share' })).toBeDisabled();
+    expect(screen.getByRole('button', { name: 'Share' })).toBeEnabled();
     expect(screen.getByRole('button', { name: 'Version history' })).toBeEnabled();
     for (const name of [
       'Heading 1',
