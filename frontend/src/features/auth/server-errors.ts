@@ -5,6 +5,7 @@ export const MESSAGES = {
   invalidCredentials: 'Email or password is incorrect.',
   network: 'Could not reach the server. Check your connection and try again.',
   emailTaken: 'An account with this email already exists.',
+  otpInvalidOrExpired: 'That code is invalid or has expired. Request a new one.',
   generic: 'Something went wrong. Please try again.',
 } as const;
 
@@ -25,6 +26,8 @@ export const applyServerError = <T extends FieldValues>(
       return formError(MESSAGES.network);
     case 'INVALID_CREDENTIALS':
       return formError(MESSAGES.invalidCredentials);
+    case 'OTP_INVALID_OR_EXPIRED':
+      return formError(MESSAGES.otpInvalidOrExpired);
     case 'EMAIL_TAKEN': {
       const email: string = 'email';
       if (isField(email)) return setError(email, { type: 'server', message: MESSAGES.emailTaken });

@@ -29,6 +29,6 @@ Estimates in minutes. Test first in each phase. Every checkpoint: `pnpm build`, 
 
 ## 5. Forgot and reset password (after AB-1003 is merged)
 
-- [ ] 5.1 Add S-AB1010-07 and S-AB1010-08 to the spec and get approval (10)
-- [ ] 5.2 Tests, then `/forgot-password` and `/reset-password` pages (45)
-- [ ] 5.3 Checkpoint (5)
+- [x] 5.1 Add S-AB1010-07 and S-AB1010-08 to the spec; approved directly by the user in the phase-5 request (10)
+- [x] 5.2 Tests, then `/forgot-password` and `/reset-password` pages (45)
+- [x] 5.3 Checkpoint (5)

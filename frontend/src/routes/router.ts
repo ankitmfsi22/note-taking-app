@@ -17,6 +17,14 @@ export const routes: RouteObject[] = [
         children: [
           { path: '/login', lazy: () => import('@/features/auth/pages/login-page') },
           { path: '/register', lazy: () => import('@/features/auth/pages/register-page') },
+          {
+            path: '/forgot-password',
+            lazy: () => import('@/features/auth/pages/forgot-password-page'),
+          },
+          {
+            path: '/reset-password',
+            lazy: () => import('@/features/auth/pages/reset-password-page'),
+          },
         ],
       },
       {

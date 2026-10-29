@@ -14,9 +14,12 @@ export function Component() {
       <CardContent>
         <LoginForm onSuccess={() => void navigate('/notes', { replace: true })} />
       </CardContent>
-      <CardFooter>
+      <CardFooter className="justify-between">
         <Link to="/register" className="text-primary underline-offset-4 hover:underline">
           Create an account
+        </Link>
+        <Link to="/forgot-password" className="text-primary underline-offset-4 hover:underline">
+          Forgot your password?
         </Link>
       </CardFooter>
     </Card>

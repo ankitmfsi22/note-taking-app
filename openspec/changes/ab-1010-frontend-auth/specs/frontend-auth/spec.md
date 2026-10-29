@@ -56,3 +56,23 @@ On `401 UNAUTHORIZED` from a protected call, `apiFetch` SHALL refresh once and r
 - **THEN** the notes page is shown
 - **WHEN** an authenticated user clicks Logout
 - **THEN** `POST /auth/logout` is sent, the session store is `guest` with no token, the query cache is empty, and the login page is shown
+
+### Requirement: Forgot-password request (AC-FEAUTH-01, AC-FEAUTH-02, AC-FEAUTH-08, AC-PWD-01, AC-PWD-02)
+The app SHALL have a `/forgot-password` page whose form validates the email with the shared `ForgotPasswordRequestSchema` before sending. On `204` the app SHALL move to the reset step at `/reset-password`, carrying the submitted email so that step does not ask for it again. **[ASSUMPTION — confirm]** Because the server's `204` is identical whether or not the account exists (AC-PWD-02), the page shows the same next step either way, never revealing account existence.
+
+#### Scenario: S-AB1010-07 forgot-password page sends the email and moves to the reset step
+- **WHEN** a visitor submits `not-an-email` on `/forgot-password`
+- **THEN** a field error is shown and no request is sent
+- **WHEN** the visitor submits a valid email and the server answers `204`
+- **THEN** exactly one `POST /auth/forgot-password` request is sent with that email, and the `/reset-password` page is shown with the email field already filled in
+
+### Requirement: Password reset (AC-FEAUTH-01, AC-FEAUTH-02, AC-FEAUTH-08, AC-PWD-06)
+The app SHALL have a `/reset-password` page whose form validates with the shared `ResetPasswordRequestSchema` (email, a 6-digit OTP, and a new password following AC-AUTH-03) before sending. `400 OTP_INVALID_OR_EXPIRED` SHALL show one message naming neither the OTP nor the password field (ERR-PWD-02 to ERR-PWD-04, ERR-PWD-06, ERR-PWD-07). On `204` the app SHALL send the user to `/login`.
+
+#### Scenario: S-AB1010-08 reset page with OTP and new password, shows OTP_INVALID_OR_EXPIRED, then goes to login
+- **WHEN** a visitor submits a malformed OTP or a password breaking AC-AUTH-03 on `/reset-password`
+- **THEN** field errors are shown and no request is sent
+- **WHEN** the visitor submits a well-formed email, OTP and new password and the server answers `400 OTP_INVALID_OR_EXPIRED`
+- **THEN** one error message is shown naming neither the OTP nor the password field, and the entered OTP and password are kept
+- **WHEN** the visitor submits again and the server answers `204`
+- **THEN** the `/login` page is shown

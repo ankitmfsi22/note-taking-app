@@ -22,10 +22,11 @@ AB-1010 is the first frontend ticket. Every page after it needs a signed-in user
 | AC-FEAUTH-06 logout | S-AB1010-06 |
 | AC-FEAUTH-07 guards | S-AB1010-06 |
 | 10.1 errors: generic credentials message, network retry keeps data | S-AB1010-03 |
+| AC-FEAUTH-01 forgot and reset pages, AC-FEAUTH-08 guided flow | S-AB1010-07, S-AB1010-08 |
 
 Authorization-denied: S-AB1010-06 (guest on `/notes` goes to `/login`). Validation failure: S-AB1010-01.
 
-**Deferred inside this ticket:** the forgot-password and reset-password pages (rest of AC-FEAUTH-01, all of AC-FEAUTH-08) wait for AB-1003 to be merged, because their shared schemas are not on `main`. When it is, this change gets S-AB1010-07 and S-AB1010-08 and goes back to you for approval before that phase.
+The forgot-password and reset-password pages were added after AB-1003 reached `main` (phase 5).
 
 ## Assumptions to confirm
 

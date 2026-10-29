@@ -16,6 +16,8 @@ Follows SDS 9.1 to 9.3 and 9.6. No backend or shared change; every type comes fr
 | `routes/auth-layout.tsx`, `routes/app-shell.tsx` | AuthLayout (heading `Note App`, API status footer). AppShell (header with email and Logout; renders `<Navigate to="/login">` when the store turns `guest` mid-session, which covers a failed silent refresh). |
 | `routes/notes-placeholder.tsx` | Placeholder `/notes` until AB-1011. |
 | `routes/router.ts` | Root route with `loader: rootLoader` and `HydrateFallback`; `/` redirects to `/notes`; `home.tsx` removed. |
+| `features/auth/components/forgot-password-form.tsx`, `reset-password-form.tsx` | Phase 5. react-hook-form + `zodResolver` with `ForgotPasswordRequestSchema` / `ResetPasswordRequestSchema`. Reset form defaults `email` from the `?email=` query string. |
+| `features/auth/pages/forgot-password-page.tsx`, `reset-password-page.tsx` | Phase 5. Lazy route modules; forgot-password navigates to `/reset-password?email=<email>` on success, reset navigates to `/login`. |
 
 ## Decisions
 
@@ -33,3 +35,4 @@ Follows SDS 9.1 to 9.3 and 9.6. No backend or shared change; every type comes fr
 | S-AB1010-04, S-AB1010-06 | `routes/guards.test.tsx` |
 | S-AB1010-05 | `lib/api-client.test.ts` |
 | S-AB1001-31 (unchanged, still green) | `routes/router.test.tsx` |
+| S-AB1010-07, S-AB1010-08 | `features/auth/pages/forgot-reset-pages.test.tsx` |
