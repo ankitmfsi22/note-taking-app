@@ -24,6 +24,12 @@ import type {
   TrashListResponseSchema,
 } from './schemas/note.js';
 import type { TipTapDocSchema } from './schemas/tiptap.js';
+import type {
+  VersionDetailSchema,
+  VersionListItemSchema,
+  VersionListResponseSchema,
+  VersionParamsSchema,
+} from './schemas/version.js';
 
 export type Id = z.infer<typeof IdSchema>;
 export type ErrorCode = z.infer<typeof ErrorCodeSchema>;
@@ -44,3 +50,7 @@ export type NoteIdParams = z.infer<typeof NoteIdParamsSchema>;
 export type NoteResponse = z.infer<typeof NoteResponseSchema>;
 export type TrashListItem = z.infer<typeof TrashListItemSchema>;
 export type TrashListResponse = z.infer<typeof TrashListResponseSchema>;
+export type VersionParams = z.infer<typeof VersionParamsSchema>;
+export type VersionListItem = z.infer<typeof VersionListItemSchema>;
+export type VersionListResponse = z.infer<typeof VersionListResponseSchema>;
+export type VersionDetail = z.infer<typeof VersionDetailSchema>;

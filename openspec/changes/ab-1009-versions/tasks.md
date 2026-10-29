@@ -4,9 +4,9 @@ Every checkpoint: `pnpm build`, `pnpm lint --max-warnings 0`, `pnpm format:check
 
 ## 1. Shared contracts
 
-- [ ] 1.1 Support tests for the version schemas and `latestVersion`
-- [ ] 1.2 `VERSION_KEEP`, `version.ts`, `note.ts`, `types.ts`, `index.ts`
-- [ ] 1.3 Checkpoint
+- [x] 1.1 Support tests for the version schemas and `latestVersion` (`latestVersion` test lands with 3.3, so backend stays green)
+- [x] 1.2 `VERSION_KEEP`, `version.ts`, `note.ts`, `types.ts`, `index.ts`
+- [x] 1.3 Checkpoint
 
 ## 2. Database
 

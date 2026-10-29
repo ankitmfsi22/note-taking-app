@@ -8,7 +8,7 @@ describe('database connection', () => {
     try {
       const rows = await prisma.$queryRaw<{ db: string; major: string }[]>`
         SELECT current_database() AS db, split_part(current_setting('server_version'), '.', 1) AS major`;
-      expect(rows[0]).toEqual({ db: 'noteapp_test', major: '16' });
+      expect(rows[0]).toEqual({ db: new URL(TEST_DATABASE_URL).pathname.slice(1), major: '16' });
     } finally {
       await prisma.$disconnect();
     }

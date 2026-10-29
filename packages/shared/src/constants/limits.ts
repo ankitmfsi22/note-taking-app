@@ -11,6 +11,7 @@ export const TITLE_MAX = 200;
 export const CONTENT_MAX_BYTES = 512_000;
 export const TIPTAP_MAX_DEPTH = 20;
 export const TRASH_RETENTION_DAYS = 30;
+export const VERSION_KEEP = 50;
 export const PREVIEW_MAX = 150;
 export const PAGE_SIZE_DEFAULT = 20;
 export const PAGE_SIZE_MAX = 100;
