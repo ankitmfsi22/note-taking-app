@@ -4,9 +4,9 @@ Every checkpoint: `pnpm build`, `pnpm lint --max-warnings 0`, `pnpm format:check
 
 ## 1. Shared contracts
 
-- [ ] 1.1 Support tests for `TipTapDocSchema`, pagination and note schemas (one accepted and one rejected case per rule)
-- [ ] 1.2 `limits.ts`, `tiptap.ts`, `common.ts` pagination, `note.ts`, `types.ts`, `index.ts`
-- [ ] 1.3 Checkpoint
+- [x] 1.1 Support tests for `TipTapDocSchema`, pagination and note schemas (one accepted and one rejected case per rule)
+- [x] 1.2 `limits.ts`, `tiptap.ts`, `common.ts` pagination, `note.ts`, `types.ts`, `index.ts`
+- [x] 1.3 Checkpoint
 
 ## 2. Database
 
