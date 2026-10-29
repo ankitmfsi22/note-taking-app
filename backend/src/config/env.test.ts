@@ -5,6 +5,7 @@ const valid = {
   DATABASE_URL: 'postgresql://u:p@localhost:5432/db',
   JWT_ACCESS_SECRET: 'a'.repeat(32),
   APP_ORIGIN: 'http://localhost:5173',
+  OTP_HMAC_SECRET: 'b'.repeat(32),
 };
 
 describe('loadEnv', () => {
@@ -16,6 +17,7 @@ describe('loadEnv', () => {
       LOG_LEVEL: 'info',
       JWT_ACCESS_SECRET: valid.JWT_ACCESS_SECRET,
       APP_ORIGIN: valid.APP_ORIGIN,
+      OTP_HMAC_SECRET: valid.OTP_HMAC_SECRET,
       COOKIE_SECURE: false,
       ARGON2_MEMORY_KIB: 19456,
       ARGON2_TIME_COST: 2,
@@ -27,6 +29,27 @@ describe('loadEnv', () => {
       /JWT_ACCESS_SECRET/,
     );
     expect(loadEnv({ ...valid, JWT_ACCESS_SECRET: 'a'.repeat(32) }).JWT_ACCESS_SECRET).toHaveLength(
+      32,
+    );
+  });
+
+  it('S-AB1003-21: the env schema rejects OTP_TEST_FILE outside the test environment', () => {
+    const withFile = { ...valid, OTP_TEST_FILE: '/tmp/otp.jsonl', COOKIE_SECURE: 'true' };
+    expect(() => loadEnv({ ...withFile, NODE_ENV: 'development' })).toThrow(/OTP_TEST_FILE/);
+    expect(() => loadEnv({ ...withFile, NODE_ENV: 'production' })).toThrow(/OTP_TEST_FILE/);
+    expect(loadEnv({ ...withFile, NODE_ENV: 'test' }).OTP_TEST_FILE).toBe('/tmp/otp.jsonl');
+  });
+
+  it('S-AB1003-24: the env schema enforces the OTP_HMAC_SECRET rules', () => {
+    const { OTP_HMAC_SECRET: _omitted, ...missing } = valid;
+    expect(() => loadEnv(missing)).toThrow(/OTP_HMAC_SECRET/);
+    expect(() => loadEnv({ ...valid, OTP_HMAC_SECRET: 'b'.repeat(31) })).toThrow(
+      /OTP_HMAC_SECRET/,
+    );
+    expect(() => loadEnv({ ...valid, OTP_HMAC_SECRET: valid.JWT_ACCESS_SECRET })).toThrow(
+      /OTP_HMAC_SECRET/,
+    );
+    expect(loadEnv({ ...valid, OTP_HMAC_SECRET: 'c'.repeat(32) }).OTP_HMAC_SECRET).toHaveLength(
       32,
     );
   });

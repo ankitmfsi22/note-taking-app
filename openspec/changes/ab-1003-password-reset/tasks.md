@@ -14,12 +14,12 @@ No SDS or FRS change is needed (design.md, intro), so there is no prerequisite p
 
 ## 2. Environment and e2e variables [PARALLEL]
 
-- [ ] 2.1 Test `S-AB1003-21: the env schema rejects OTP_TEST_FILE outside the test environment` in `backend/src/config/env.test.ts` (development, production rejected, test accepted) (15)
-- [ ] 2.2 Test `S-AB1003-24: the env schema enforces the OTP_HMAC_SECRET rules` in `backend/src/config/env.test.ts` (missing, 31 bytes, equal to the JWT secret rejected, distinct 32 bytes accepted) (15)
-- [ ] 2.3 `backend/src/config/env.ts`: add `OTP_HMAC_SECRET` (at least 32 bytes, different from `JWT_ACCESS_SECRET`) and optional `OTP_TEST_FILE` (only when `NODE_ENV` is `test`); update `valid` and the "applies the defaults" case in `env.test.ts` (25)
-- [ ] 2.4 `e2e/support/env.ts` and `e2e/playwright.config.ts`: test-only `E2E_OTP_HMAC_SECRET` (at least 32 bytes, different from the JWT secret) passed as `OTP_HMAC_SECRET` to the backend web server; leave `OTP_TEST_FILE` unset (10)
-- [ ] 2.5 `backend/tests/support/test-app.ts`: add `OTP_HMAC_SECRET` to `createTestEnv` (5)
-- [ ] 2.6 Checkpoint (5)
+- [x] 2.1 Test `S-AB1003-21: the env schema rejects OTP_TEST_FILE outside the test environment` in `backend/src/config/env.test.ts` (development, production rejected, test accepted) (15)
+- [x] 2.2 Test `S-AB1003-24: the env schema enforces the OTP_HMAC_SECRET rules` in `backend/src/config/env.test.ts` (missing, 31 bytes, equal to the JWT secret rejected, distinct 32 bytes accepted) (15)
+- [x] 2.3 `backend/src/config/env.ts`: add `OTP_HMAC_SECRET` (at least 32 bytes, different from `JWT_ACCESS_SECRET`) and optional `OTP_TEST_FILE` (only when `NODE_ENV` is `test`); update `valid` and the "applies the defaults" case in `env.test.ts` (25)
+- [x] 2.4 `e2e/support/env.ts` and `e2e/playwright.config.ts`: test-only `E2E_OTP_HMAC_SECRET` (at least 32 bytes, different from the JWT secret) passed as `OTP_HMAC_SECRET` to the backend web server; leave `OTP_TEST_FILE` unset (10)
+- [x] 2.5 `backend/tests/support/test-app.ts`: add `OTP_HMAC_SECRET` to `createTestEnv` (5)
+- [x] 2.6 Checkpoint (5)
 
 ## 3. Database
 

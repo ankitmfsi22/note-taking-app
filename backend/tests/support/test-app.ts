@@ -54,6 +54,7 @@ export const createTestEnv = (overrides: Record<string, string> = {}) =>
     DATABASE_URL: TEST_DATABASE_URL,
     LOG_LEVEL: 'info',
     JWT_ACCESS_SECRET: 'test-only-jwt-access-secret-at-least-32-bytes',
+    OTP_HMAC_SECRET: 'test-only-otp-hmac-secret-at-least-32-bytes',
     APP_ORIGIN: TEST_APP_ORIGIN,
     ARGON2_MEMORY_KIB: '1024',
     ARGON2_TIME_COST: '1',
