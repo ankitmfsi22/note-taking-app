@@ -25,6 +25,10 @@ import { createNotesController } from './modules/notes/notes.controller.js';
 import { createNotesRepository } from './modules/notes/notes.repository.js';
 import { createNotesRouter } from './modules/notes/notes.routes.js';
 import { createNotesService } from './modules/notes/notes.service.js';
+import { createSearchController } from './modules/search/search.controller.js';
+import { createSearchRepository } from './modules/search/search.repository.js';
+import { createSearchRouter } from './modules/search/search.routes.js';
+import { createSearchService } from './modules/search/search.service.js';
 import { createTagsController } from './modules/tags/tags.controller.js';
 import { createTagsRepository } from './modules/tags/tags.repository.js';
 import { createNoteTagsRouter, createTagsRouter } from './modules/tags/tags.routes.js';
@@ -89,6 +93,10 @@ export const createApp = (deps: AppDeps): Express => {
     }),
   );
 
+  const requireAuth = createRequireAuth({
+    secret: deps.env.JWT_ACCESS_SECRET,
+    clock: deps.clock,
+  });
   app.use(
     '/api/v1/notes',
     createNotesRouter({
@@ -98,14 +106,22 @@ export const createApp = (deps: AppDeps): Express => {
           clock: deps.clock,
         }),
       }),
-      requireAuth: createRequireAuth({ secret: deps.env.JWT_ACCESS_SECRET, clock: deps.clock }),
+      requireAuth,
+    }),
+  );
+  app.use(
+    '/api/v1/search',
+    createSearchRouter({
+      controller: createSearchController({
+        service: createSearchService({ repository: createSearchRepository(deps.prisma) }),
+      }),
+      requireAuth,
     }),
   );
 
   const tagsController = createTagsController({
     service: createTagsService({ repository: createTagsRepository(deps.prisma) }),
   });
-  const requireAuth = createRequireAuth({ secret: deps.env.JWT_ACCESS_SECRET, clock: deps.clock });
   app.use('/api/v1/tags', createTagsRouter({ controller: tagsController, requireAuth }));
   app.use('/api/v1/notes', createNoteTagsRouter({ controller: tagsController, requireAuth }));
 
