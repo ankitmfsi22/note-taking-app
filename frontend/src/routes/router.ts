@@ -32,7 +32,12 @@ export const routes: RouteObject[] = [
         loader: requireAuthLoader,
         lazy: () => import('./app-shell'),
         children: [
-          { path: '/notes', lazy: () => import('./notes-placeholder') },
+          { path: '/notes', lazy: () => import('@/features/notes/pages/notes-page') },
+          { path: '/notes/trash', lazy: () => import('@/features/trash/pages/trash-page') },
+          {
+            path: '/notes/:noteId',
+            lazy: () => import('@/features/editor/pages/note-editor-page'),
+          },
           { path: '/shares', lazy: () => import('@/features/sharing/pages/shares-page') },
         ],
       },
