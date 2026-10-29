@@ -4,6 +4,7 @@ import { useCallback, useRef, useState } from 'react';
 import { Link, useParams } from 'react-router';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
+import { ShareButton } from '@/features/sharing/components/share-button';
 import { ApiError } from '@/lib/api-client';
 import { LeaveGuard } from '../components/leave-guard';
 import { NoteEditor } from '../components/note-editor';
@@ -45,16 +46,8 @@ function NoteEditorView({ note }: { note: NoteResponse }) {
         </Link>
         <div className="flex items-center gap-2">
           <SaveStatus />
-          {/* Enabled by AB-1014 (sharing) and AB-1015 (version history). */}
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            disabled
-            title="Sharing is not available yet"
-          >
-            Share
-          </Button>
+          <ShareButton noteId={note.id} />
+          {/* Enabled by AB-1015 (version history). */}
           <Button
             type="button"
             variant="outline"
