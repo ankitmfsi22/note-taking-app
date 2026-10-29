@@ -29,6 +29,37 @@ const methodsFor = (db: Db) => ({
     expiresAt,
   }: Pick<Prisma.RefreshTokenUncheckedCreateInput, 'userId' | 'tokenHash' | 'expiresAt'>) =>
     db.refreshToken.create({ data: { userId, tokenHash, expiresAt } }),
+
+  findRefreshTokenByHash: (tokenHash: string) =>
+    db.refreshToken.findUnique({ where: { tokenHash }, include: { user: true } }),
+
+  // Compare-and-set: only the request that still sees the row active changes it. Returns the count,
+  // so 0 means a concurrent refresh won. Sets rotatedAt too, which is what marks it as replaced.
+  rotateRefreshToken: async (id: string, now: Date): Promise<number> =>
+    (
+      await db.refreshToken.updateMany({
+        where: { id, revokedAt: null },
+        data: { revokedAt: now, rotatedAt: now },
+      })
+    ).count,
+
+  // Logout and family revocation set revokedAt only, so a logged-out token is never taken for a
+  // rotated one (AC-AUTH-12).
+  revokeActiveToken: async (tokenHash: string, now: Date): Promise<number> =>
+    (
+      await db.refreshToken.updateMany({
+        where: { tokenHash, revokedAt: null },
+        data: { revokedAt: now },
+      })
+    ).count,
+
+  revokeAllActiveForUser: async (userId: string, now: Date): Promise<number> =>
+    (
+      await db.refreshToken.updateMany({
+        where: { userId, revokedAt: null },
+        data: { revokedAt: now },
+      })
+    ).count,
 });
 
 export const createAuthRepository = (prisma: PrismaClient) => ({

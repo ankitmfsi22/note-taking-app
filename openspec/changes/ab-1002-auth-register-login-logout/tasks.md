@@ -85,25 +85,25 @@ Then the code:
 
 Tests first, in `refresh.test.ts`, `logout.test.ts` and `origin-check.test.ts` under `backend/tests/integration/auth/`:
 
-- [ ] 7.1 Test `S-AB1002-18: refresh rotates the refresh token` (15)
-- [ ] 7.2 Test `S-AB1002-19: an unknown token returns 401 and revokes nothing` (15)
-- [ ] 7.3 Test `S-AB1002-20: an expired token returns 401 and revokes nothing`, with the mutable clock (15)
-- [ ] 7.4 Test `S-AB1002-21: two concurrent refreshes with one token let exactly one win`, also asserting the user's tokens are all revoked afterwards (SDS 10.5) (25)
-- [ ] 7.5 Test `S-AB1002-22: reuse of a rotated token revokes all of the user's tokens` (20)
-- [ ] 7.6 Test `S-AB1002-23: a logged-out token returns 401 and revokes nothing else` (15)
-- [ ] 7.7 Test `S-AB1002-24: logout revokes the token and keeps other devices signed in` (15)
-- [ ] 7.8 Test `S-AB1002-25: logout with an unknown, revoked or missing cookie is a no-op success` (15)
-- [ ] 7.9 Test `S-AB1002-26: refresh from a foreign origin returns 403 FORBIDDEN_ORIGIN` (10)
-- [ ] 7.10 Test `S-AB1002-27: logout from a foreign origin returns 403 FORBIDDEN_ORIGIN` (10)
-- [ ] 7.11 Test `S-AB1002-28: matching or absent Origin is allowed` (10)
+- [x] 7.1 Test `S-AB1002-18: refresh rotates the refresh token` (15)
+- [x] 7.2 Test `S-AB1002-19: an unknown token returns 401 and revokes nothing` (15)
+- [x] 7.3 Test `S-AB1002-20: an expired token returns 401 and revokes nothing`, with the mutable clock (15)
+- [x] 7.4 Test `S-AB1002-21: two concurrent refreshes with one token let exactly one win`, also asserting the user's tokens are all revoked afterwards (SDS 10.5) (25)
+- [x] 7.5 Test `S-AB1002-22: reuse of a rotated token revokes all of the user's tokens` (20)
+- [x] 7.6 Test `S-AB1002-23: a logged-out token returns 401 and revokes nothing else` (15)
+- [x] 7.7 Test `S-AB1002-24: logout revokes the token and keeps other devices signed in` (15)
+- [x] 7.8 Test `S-AB1002-25: logout with an unknown, revoked or missing cookie is a no-op success` (15)
+- [x] 7.9 Test `S-AB1002-26: refresh from a foreign origin returns 403 FORBIDDEN_ORIGIN` (10)
+- [x] 7.10 Test `S-AB1002-27: logout from a foreign origin returns 403 FORBIDDEN_ORIGIN` (10)
+- [x] 7.11 Test `S-AB1002-28: matching or absent Origin is allowed` (10)
 
 Then the code:
 
-- [ ] 7.12 `backend/src/modules/auth/auth.repository.ts`: `findRefreshTokenByHash`, `rotateRefreshToken` (compare-and-set), `revokeActiveToken`, `revokeAllActiveForUser` (35)
-- [ ] 7.13 (subagent) `backend/src/modules/auth/auth.service.ts` and `auth.service.test.ts`: `refresh` with the outcome-returning transaction (`rotated`, `invalid`, `reuse`), the compare-and-set loser re-read, and the throw after commit; verify `$transaction` against the installed Prisma 7.10.1 client (60)
-- [ ] 7.14 `backend/src/modules/auth/auth.service.ts`: `logout` that never throws for token state (15)
-- [ ] 7.15 `backend/src/modules/auth/auth.controller.ts` and `auth.routes.ts`: `POST /refresh` and `POST /logout` with `originCheck` first and the router-level error handler that clears the cookie on `INVALID_REFRESH_TOKEN` (40)
-- [ ] 7.16 Checkpoint (5)
+- [x] 7.12 `backend/src/modules/auth/auth.repository.ts`: `findRefreshTokenByHash`, `rotateRefreshToken` (compare-and-set), `revokeActiveToken`, `revokeAllActiveForUser` (35)
+- [x] 7.13 (subagent) `backend/src/modules/auth/auth.service.ts` and `auth.service.test.ts`: `refresh` with the outcome-returning transaction (`rotated`, `invalid`, `reuse`), the compare-and-set loser re-read, and the throw after commit; verify `$transaction` against the installed Prisma 7.10.1 client (60)
+- [x] 7.14 `backend/src/modules/auth/auth.service.ts`: `logout` that never throws for token state (15)
+- [x] 7.15 `backend/src/modules/auth/auth.controller.ts` and `auth.routes.ts`: `POST /refresh` and `POST /logout` with `originCheck` first and the router-level error handler that clears the cookie on `INVALID_REFRESH_TOKEN` (40)
+- [x] 7.16 Checkpoint (5)
 
 ## 8. Cross-cutting scenarios
 

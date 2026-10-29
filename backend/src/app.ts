@@ -47,7 +47,14 @@ export const createApp = (deps: AppDeps): Express => {
   });
 
   app.use('/api/v1', healthRouter);
-  app.use('/api/v1/auth', createAuthRouter({ controller: authController }));
+  app.use(
+    '/api/v1/auth',
+    createAuthRouter({
+      controller: authController,
+      appOrigin: deps.env.APP_ORIGIN,
+      secureCookie: deps.env.COOKIE_SECURE,
+    }),
+  );
 
   app.use(notFoundHandler);
   app.use(createErrorHandler(deps.logger));

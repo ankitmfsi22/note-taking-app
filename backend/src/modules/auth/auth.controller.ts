@@ -4,10 +4,18 @@ import {
   type LoginRequest,
   type RegisterRequest,
 } from '@note-app/shared';
-import type { RequestHandler, Response } from 'express';
+import type { Request, RequestHandler, Response } from 'express';
 import { validBody } from '../../common/http/validate.js';
 import type { AuthService } from './auth.service.js';
-import { setRefreshCookie } from './refresh-cookie.js';
+import { clearRefreshCookie, REFRESH_COOKIE_NAME, setRefreshCookie } from './refresh-cookie.js';
+
+// cookie-parser fills req.cookies; anything other than a string counts as no cookie.
+const refreshTokenFrom = (req: Request): string | undefined => {
+  const cookies: unknown = req.cookies;
+  if (typeof cookies !== 'object' || cookies === null) return undefined;
+  const value = REFRESH_COOKIE_NAME in cookies ? cookies[REFRESH_COOKIE_NAME] : undefined;
+  return typeof value === 'string' ? value : undefined;
+};
 
 export const createAuthController = ({
   service,
@@ -35,6 +43,16 @@ export const createAuthController = ({
 
     login: (async (_req, res) => {
       respond(res, 200, await service.login(validBody<LoginRequest>(res)));
+    }) satisfies RequestHandler,
+
+    refresh: (async (req, res) => {
+      respond(res, 200, await service.refresh(refreshTokenFrom(req)));
+    }) satisfies RequestHandler,
+
+    logout: (async (req, res) => {
+      await service.logout(refreshTokenFrom(req));
+      clearRefreshCookie(res, secureCookie);
+      res.status(204).end();
     }) satisfies RequestHandler,
   };
 };

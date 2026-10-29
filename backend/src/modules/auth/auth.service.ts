@@ -97,6 +97,58 @@ export const createAuthService = ({
         refreshToken: await issueRefreshToken(repository, user.id),
       };
     },
+
+    refresh: async (rawToken: string | undefined) => {
+      // The callback never throws: an error would roll back the family revocation, so the outcome
+      // is returned and the error is raised only after the commit (SDS 5.2).
+      const outcome = await repository.transaction(async (tx) => {
+        const now = clock.now();
+        if (rawToken === undefined) return { kind: 'invalid' } as const;
+        const tokenHash = hashRefreshToken(rawToken);
+
+        const row = await tx.findRefreshTokenByHash(tokenHash);
+        if (row === null) return { kind: 'invalid' } as const;
+
+        if (row.rotatedAt !== null) {
+          await tx.revokeAllActiveForUser(row.userId, now);
+          return { kind: 'reuse' } as const;
+        }
+        // Logged out or already revoked with its family: not a theft signal, so nothing else changes.
+        if (row.revokedAt !== null || row.expiresAt <= now) return { kind: 'invalid' } as const;
+
+        if ((await tx.rotateRefreshToken(row.id, now)) === 1) {
+          return {
+            kind: 'rotated',
+            user: row.user,
+            refreshToken: await issueRefreshToken(tx, row.userId),
+          } as const;
+        }
+
+        // A concurrent refresh won the compare-and-set; if it rotated this token, this is a reuse.
+        const current = await tx.findRefreshTokenByHash(tokenHash);
+        if (current?.rotatedAt != null) {
+          await tx.revokeAllActiveForUser(row.userId, now);
+          return { kind: 'reuse' } as const;
+        }
+        return { kind: 'invalid' } as const;
+      });
+
+      if (outcome.kind !== 'rotated') {
+        throw new AppError('INVALID_REFRESH_TOKEN', 'Invalid refresh token');
+      }
+      return {
+        user: toPublicUser(outcome.user),
+        accessToken: await issueAccessToken(outcome.user.id),
+        refreshToken: outcome.refreshToken,
+      };
+    },
+
+    // Idempotent: an unknown, revoked or missing token is not an error, and the count is ignored
+    // (AC-AUTH-09). Only revokedAt is set, so the token is never mistaken for a rotated one.
+    logout: async (rawToken: string | undefined): Promise<void> => {
+      if (rawToken === undefined) return;
+      await repository.revokeActiveToken(hashRefreshToken(rawToken), clock.now());
+    },
   };
 };
 
