@@ -26,6 +26,11 @@ const EnvSchema = z
       .transform((value) => value === 'true'),
     ARGON2_MEMORY_KIB: z.coerce.number().int().positive().default(ARGON2_MIN_MEMORY_KIB),
     ARGON2_TIME_COST: z.coerce.number().int().positive().default(ARGON2_MIN_TIME_COST),
+    // SDS 8.5: the in-process purge scheduler; off when an external cron runs job:purge.
+    JOBS_ENABLED: z
+      .enum(['true', 'false'])
+      .default('true')
+      .transform((value) => value === 'true'),
   })
   .superRefine((env, ctx) => {
     if (env.OTP_HMAC_SECRET === env.JWT_ACCESS_SECRET) {

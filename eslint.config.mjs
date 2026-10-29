@@ -87,6 +87,7 @@ export default defineConfig(
       'backend/src/**/*.repository.ts',
       'backend/src/common/db/**',
       'backend/src/server.ts',
+      'backend/src/jobs/purge-cli.ts',
       'backend/prisma.config.ts',
     ],
     rules: { '@typescript-eslint/no-restricted-imports': ['error', { paths: [zodTypesOnly] }] },

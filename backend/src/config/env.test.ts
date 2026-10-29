@@ -21,7 +21,13 @@ describe('loadEnv', () => {
       COOKIE_SECURE: false,
       ARGON2_MEMORY_KIB: 19456,
       ARGON2_TIME_COST: 2,
+      JOBS_ENABLED: true,
     });
+  });
+
+  it('turns the job scheduler off with JOBS_ENABLED=false', () => {
+    expect(loadEnv({ ...valid, JOBS_ENABLED: 'false' }).JOBS_ENABLED).toBe(false);
+    expect(() => loadEnv({ ...valid, JOBS_ENABLED: 'no' })).toThrow(/JOBS_ENABLED/);
   });
 
   it('S-AB1002-32: a short JWT secret fails startup', () => {

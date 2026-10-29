@@ -5,7 +5,7 @@ import request from 'supertest';
 import { describe, expect, it } from 'vitest';
 import { z } from 'zod';
 import { createErrorHandler, notFoundHandler } from '../errors/error-middleware.js';
-import { validate, validBody } from './validate.js';
+import { validate, validBody, validParams, validQuery } from './validate.js';
 
 const buildApp = (setup: (app: Express) => void) => {
   const app = express();
@@ -111,5 +111,27 @@ describe('validBody', () => {
     );
     const response = await request(app).post('/x').send({}).expect(500);
     expect(ErrorResponseSchema.parse(response.body).error.code).toBe('INTERNAL_ERROR');
+  });
+});
+
+describe('validParams and validQuery', () => {
+  it('return the parsed params and query that validate() stored', async () => {
+    const app = buildApp((a) =>
+      a.get(
+        '/items/:id',
+        validate({
+          params: z.object({ id: z.string() }),
+          query: z.object({ page: z.coerce.number() }),
+        }),
+        (_req, res) => {
+          res.json({
+            id: validParams<{ id: string }>(res).id,
+            page: validQuery<{ page: number }>(res).page,
+          });
+        },
+      ),
+    );
+    const response = await request(app).get('/items/a?page=3').expect(200);
+    expect(response.body).toEqual({ id: 'a', page: 3 });
   });
 });

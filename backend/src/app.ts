@@ -4,6 +4,7 @@ import type { Logger } from 'pino';
 import type { Clock } from './common/clock.js';
 import { createErrorHandler, notFoundHandler } from './common/errors/error-middleware.js';
 import { createRequestLogger } from './common/http/request-logging.js';
+import { createRequireAuth } from './common/http/require-auth.js';
 import {
   createOtpHasher,
   createPasswordHasher,
@@ -20,6 +21,10 @@ import { createPasswordResetController } from './modules/auth/password-reset.con
 import { createPasswordResetService } from './modules/auth/password-reset.service.js';
 import type { EmailService } from './modules/email/email.service.js';
 import { healthRouter } from './modules/health/health.routes.js';
+import { createNotesController } from './modules/notes/notes.controller.js';
+import { createNotesRepository } from './modules/notes/notes.repository.js';
+import { createNotesRouter } from './modules/notes/notes.routes.js';
+import { createNotesService } from './modules/notes/notes.service.js';
 
 export interface AppDeps {
   prisma: PrismaClient;
@@ -77,6 +82,19 @@ export const createApp = (deps: AppDeps): Express => {
       passwordResetController,
       appOrigin: deps.env.APP_ORIGIN,
       secureCookie: deps.env.COOKIE_SECURE,
+    }),
+  );
+
+  app.use(
+    '/api/v1/notes',
+    createNotesRouter({
+      controller: createNotesController({
+        service: createNotesService({
+          repository: createNotesRepository(deps.prisma),
+          clock: deps.clock,
+        }),
+      }),
+      requireAuth: createRequireAuth({ secret: deps.env.JWT_ACCESS_SECRET, clock: deps.clock }),
     }),
   );
 

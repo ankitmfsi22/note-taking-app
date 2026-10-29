@@ -18,6 +18,7 @@ model User {
 
   refreshTokens     RefreshToken[]
   passwordResetOtps PasswordResetOtp[] // AB-1003
+  notes             Note[] // AB-1004
 }
 
 model RefreshToken {
@@ -49,4 +50,21 @@ model PasswordResetOtp {
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId, createdAt(sort: Desc)])
+}
+
+// ---- AB-1004 (indexes: AB-1004 / AB-1005; searchVector: AB-1007; lastVersionNumber: AB-1009)
+model Note {
+  id          String    @id @default(uuid(7)) @db.Uuid
+  userId      String    @db.Uuid
+  title       String    @db.VarChar(200)
+  content     Json      @db.JsonB // TipTap document
+  contentText String    @default("") @db.Text // derived plain text
+  deletedAt   DateTime? @db.Timestamptz(3) // soft delete
+  createdAt   DateTime  @default(now()) @db.Timestamptz(3)
+  updatedAt   DateTime  @updatedAt @db.Timestamptz(3)
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, deletedAt, updatedAt(sort: Desc)]) // AB-1004: default list + trash
+  @@index([deletedAt]) // AB-1004: purge scan
 }

@@ -9,7 +9,8 @@
     "prisma:generate": "prisma generate",
     "build": "pnpm run prisma:generate && tsc -p tsconfig.build.json",
     "typecheck": "tsc -p tsconfig.json",
-    "test": "vitest run"
+    "test": "vitest run",
+    "job:purge": "tsx --env-file=../.env src/jobs/purge-cli.ts"
   },
   "devDependencies": {
     "@types/cookie-parser": "1.4.10",
