@@ -25,6 +25,10 @@ import { createNotesController } from './modules/notes/notes.controller.js';
 import { createNotesRepository } from './modules/notes/notes.repository.js';
 import { createNotesRouter } from './modules/notes/notes.routes.js';
 import { createNotesService } from './modules/notes/notes.service.js';
+import { createSearchController } from './modules/search/search.controller.js';
+import { createSearchRepository } from './modules/search/search.repository.js';
+import { createSearchRouter } from './modules/search/search.routes.js';
+import { createSearchService } from './modules/search/search.service.js';
 
 export interface AppDeps {
   prisma: PrismaClient;
@@ -85,6 +89,10 @@ export const createApp = (deps: AppDeps): Express => {
     }),
   );
 
+  const requireAuth = createRequireAuth({
+    secret: deps.env.JWT_ACCESS_SECRET,
+    clock: deps.clock,
+  });
   app.use(
     '/api/v1/notes',
     createNotesRouter({
@@ -94,7 +102,16 @@ export const createApp = (deps: AppDeps): Express => {
           clock: deps.clock,
         }),
       }),
-      requireAuth: createRequireAuth({ secret: deps.env.JWT_ACCESS_SECRET, clock: deps.clock }),
+      requireAuth,
+    }),
+  );
+  app.use(
+    '/api/v1/search',
+    createSearchRouter({
+      controller: createSearchController({
+        service: createSearchService({ repository: createSearchRepository(deps.prisma) }),
+      }),
+      requireAuth,
     }),
   );
 

@@ -15,10 +15,10 @@ Every checkpoint: `pnpm build`, `pnpm lint --max-warnings 0`, `pnpm format:check
 
 ## 3. Search endpoint
 
-- [ ] 3.1 Unit test for `escape-highlight.ts`
-- [ ] 3.2 Tests `S-AB1007-01` to `S-AB1007-06`
-- [ ] 3.3 `escape-highlight.ts`, repository, service, controller, routes, `app.ts`
-- [ ] 3.4 Checkpoint
+- [x] 3.1 Unit test for `escape-highlight.ts`
+- [x] 3.2 Tests `S-AB1007-01` to `S-AB1007-06`
+- [x] 3.3 `escape-highlight.ts`, repository, service, controller, routes, `app.ts`
+- [x] 3.4 Checkpoint
 
 ## 4. Verification
 
