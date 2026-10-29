@@ -25,6 +25,10 @@ import { createNotesController } from './modules/notes/notes.controller.js';
 import { createNotesRepository } from './modules/notes/notes.repository.js';
 import { createNotesRouter } from './modules/notes/notes.routes.js';
 import { createNotesService } from './modules/notes/notes.service.js';
+import { createTagsController } from './modules/tags/tags.controller.js';
+import { createTagsRepository } from './modules/tags/tags.repository.js';
+import { createNoteTagsRouter, createTagsRouter } from './modules/tags/tags.routes.js';
+import { createTagsService } from './modules/tags/tags.service.js';
 
 export interface AppDeps {
   prisma: PrismaClient;
@@ -97,6 +101,13 @@ export const createApp = (deps: AppDeps): Express => {
       requireAuth: createRequireAuth({ secret: deps.env.JWT_ACCESS_SECRET, clock: deps.clock }),
     }),
   );
+
+  const tagsController = createTagsController({
+    service: createTagsService({ repository: createTagsRepository(deps.prisma) }),
+  });
+  const requireAuth = createRequireAuth({ secret: deps.env.JWT_ACCESS_SECRET, clock: deps.clock });
+  app.use('/api/v1/tags', createTagsRouter({ controller: tagsController, requireAuth }));
+  app.use('/api/v1/notes', createNoteTagsRouter({ controller: tagsController, requireAuth }));
 
   app.use(notFoundHandler);
   app.use(createErrorHandler(deps.logger));
