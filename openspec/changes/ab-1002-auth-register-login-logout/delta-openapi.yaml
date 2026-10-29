@@ -88,8 +88,9 @@ paths:
       description: |
         Uses the `refresh_token` cookie. The presented token is revoked and a
         new one is set (rotation, AC-AUTH-07). Presenting a token that was
-        already revoked or rotated revokes every active refresh token of that
-        user first (AC-AUTH-12). An unknown or expired token revokes nothing.
+        already rotated (replaced by a newer token) revokes every active
+        refresh token of that user first (AC-AUTH-12). A token revoked by
+        logout, an unknown token and an expired token revoke nothing.
         A present `Origin` header must equal the app origin.
       tags: [auth]
       security:

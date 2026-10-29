@@ -114,6 +114,18 @@ describe('access token', () => {
     );
   });
 
+  it('rejects a correctly signed token that has no subject', async () => {
+    const token = await new SignJWT({})
+      .setProtectedHeader({ alg: 'HS256' })
+      .setIssuer('note-app')
+      .setAudience('note-app-api')
+      .setIssuedAt(NOW_SECONDS)
+      .setExpirationTime(NOW_SECONDS + 900)
+      .sign(new TextEncoder().encode(SECRET));
+
+    await expectUnauthorized(verifyAccessToken(token, SECRET, NOW));
+  });
+
   it('rejects a string that is not a token', async () => {
     await expectUnauthorized(verifyAccessToken('not-a-jwt', SECRET, NOW));
   });
