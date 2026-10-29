@@ -6,9 +6,9 @@
 - [x] 1.3 Checkpoint: `pnpm build`, `pnpm lint --max-warnings 0`, `pnpm test`
 
 ### Phase 2 - components and mount (tests first)
-- [ ] 2.1 Tests S-AB1013-01 to S-AB1013-06 in `search-section.test.tsx` (40 min)
-- [ ] 2.2 `highlighted-text.tsx`, `search-results.tsx`, `search-section.tsx`, mount in `notes-placeholder.tsx` (30 min)
-- [ ] 2.3 Checkpoint: `pnpm build`, `pnpm lint --max-warnings 0`, `pnpm test`
+- [x] 2.1 Tests S-AB1013-01 to S-AB1013-06 in `search-section.test.tsx` (40 min)
+- [x] 2.2 `highlighted-text.tsx`, `search-results.tsx`, `search-section.tsx`, mount in `notes-placeholder.tsx` (30 min)
+- [x] 2.3 Checkpoint: `pnpm build`, `pnpm lint --max-warnings 0`, `pnpm test`
 
 ### Phase 3 - final
 - [ ] 3.1 `pnpm test --coverage`, `pnpm check:scenarios`, `pnpm spec:validate`; run the reviewer agent

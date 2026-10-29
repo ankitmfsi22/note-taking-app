@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { parseHighlight } from './highlight';
 
 describe('parseHighlight', () => {
-  it('S-AB1013-02: decodes the five entities and honours only the exact mark tokens', () => {
+  it('decodes the five entities and honours only the exact mark tokens', () => {
     expect(
       parseHighlight(
         '&lt;script&gt;alert(1)&lt;/script&gt; <mark>plan</mark> &amp; &quot;q&quot; &#39;x&#39; &lt;mark&gt;fake&lt;/mark&gt;',
@@ -14,7 +14,7 @@ describe('parseHighlight', () => {
     ]);
   });
 
-  it('S-AB1013-02: unbalanced and nested-looking input never throws and yields only text', () => {
+  it('unbalanced and nested-looking input never throws and yields only text', () => {
     expect(parseHighlight('a</mark>b')).toEqual([
       { text: 'a', highlighted: false },
       { text: 'b', highlighted: false },
