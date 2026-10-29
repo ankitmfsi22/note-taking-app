@@ -8,7 +8,8 @@ const postJson = (body: unknown) => ({
   auth: false,
 });
 
-export const login = (body: LoginRequest) => apiFetch('/auth/login', AuthResponseSchema, postJson(body));
+export const login = (body: LoginRequest) =>
+  apiFetch('/auth/login', AuthResponseSchema, postJson(body));
 
 export const register = (body: RegisterRequest) =>
   apiFetch('/auth/register', AuthResponseSchema, postJson(body));

@@ -7,12 +7,19 @@ export const testUser: PublicUser = {
   createdAt: '2026-10-01T10:00:00.000Z',
 };
 
-export const authResponse = (accessToken = 'access-1', user: PublicUser = testUser): AuthResponse => ({
+export const authResponse = (
+  accessToken = 'access-1',
+  user: PublicUser = testUser,
+): AuthResponse => ({
   user,
   accessToken,
   expiresIn: 900,
 });
 
-export const errorBody = (code: string, message = code, details?: { field: string; message: string }[]) => ({
+export const errorBody = (
+  code: string,
+  message = code,
+  details?: { field: string; message: string }[],
+) => ({
   error: { code, message, details, requestId: 'req-test' },
 });

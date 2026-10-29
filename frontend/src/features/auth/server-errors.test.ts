@@ -12,7 +12,9 @@ const run = (error: unknown) => {
 
 describe('applyServerError', () => {
   it('shows the generic message for an error that is not an ApiError', () => {
-    expect(run(new Error('boom'))).toEqual([['root.server', { type: 'server', message: MESSAGES.generic }]]);
+    expect(run(new Error('boom'))).toEqual([
+      ['root.server', { type: 'server', message: MESSAGES.generic }],
+    ]);
   });
 
   it('puts EMAIL_TAKEN on the form when the form has no email field', () => {

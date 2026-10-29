@@ -92,7 +92,10 @@ export const refreshSession = (): Promise<AuthResponse> => {
   return refreshInFlight;
 };
 
-const request = async (path: string, init: ApiRequestInit): Promise<{ status: number; body: unknown }> => {
+const request = async (
+  path: string,
+  init: ApiRequestInit,
+): Promise<{ status: number; body: unknown }> => {
   const { auth = true, ...rest } = init;
   const token = () => (auth ? useAuthStore.getState().accessToken : null);
 

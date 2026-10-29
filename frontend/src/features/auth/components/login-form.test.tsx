@@ -7,8 +7,7 @@ import { renderWithQuery } from '@/test/render';
 import { server } from '@/test/server';
 import { LoginForm } from './login-form';
 
-const submit = () =>
-  userEvent.setup().click(screen.getByRole('button', { name: 'Sign in' }));
+const submit = () => userEvent.setup().click(screen.getByRole('button', { name: 'Sign in' }));
 
 const fill = async (email: string, password: string) => {
   const user = userEvent.setup();

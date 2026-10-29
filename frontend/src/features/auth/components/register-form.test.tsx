@@ -38,7 +38,9 @@ describe('RegisterForm', () => {
 
     // Server side: 409 EMAIL_TAKEN lands on the email field and the values stay.
     await fill('ada@example.com', 'correct-horse-9');
-    expect(await screen.findByText('An account with this email already exists.')).toBeInTheDocument();
+    expect(
+      await screen.findByText('An account with this email already exists.'),
+    ).toBeInTheDocument();
     expect(screen.getByLabelText('Email')).toHaveAttribute('aria-invalid', 'true');
     expect(screen.getByLabelText('Email')).toHaveValue('ada@example.com');
     expect(screen.getByLabelText('Password')).toHaveValue('correct-horse-9');
@@ -94,7 +96,9 @@ describe('RegisterForm', () => {
     server.use(
       http.post('*/api/v1/auth/register', () =>
         HttpResponse.json(
-          errorBody('VALIDATION_ERROR', 'Invalid input', [{ field: 'other', message: 'Odd field' }]),
+          errorBody('VALIDATION_ERROR', 'Invalid input', [
+            { field: 'other', message: 'Odd field' },
+          ]),
           { status: 400 },
         ),
       ),

@@ -33,7 +33,8 @@ export const applyServerError = <T extends FieldValues>(
     case 'VALIDATION_ERROR': {
       const unmatched: string[] = [];
       for (const detail of error.details ?? []) {
-        if (isField(detail.field)) setError(detail.field, { type: 'server', message: detail.message });
+        if (isField(detail.field))
+          setError(detail.field, { type: 'server', message: detail.message });
         else unmatched.push(detail.message);
       }
       if (unmatched.length > 0 || !error.details?.length) {

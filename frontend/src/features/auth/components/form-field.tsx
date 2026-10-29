@@ -11,7 +11,14 @@ interface FormFieldProps {
   registration: UseFormRegisterReturn;
 }
 
-export function FormField({ id, label, type = 'text', autoComplete, error, registration }: FormFieldProps) {
+export function FormField({
+  id,
+  label,
+  type = 'text',
+  autoComplete,
+  error,
+  registration,
+}: FormFieldProps) {
   const errorId = `${id}-error`;
   return (
     <div className="flex flex-col gap-1.5">
