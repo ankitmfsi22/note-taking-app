@@ -10,8 +10,8 @@ Every checkpoint: `pnpm build`, `pnpm lint --max-warnings 0`, `pnpm format:check
 
 ## 2. Database
 
-- [ ] 2.1 `searchVector` field, `notes_search_vector` migration (create-only, hand-edit SQL, apply, generate, no drift)
-- [ ] 2.2 Checkpoint
+- [x] 2.1 `searchVector` field (`@default(dbgenerated())` keeps `migrate dev` free of drift), `notes_search_vector` migration (create-only, hand-edit SQL, apply, generate, no drift)
+- [x] 2.2 Checkpoint
 
 ## 3. Search endpoint
 

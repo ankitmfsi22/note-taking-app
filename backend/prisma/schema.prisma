@@ -62,9 +62,12 @@ model Note {
   deletedAt   DateTime? @db.Timestamptz(3) // soft delete
   createdAt   DateTime  @default(now()) @db.Timestamptz(3)
   updatedAt   DateTime  @updatedAt @db.Timestamptz(3)
+  // AB-1007: generated column, created in SQL only (migration notes_search_vector)
+  searchVector Unsupported("tsvector")? @default(dbgenerated())
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId, deletedAt, updatedAt(sort: Desc)]) // AB-1004: default list + trash
   @@index([deletedAt]) // AB-1004: purge scan
+  @@index([searchVector], type: Gin, map: "Note_searchVector_idx") // AB-1007
 }
