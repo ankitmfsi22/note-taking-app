@@ -4,14 +4,14 @@
 ## Workflow (SDD, strict order, one ticket per session)
 
 - No production code without an approved OpenSpec change. Typos, dependency bumps and small fixes may skip the spec.
-- Human gates: spec (Rule 2), plan and tasks (Rule 3), each recorded by the user with `/approve` in the change's `approvals.md`; then the PR review. Never skip or auto-approve a gate.
-- Gates follow the SDD guide (spec + PR) due to deadline.
+- Human gates: spec (Rule 2), recorded by the user with `/approve` in the change's `approvals.md`; then the PR review. Never skip or auto-approve a gate.
+- Gates follow the SDD guide (spec + PR) due to deadline. Plan and tasks (Rule 3) are still written, but have no approval gate.
 - Run `/clear` between tickets (Rule 4). Run `/compact` at about 70% context (Rule 5).
 - Tasks over about 45 minutes go to a subagent. Never use a `session-context.md` file as a workaround (Rule 6).
 - Tasks marked `[PARALLEL]` use git worktrees via `/parallel`. Frontend and backend work run in separate worktrees at the same time (Rule 7).
 - Models (Rule 8): Haiku for boilerplate, Sonnet for implementation, Opus with ultrathink for architecture only.
 - Context7 stays active. Verify every library API against live docs (Rule 9).
-- Ask `[y/n]` before every file write. List the files before each step (Rule 10). Never write files through shell commands.
+- List the files before each step (Rule 10); the tool permission prompt is the confirmation for each file write. Never write files through shell commands.
 
 ## Custom commands
 
