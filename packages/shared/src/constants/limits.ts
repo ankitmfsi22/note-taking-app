@@ -20,3 +20,4 @@ export const NOTE_TAGS_MAX = 10;
 export const TAG_COLOR_DEFAULT = '#6B7280';
 export const SEARCH_Q_MIN = 2;
 export const SEARCH_Q_MAX = 200;
+export const SHARE_EXPIRY_MAX_DAYS = 365;

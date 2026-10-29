@@ -32,6 +32,15 @@ import type {
   SearchResultItemSchema,
 } from './schemas/search.js';
 import type {
+  ActiveShareLinkListResponseSchema,
+  CreateShareLinkRequestSchema,
+  PublicSharedNoteSchema,
+  ShareIdParamsSchema,
+  ShareLinkListResponseSchema,
+  ShareLinkResponseSchema,
+  ShareTokenParamsSchema,
+} from './schemas/share.js';
+import type {
   SetNoteTagsRequestSchema,
   TagCreateRequestSchema,
   TagIdParamsSchema,
@@ -61,6 +70,13 @@ export type NoteIdParams = z.infer<typeof NoteIdParamsSchema>;
 export type NoteResponse = z.infer<typeof NoteResponseSchema>;
 export type TrashListItem = z.infer<typeof TrashListItemSchema>;
 export type TrashListResponse = z.infer<typeof TrashListResponseSchema>;
+export type CreateShareLinkRequest = z.infer<typeof CreateShareLinkRequestSchema>;
+export type ShareIdParams = z.infer<typeof ShareIdParamsSchema>;
+export type ShareTokenParams = z.infer<typeof ShareTokenParamsSchema>;
+export type ShareLinkResponse = z.infer<typeof ShareLinkResponseSchema>;
+export type ShareLinkListResponse = z.infer<typeof ShareLinkListResponseSchema>;
+export type ActiveShareLinkListResponse = z.infer<typeof ActiveShareLinkListResponseSchema>;
+export type PublicSharedNote = z.infer<typeof PublicSharedNoteSchema>;
 export type SearchQuery = z.infer<typeof SearchQuerySchema>;
 export type SearchResultItem = z.infer<typeof SearchResultItemSchema>;
 export type SearchResponse = z.infer<typeof SearchResponseSchema>;

@@ -29,6 +29,10 @@ import { createSearchController } from './modules/search/search.controller.js';
 import { createSearchRepository } from './modules/search/search.repository.js';
 import { createSearchRouter } from './modules/search/search.routes.js';
 import { createSearchService } from './modules/search/search.service.js';
+import { createSharesController } from './modules/shares/shares.controller.js';
+import { createSharesRepository } from './modules/shares/shares.repository.js';
+import { createSharesRouter } from './modules/shares/shares.routes.js';
+import { createSharesService } from './modules/shares/shares.service.js';
 import { createTagsController } from './modules/tags/tags.controller.js';
 import { createTagsRepository } from './modules/tags/tags.repository.js';
 import { createNoteTagsRouter, createTagsRouter } from './modules/tags/tags.routes.js';
@@ -97,6 +101,21 @@ export const createApp = (deps: AppDeps): Express => {
     secret: deps.env.JWT_ACCESS_SECRET,
     clock: deps.clock,
   });
+
+  // Before the notes router, which would run requireAuth on /notes/:noteId/shares first.
+  app.use(
+    '/api/v1',
+    createSharesRouter({
+      controller: createSharesController({
+        service: createSharesService({
+          repository: createSharesRepository(deps.prisma),
+          clock: deps.clock,
+        }),
+      }),
+      requireAuth,
+    }),
+  );
+
   app.use(
     '/api/v1/notes',
     createNotesRouter({

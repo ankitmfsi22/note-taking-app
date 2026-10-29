@@ -66,8 +66,9 @@ model Note {
   // AB-1007: generated column, created in SQL only (migration notes_search_vector)
   searchVector Unsupported("tsvector")? @default(dbgenerated())
 
-  user     User      @relation(fields: [userId], references: [id], onDelete: Cascade)
-  noteTags NoteTag[] // SDS assigns AB-1006; created early by AB-1005
+  user       User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  noteTags   NoteTag[] // SDS assigns AB-1006; created early by AB-1005
+  shareLinks ShareLink[] // AB-1008
 
   @@index([userId, deletedAt, updatedAt(sort: Desc)]) // AB-1004: default list + trash
   @@index([userId, deletedAt, createdAt(sort: Desc)]) // AB-1005
@@ -102,4 +103,19 @@ model NoteTag {
 
   @@id([noteId, tagId])
   @@index([tagId])
+}
+
+// ---- AB-1008
+model ShareLink {
+  id        String    @id @default(uuid(7)) @db.Uuid
+  noteId    String    @db.Uuid
+  token     String    @unique @db.VarChar(64) // base64url, 43 chars (256 bits)
+  expiresAt DateTime? @db.Timestamptz(3)
+  revokedAt DateTime? @db.Timestamptz(3)
+  viewCount Int       @default(0)
+  createdAt DateTime  @default(now()) @db.Timestamptz(3)
+
+  note Note @relation(fields: [noteId], references: [id], onDelete: Cascade)
+
+  @@index([noteId])
 }
