@@ -76,14 +76,12 @@ export const createNotesService = ({
     });
     return {
       items: items.map(({ id, title, contentText, deletedAt }) => {
-        // The query filters deletedAt > cutoff, so it is never null here.
-        const deletedMs = (deletedAt ?? now).getTime();
-        const purgeAt = new Date(deletedMs + RETENTION_MS);
+        const purgeAt = new Date(deletedAt.getTime() + RETENTION_MS);
         return {
           id,
           title,
           preview: previewOf(contentText),
-          deletedAt: new Date(deletedMs),
+          deletedAt,
           purgeAt,
           daysRemaining: Math.max(0, Math.ceil((purgeAt.getTime() - now.getTime()) / DAY_MS)),
         };

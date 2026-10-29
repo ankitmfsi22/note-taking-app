@@ -87,7 +87,8 @@ const methodsFor = (db: Db) => ({
       }),
       db.note.count({ where }),
     ]);
-    return { items, total };
+    // The WHERE requires deletedAt > cutoff, so it is never null in these rows.
+    return { items: items.map((item) => ({ ...item, deletedAt: item.deletedAt as Date })), total };
   },
 });
 
