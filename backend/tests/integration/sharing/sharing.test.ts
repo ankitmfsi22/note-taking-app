@@ -3,6 +3,7 @@ import {
   AuthResponseSchema,
   ErrorResponseSchema,
   NoteResponseSchema,
+  PublicSharedNoteSchema,
   ShareLinkListResponseSchema,
   ShareLinkResponseSchema,
 } from '@note-app/shared';
@@ -58,8 +59,73 @@ const setup = async () => {
   const publicView = (token: string) => request(app).get(`/api/v1/public/shares/${token}`);
   const createLink = async (api: ReturnType<typeof apiFor>, noteId: string, body: object = {}) =>
     ShareLinkResponseSchema.parse((await api.create(noteId, body)).body);
-  return { app, clock, a: apiFor(tokenA), b: apiFor(tokenB), publicView, createLink };
+  return { app, clock, tokenB, a: apiFor(tokenA), b: apiFor(tokenB), publicView, createLink };
 };
+
+describe('public share read', () => {
+  it('S-AB1008-02: public view returns the note read-only and counts 50 concurrent views exactly', async () => {
+    const { app, tokenB, a, createLink } = await setup();
+    const note = await a.createNote();
+    const link = await createLink(a, note.id);
+    expect((await a.getNote(note.id)).status).toBe(200);
+
+    const views = Array.from({ length: 50 }, (_, index) => {
+      const pending = request(app).get(`/api/v1/public/shares/${link.token}`);
+      return index === 0 ? pending.set('Authorization', `Bearer ${tokenB}`) : pending;
+    });
+    const responses = await Promise.all(views);
+
+    for (const response of responses) {
+      expect(response.status).toBe(200);
+      expect(Object.keys(response.body as object).sort()).toEqual([
+        'content',
+        'title',
+        'updatedAt',
+      ]);
+      expect(PublicSharedNoteSchema.parse(response.body)).toMatchObject({
+        title: 'Groceries',
+        content: CONTENT,
+      });
+      expect(response.headers['cache-control']).toBe('no-store');
+      expect(response.headers['x-robots-tag']).toBe('noindex');
+    }
+    const row = await prisma.shareLink.findUniqueOrThrow({ where: { id: link.id } });
+    expect(row.viewCount).toBe(50);
+  });
+
+  it('S-AB1008-04: unknown, revoked, expired and deleted-note links return the same 404 and count nothing', async () => {
+    const { a, publicView, createLink } = await setup();
+    const note = await a.createNote();
+    const revoked = await createLink(a, note.id);
+    expect((await a.revoke(revoked.id)).status).toBe(200);
+    const expired = await prisma.shareLink.create({
+      data: { noteId: note.id, token: 'E'.repeat(43), expiresAt: new Date(Date.now() - MINUTE_MS) },
+    });
+    const trashedNote = await a.createNote('Trashed');
+    const trashed = await createLink(a, trashedNote.id);
+    expect((await a.removeNote(trashedNote.id)).status).toBe(204);
+
+    const responses = await Promise.all(
+      ['U'.repeat(43), revoked.token, expired.token, trashed.token].map((token) =>
+        publicView(token),
+      ),
+    );
+    const bodies = responses.map((response) => {
+      expect(response.status).toBe(404);
+      const { requestId: _requestId, ...rest } = errorOf(response.body);
+      expect(rest.code).toBe('SHARE_LINK_NOT_FOUND');
+      return rest;
+    });
+    for (const body of bodies) expect(body).toEqual(bodies[0]);
+    const counts = await prisma.shareLink.findMany({ select: { viewCount: true } });
+    expect(counts.every((row) => row.viewCount === 0)).toBe(true);
+
+    expect((await a.restoreNote(trashedNote.id)).status).toBe(200);
+    expect((await publicView(trashed.token)).status).toBe(200);
+    const after = await prisma.shareLink.findUniqueOrThrow({ where: { id: trashed.id } });
+    expect(after.viewCount).toBe(1);
+  });
+});
 
 describe('share link owner endpoints', () => {
   it('S-AB1008-01: create two links for one note returns 201 with distinct unguessable tokens', async () => {

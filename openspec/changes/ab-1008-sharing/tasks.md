@@ -24,13 +24,13 @@ Every checkpoint: `pnpm build`, `pnpm lint --max-warnings 0`, `pnpm format:check
 
 ## 4. Public read
 
-- [ ] 4.1 Test `S-AB1008-02` read-only view and 50 concurrent views
-- [ ] 4.2 Test `S-AB1008-04` indistinguishable 404 and restore
-- [ ] 4.3 Atomic `UPDATE ... RETURNING`, public route and headers
-- [ ] 4.4 Checkpoint
+- [x] 4.1 Test `S-AB1008-02` read-only view and 50 concurrent views
+- [x] 4.2 Test `S-AB1008-04` indistinguishable 404 and restore
+- [x] 4.3 Atomic `UPDATE ... RETURNING`, public route and headers
+- [x] 4.4 Checkpoint
 
 ## 5. Verification
 
-- [ ] 5.1 `pnpm test --coverage` at least 80% on new code
-- [ ] 5.2 `pnpm check:scenarios` and `pnpm spec:validate`
-- [ ] 5.3 Compare `delta-openapi.yaml` with the implemented statuses and codes
+- [x] 5.1 `pnpm test --coverage` at least 80% on new code
+- [x] 5.2 `pnpm check:scenarios` and `pnpm spec:validate`
+- [x] 5.3 Compare `delta-openapi.yaml` with the implemented statuses and codes
