@@ -1,0 +1,17 @@
+openapi: 3.1.0
+info:
+  title: Note Taking App API (AB-1015 delta)
+  version: 0.1.0
+  description: |
+    Delta for ticket AB-1015 (Frontend: Version history drawer + restore). No
+    path, schema, status or error code changes. The UI consumes the existing
+    `GET /notes/{noteId}/versions` (200 `VersionListResponse`),
+    `GET /notes/{noteId}/versions/{versionNumber}` (200 `VersionDetail`) and
+    `POST /notes/{noteId}/versions/{versionNumber}/restore` (200
+    `NoteResponse`) from AB-1009 exactly as documented in
+    docs/api/openapi.yaml: 400 `VALIDATION_ERROR`, 401 `UNAUTHORIZED`,
+    404 `NOTE_NOT_FOUND`, 404 `VERSION_NOT_FOUND`, 409
+    `VERSION_ALREADY_CURRENT`, 500 `INTERNAL_ERROR`. Nothing is merged on archive.
+servers:
+  - url: /api/v1
+paths: {}
