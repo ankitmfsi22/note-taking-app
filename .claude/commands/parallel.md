@@ -12,4 +12,4 @@ Run the `[PARALLEL]` tasks of ticket $ARGUMENTS (Rule 7).
 4. Launch one subagent per side in a single message, each with `isolation: "worktree"` or working inside its worktree path. Give each its task list, the spec, `design.md`, and the CLAUDE.md of its layer. Each runs its own phase checkpoints (`pnpm build`, `pnpm lint --max-warnings 0`, `pnpm test`).
 5. When both report, show the results and the two diffs. Ask [y/n] before merging each side branch into the ticket branch, then run the root checkpoints once more. Offer to remove the worktrees (ask first).
 
-Never touch `main`. Never push.
+Never touch `main`. Never push a side branch; the ticket branch is pushed by `/implement` after the merged checkpoint.

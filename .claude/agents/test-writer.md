@@ -13,7 +13,7 @@ You write tests for one ticket. You never edit production code. If a test cannot
 - Assert the exact status code and `error.code` from `docs/SDS.md` section 7. Cover ownership (another user gets 404) and validation (400).
 - Time-dependent behaviour uses the injected fake `Clock`. Never sleep.
 - Verify every library API with Context7 before using it. Follow the layer's CLAUDE.md.
-- List the files first and ask [y/n] before each write.
+- List the files first; the tool permission prompt is the confirmation for each write.
 
 ## Report
 

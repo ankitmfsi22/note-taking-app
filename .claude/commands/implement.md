@@ -3,7 +3,7 @@ description: Implement an approved ticket phase by phase, with a build, lint and
 argument-hint: AB-xxxx
 ---
 
-Implement ticket $ARGUMENTS from its approved tasks.
+Implement ticket $ARGUMENTS from its tasks (approved spec; plan and tasks have no gate).
 
 1. Find the change folder `openspec/changes/<ticket>-*`, where `<ticket>` is `$ARGUMENTS` in lowercase (for `AB-1001`: `ab-1001-*`). Read `approvals.md`. If `spec` is not approved, stop. Check the current branch matches `feature/<domain>/AB-xxxx-*`; never work on `main`.
 2. Read `proposal.md`, the spec, `design.md`, `tasks.md`, and the CLAUDE.md of each layer you touch.
