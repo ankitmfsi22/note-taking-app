@@ -10,8 +10,8 @@ Every checkpoint: `pnpm build`, `pnpm lint --max-warnings 0`, `pnpm format:check
 
 ## 2. Database
 
-- [ ] 2.1 `Note` model and `notes_note` migration (create-only, review SQL, apply, generate)
-- [ ] 2.2 Checkpoint
+- [x] 2.1 `Note` model and `notes_note` migration (create-only, review SQL, apply, generate)
+- [x] 2.2 Checkpoint
 
 ## 3. Notes endpoints
 
