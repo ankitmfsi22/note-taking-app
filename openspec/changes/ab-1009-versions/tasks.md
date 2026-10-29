@@ -28,6 +28,6 @@ Every checkpoint: `pnpm build`, `pnpm lint --max-warnings 0`, `pnpm format:check
 
 ## 5. Verification
 
-- [ ] 5.1 `pnpm test --coverage` at least 80% on new code
-- [ ] 5.2 `pnpm check:scenarios` and `pnpm spec:validate`
-- [ ] 5.3 Compare `delta-openapi.yaml` with the implementation
+- [x] 5.1 `pnpm test --coverage` at least 80% on new code
+- [x] 5.2 `pnpm check:scenarios` and `pnpm spec:validate`
+- [x] 5.3 Compare `delta-openapi.yaml` with the implementation
