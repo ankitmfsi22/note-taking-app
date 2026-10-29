@@ -45,13 +45,13 @@ Spec and plan approved 2026-10-28. Estimates are minutes. `(subagent)` marks a t
 
 ## 5. HTTP middleware
 
-- [ ] 5.1 Test `S-AB1002-29: a protected route without a token returns 401 UNAUTHORIZED` in `backend/src/common/http/require-auth.test.ts` with a test-local Express app and the real error handler (15)
-- [ ] 5.2 Test `S-AB1002-30: expired, wrongly signed and wrong-claim tokens return 401 UNAUTHORIZED` in the same file (20)
-- [ ] 5.3 `backend/src/common/http/origin-check.test.ts`: absent, equal, foreign and `null` origins, trailing-slash `APP_ORIGIN` (15)
-- [ ] 5.4 `backend/src/common/http/require-auth.ts`: `createRequireAuth({ secret, clock })` (20)
-- [ ] 5.5 `backend/src/common/http/origin-check.ts`: `createOriginCheck(appOrigin)` (10)
-- [ ] 5.6 `backend/src/common/http/validate.ts` and `validate.test.ts`: typed `validBody<T>(res)` accessor (10)
-- [ ] 5.7 Checkpoint (5)
+- [x] 5.1 Test `S-AB1002-29: a protected route without a token returns 401 UNAUTHORIZED` in `backend/src/common/http/require-auth.test.ts` with a test-local Express app and the real error handler (15)
+- [x] 5.2 Test `S-AB1002-30: expired, wrongly signed and wrong-claim tokens return 401 UNAUTHORIZED` in the same file (20)
+- [x] 5.3 `backend/src/common/http/origin-check.test.ts`: absent, equal, foreign and `null` origins, trailing-slash `APP_ORIGIN` (15)
+- [x] 5.4 `backend/src/common/http/require-auth.ts`: `createRequireAuth({ secret, clock })` (20)
+- [x] 5.5 `backend/src/common/http/origin-check.ts`: `createOriginCheck(appOrigin)` (10)
+- [x] 5.6 `backend/src/common/http/validate.ts` and `validate.test.ts`: typed `validBody<T>(res)` accessor (10)
+- [x] 5.7 Checkpoint (5)
 
 ## 6. Register and login
 

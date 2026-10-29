@@ -5,7 +5,7 @@ import request from 'supertest';
 import { describe, expect, it } from 'vitest';
 import { z } from 'zod';
 import { createErrorHandler, notFoundHandler } from '../errors/error-middleware.js';
-import { validate } from './validate.js';
+import { validate, validBody } from './validate.js';
 
 const buildApp = (setup: (app: Express) => void) => {
   const app = express();
@@ -88,5 +88,28 @@ describe('validate', () => {
     const app = buildApp((a) => a.get('/x', validate({}), echoValid));
     const response = await request(app).get('/x').expect(200);
     expect(response.body).toEqual({});
+  });
+});
+
+describe('validBody', () => {
+  it('returns the parsed body that validate() stored, with the type the caller names', async () => {
+    const app = buildApp((a) =>
+      a.post('/x', validate({ body: z.object({ title: z.string().trim() }) }), (_req, res) => {
+        const body = validBody<{ title: string }>(res);
+        res.json({ shout: body.title.toUpperCase() });
+      }),
+    );
+    const response = await request(app).post('/x').send({ title: '  hi  ' }).expect(200);
+    expect(response.body).toEqual({ shout: 'HI' });
+  });
+
+  it('is a server error, not a client error, when validate() did not run for the body', async () => {
+    const app = buildApp((a) =>
+      a.post('/x', validate({}), (_req, res) => {
+        res.json(validBody<{ title: string }>(res));
+      }),
+    );
+    const response = await request(app).post('/x').send({}).expect(500);
+    expect(ErrorResponseSchema.parse(response.body).error.code).toBe('INTERNAL_ERROR');
   });
 });
