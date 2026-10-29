@@ -31,7 +31,17 @@ export const routes: RouteObject[] = [
         id: 'require-auth',
         loader: requireAuthLoader,
         lazy: () => import('./app-shell'),
-        children: [{ path: '/notes', lazy: () => import('./notes-placeholder') }],
+        children: [
+          { path: '/notes', lazy: () => import('./notes-placeholder') },
+          { path: '/shares', lazy: () => import('@/features/sharing/pages/shares-page') },
+        ],
+      },
+      {
+        id: 'public',
+        lazy: () => import('./public-layout'),
+        children: [
+          { path: '/s/:token', lazy: () => import('@/features/sharing/pages/public-share-page') },
+        ],
       },
       { path: '*', lazy: () => import('./not-found') },
     ],

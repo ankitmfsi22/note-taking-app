@@ -4,14 +4,14 @@ import type { ReactNode } from 'react';
 // renderer still allow-lists node types, marks and URL schemes itself and never emits HTML.
 interface Mark {
   type: string;
-  attrs?: { href?: unknown };
+  attrs?: { href?: unknown } | undefined;
 }
 interface TNode {
   type: string;
-  text?: string;
-  marks?: Mark[];
-  attrs?: { level?: number; start?: number };
-  content?: TNode[];
+  text?: string | undefined;
+  marks?: Mark[] | undefined;
+  attrs?: Record<string, unknown> | undefined;
+  content?: TNode[] | undefined;
 }
 
 const SAFE_PROTOCOLS = new Set(['http:', 'https:', 'mailto:']);
@@ -68,8 +68,8 @@ const renderNode = (node: TNode, key: string): ReactNode => {
       return <p key={key}>{renderChildren(node.content, key)}</p>;
     case 'heading': {
       const children = renderChildren(node.content, key);
-      if (node.attrs?.level === 1) return <h1 key={key}>{children}</h1>;
-      if (node.attrs?.level === 2) return <h2 key={key}>{children}</h2>;
+      if (node.attrs?.['level'] === 1) return <h1 key={key}>{children}</h1>;
+      if (node.attrs?.['level'] === 2) return <h2 key={key}>{children}</h2>;
       return <h3 key={key}>{children}</h3>;
     }
     case 'codeBlock':
@@ -84,7 +84,7 @@ const renderNode = (node: TNode, key: string): ReactNode => {
       return <ul key={key}>{renderChildren(node.content, key)}</ul>;
     case 'orderedList':
       return (
-        <ol key={key} start={node.attrs?.start ?? 1}>
+        <ol key={key} start={typeof node.attrs?.['start'] === 'number' ? node.attrs['start'] : 1}>
           {renderChildren(node.content, key)}
         </ol>
       );

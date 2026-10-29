@@ -13,12 +13,12 @@
 - [x] 2.4 Checkpoint: `pnpm build`, `pnpm lint --max-warnings 0`, `pnpm test`
 
 ### Phase 3: pages and routes
-- [ ] 3.1 Tests S-AB1014-03, 04, 05, 06 (35 min)
-- [ ] 3.2 `shares-page.tsx`, `public-share-page.tsx`, `public-layout.tsx`, `router.ts` (35 min)
-- [ ] 3.3 Checkpoint: `pnpm build`, `pnpm lint --max-warnings 0`, `pnpm test`
+- [x] 3.1 Tests S-AB1014-03, 04, 05, 06 (35 min)
+- [x] 3.2 `shares-page.tsx`, `public-share-page.tsx`, `public-layout.tsx`, `router.ts` (35 min)
+- [x] 3.3 Checkpoint: `pnpm build`, `pnpm lint --max-warnings 0`, `pnpm test`
 
 ### Phase 4: finish
-- [ ] 4.1 `pnpm test --coverage` (>= 80% new code), `pnpm check:scenarios`, `pnpm spec:validate`
+- [x] 4.1 `pnpm test --coverage` (>= 80% new code), `pnpm check:scenarios`, `pnpm spec:validate`
 - [ ] 4.2 Smoke test happy path and error scenarios (tests cover them); run reviewer pass
 
 No `[PARALLEL]` tasks (single frontend feature).

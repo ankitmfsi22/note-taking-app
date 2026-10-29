@@ -25,6 +25,7 @@ describe('routes', () => {
       '/',
       'guest-only',
       'require-auth',
+      'public',
       '*',
     ]);
     router.dispose();
