@@ -1,13 +1,38 @@
-import { createBrowserRouter, type RouteObject } from 'react-router';
+import { createBrowserRouter, redirect, type RouteObject } from 'react-router';
+import { guestOnlyLoader, requireAuthLoader, rootLoader } from './guards';
 import { HydrateFallback } from './hydrate-fallback';
 
 // Pages load with route-level lazy so each feature gets its own chunk (SDS 9.1, SA-35). The
-// pathless root route carries the fallback shown while the first lazy route loads.
+// pathless root route restores the session first and shows the fallback meanwhile.
 export const routes: RouteObject[] = [
   {
+    loader: rootLoader,
     HydrateFallback,
     children: [
-      { path: '/', lazy: () => import('./home') },
+      { path: '/', loader: () => redirect('/notes') },
+      {
+        id: 'guest-only',
+        loader: guestOnlyLoader,
+        lazy: () => import('./auth-layout'),
+        children: [
+          { path: '/login', lazy: () => import('@/features/auth/pages/login-page') },
+          { path: '/register', lazy: () => import('@/features/auth/pages/register-page') },
+          {
+            path: '/forgot-password',
+            lazy: () => import('@/features/auth/pages/forgot-password-page'),
+          },
+          {
+            path: '/reset-password',
+            lazy: () => import('@/features/auth/pages/reset-password-page'),
+          },
+        ],
+      },
+      {
+        id: 'require-auth',
+        loader: requireAuthLoader,
+        lazy: () => import('./app-shell'),
+        children: [{ path: '/notes', lazy: () => import('./notes-placeholder') }],
+      },
       { path: '*', lazy: () => import('./not-found') },
     ],
   },
