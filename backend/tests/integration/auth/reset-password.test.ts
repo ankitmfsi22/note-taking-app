@@ -210,6 +210,16 @@ describe('POST /api/v1/auth/reset-password', () => {
     expect(verifyDummy).toHaveBeenCalledTimes(1);
   });
 
+  it('rejects a reset for an account that never requested an OTP', async () => {
+    const { reset, user } = await setup();
+
+    const response = await reset('123456');
+
+    expect(response.status).toBe(400);
+    expect(errorOf(response.body).code).toBe('OTP_INVALID_OR_EXPIRED');
+    expect(await verifyPassword(user.id, OLD_PASSWORD)).toBe(true);
+  });
+
   it('S-AB1003-15: the fifth wrong attempt invalidates the OTP', async () => {
     const { requestOtp, reset, latestOtpRow } = await setup();
     const first = await requestOtp();

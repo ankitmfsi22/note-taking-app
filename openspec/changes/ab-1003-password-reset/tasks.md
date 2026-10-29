@@ -86,13 +86,13 @@ Tests first, in `backend/tests/integration/auth/reset-password.test.ts` (Superte
 
 ## 8. Verification and hand-off
 
-- [ ] 8.1 `pnpm test --coverage`: at least 80% on the new code (the email module, `password-reset.*`, the new repository methods, `hash.ts` and `tokens.ts` additions); add tests for any uncovered branch, never lower the threshold (20)
-- [ ] 8.2 `pnpm check:scenarios`: no scenario without a test, no duplicate and no unknown ID for the 25 `S-AB1003` scenarios (5)
-- [ ] 8.3 `pnpm spec:validate` (`openspec validate ab-1003-password-reset --strict`) (5)
-- [ ] 8.4 Compare `delta-openapi.yaml` with the implemented statuses and codes (204 for both endpoints, `400 VALIDATION_ERROR`, `400 OTP_INVALID_OR_EXPIRED`, no `Set-Cookie`), and fix whichever side is wrong (15)
-- [ ] 8.5 Manual smoke test against `pnpm dev` and the dev database, without reading any `.env` file, reading the OTP from the server console output: forgot-password for a known and an unknown email, reset with the correct OTP, login with the old and the new password, reset with a used OTP, then each error scenario (400 malformed email, 400 weak password, 400 wrong OTP, 400 expired OTP, 400 unknown email, 400 after five wrong attempts, 400 OTP with fewer than six digits) (40)
-- [ ] 8.6 Confirm the OTP and the new password appear in the server log from 8.5 only as the single console line of AC-PWD-10, and that no `otp.jsonl` file exists after a run with `NODE_ENV=development` (5)
-- [ ] 8.7 Checkpoint: `pnpm build`, `pnpm lint --max-warnings 0`, `pnpm test` (5)
+- [x] 8.1 `pnpm test --coverage`: at least 80% on the new code (the email module, `password-reset.*`, the new repository methods, `hash.ts` and `tokens.ts` additions); add tests for any uncovered branch, never lower the threshold (20)
+- [x] 8.2 `pnpm check:scenarios`: no scenario without a test, no duplicate and no unknown ID for the 25 `S-AB1003` scenarios (5)
+- [x] 8.3 `pnpm spec:validate` (`openspec validate ab-1003-password-reset --strict`) (5)
+- [x] 8.4 Compare `delta-openapi.yaml` with the implemented statuses and codes (204 for both endpoints, `400 VALIDATION_ERROR`, `400 OTP_INVALID_OR_EXPIRED`, no `Set-Cookie`), and fix whichever side is wrong (15)
+- [x] 8.5 Manual smoke test against `pnpm dev` and the dev database, without reading any `.env` file, reading the OTP from the server console output: forgot-password for a known and an unknown email, reset with the correct OTP, login with the old and the new password, reset with a used OTP, then each error scenario (400 malformed email, 400 weak password, 400 wrong OTP, 400 expired OTP, 400 unknown email, 400 after five wrong attempts, 400 OTP with fewer than six digits) (40)
+- [x] 8.6 Confirm the OTP and the new password appear in the server log from 8.5 only as the single console line of AC-PWD-10, and that no `otp.jsonl` file exists after a run with `NODE_ENV=development` (5)
+- [x] 8.7 Checkpoint: `pnpm build`, `pnpm lint --max-warnings 0`, `pnpm test` (5)
 - [ ] 8.8 Reminder: run `/sdd-review AB-1003` in a fresh terminal (new Claude instance, read-only `reviewer` agent). Run `/pr AB-1003` only when it shows all ✅ (0)
 
 ## Coverage: requirement to tasks
