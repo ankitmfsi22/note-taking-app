@@ -14,6 +14,7 @@ const isCi = Boolean(process.env['CI']);
 
 export default defineConfig({
   testDir: 'tests',
+  globalSetup: './support/global-setup.ts',
   // One worker, because every test truncates the same database (SDS 10.2).
   fullyParallel: false,
   workers: 1,

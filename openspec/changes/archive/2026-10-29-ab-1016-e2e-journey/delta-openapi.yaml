@@ -1,0 +1,12 @@
+openapi: 3.1.0
+info:
+  title: Note Taking App API (AB-1016 delta)
+  version: 0.1.0
+  description: |
+    Delta for ticket AB-1016 (E2E: Playwright full user journey). No path,
+    schema, status or error code changes. The tests drive the existing
+    endpoints through the browser UI and read the OTP from the test-only
+    file defined in AC-PWD-11 (ADR-0004). Nothing is merged on archive.
+servers:
+  - url: /api/v1
+paths: {}
