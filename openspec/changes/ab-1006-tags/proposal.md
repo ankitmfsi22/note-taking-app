@@ -4,14 +4,14 @@ Users need coloured, per-user tags to organise notes and see how many notes each
 
 ## What Changes
 
-- Migration with `Tag` (`nameKey`, unique `(userId, nameKey)`) and `NoteTag`, both `onDelete: Cascade` (SDS 6.2 to 6.4).
+- No migration: `Tag` (`nameKey`, unique `(userId, nameKey)`) and `NoteTag`, both `onDelete: Cascade`, were created early by AB-1005 (owner decision; SDS 6.4 updated).
 - Endpoints 15 to 19 of SDS 7.1: `GET/POST /tags`, `PATCH/DELETE /tags/:tagId`, `PUT /notes/:noteId/tags` (whole-set replacement in one transaction).
 - Shared schemas `TagCreateRequest`, `TagUpdateRequest`, `TagIdParams`, `TagResponse`, `TagWithCount`, `TagListResponse`, `SetNoteTagsRequest` (SDS 7.2). `NoteResponse.tags` is filled from `NoteTag`.
 
 ## Impact
 
 - New capability `tags`. Codes (binding, SDS 4.3): `400 VALIDATION_ERROR`, `401 UNAUTHORIZED`, `404 TAG_NOT_FOUND`, `404 NOTE_NOT_FOUND`, `409 TAG_NAME_TAKEN`. No SDS change.
-- Depends on `Note` from AB-1004. Rollback: revert the commits and the additive migration.
+- Depends on `Note` from AB-1004 and the tag tables from AB-1005. Rollback: revert the commits.
 
 ## Out of scope
 
