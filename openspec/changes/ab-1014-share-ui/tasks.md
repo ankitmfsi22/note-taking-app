@@ -7,10 +7,10 @@
 - [x] 1.4 Checkpoint: `pnpm build`, `pnpm lint --max-warnings 0`, `pnpm test`
 
 ### Phase 2: share modal
-- [ ] 2.1 Test S-AB1014-01 (create, past expiry, copy, server 400) (25 min)
-- [ ] 2.2 Test S-AB1014-02 (revoke confirm, cancel, 404) (15 min)
-- [ ] 2.3 `share-modal.tsx`, `share-link-row.tsx`, `share-button.tsx` (35 min)
-- [ ] 2.4 Checkpoint: `pnpm build`, `pnpm lint --max-warnings 0`, `pnpm test`
+- [x] 2.1 Test S-AB1014-01 (create, past expiry, copy, server 400) (25 min)
+- [x] 2.2 Test S-AB1014-02 (revoke confirm, cancel, 404) (15 min)
+- [x] 2.3 `share-modal.tsx`, `share-link-row.tsx`, `share-button.tsx` (35 min)
+- [x] 2.4 Checkpoint: `pnpm build`, `pnpm lint --max-warnings 0`, `pnpm test`
 
 ### Phase 3: pages and routes
 - [ ] 3.1 Tests S-AB1014-03, 04, 05, 06 (35 min)
