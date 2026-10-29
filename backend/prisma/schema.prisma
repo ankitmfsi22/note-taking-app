@@ -16,7 +16,8 @@ model User {
   createdAt    DateTime @default(now()) @db.Timestamptz(3)
   updatedAt    DateTime @updatedAt @db.Timestamptz(3)
 
-  refreshTokens RefreshToken[]
+  refreshTokens     RefreshToken[]
+  passwordResetOtps PasswordResetOtp[] // AB-1003
 }
 
 model RefreshToken {
@@ -32,4 +33,20 @@ model RefreshToken {
 
   @@index([userId])
   @@index([expiresAt]) // housekeeping purge
+}
+
+// ---- AB-1003 --------------------------------------------------------
+model PasswordResetOtp {
+  id            String    @id @default(uuid(7)) @db.Uuid
+  userId        String    @db.Uuid
+  otpHash       String    @db.Char(64) // HMAC-SHA256 hex
+  expiresAt     DateTime  @db.Timestamptz(3)
+  attempts      Int       @default(0)
+  usedAt        DateTime? @db.Timestamptz(3)
+  invalidatedAt DateTime? @db.Timestamptz(3)
+  createdAt     DateTime  @default(now()) @db.Timestamptz(3)
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt(sort: Desc)])
 }

@@ -8,7 +8,7 @@ Write the spec for ticket $ARGUMENTS. This is Rule 1. Write no production code.
 
 1. Check the argument is `AB-` plus four digits and that every earlier ticket is archived (`pnpm exec openspec list --archived`). AB-1001 has no predecessor. If a predecessor is missing, stop and say so.
 2. Read the ticket's rows in `docs/FRS.md` (section 14 matrix), the matching endpoints in `docs/SDS.md` section 7, the schema in section 6, the design in section 8 and any linked ADR.
-3. List the files you will write, then write each one with its own [y/n]:
+3. List the files you will write, then write each one (the tool permission prompt is the confirmation). Keep it lite: 5 to 8 scenarios.
    - `pnpm exec openspec new change ab-xxxx-<short-slug> --description "<one line>"` creates the folder `openspec/changes/ab-xxxx-<short-slug>/`. The CLI requires lowercase kebab-case names (it rejects `AB-…`), so the folder uses the lowercase ticket ID; scenario IDs keep the uppercase `S-ABxxxx-nn`. The CLI writes files through the shell, so create the folder files yourself with the Write tool (`.openspec.yaml` holds `schema: spec-driven` and `created: <today>`).
    - `proposal.md`: why, what, impact, out of scope, rollback
    - `specs/<capability>/spec.md`: delta with `## ADDED Requirements`; each requirement uses SHALL. For a new capability, begin the file with a `## Purpose` section of one sentence, or archiving leaves a `TBD` placeholder that fails `openspec validate --strict`

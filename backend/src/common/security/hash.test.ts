@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { createPasswordHasher } from './hash.js';
+import { createHash } from 'node:crypto';
+import { createOtpHasher, createPasswordHasher } from './hash.js';
 
 const PARAMS = { memoryCost: 1024, timeCost: 1 };
 const PASSWORD = 'correct-horse-9';
@@ -58,5 +59,43 @@ describe('password hasher', () => {
     const first = hasher.dummyHash;
     await hasher.verifyDummy(PASSWORD);
     expect(hasher.dummyHash).toBe(first);
+  });
+});
+
+describe('otp hasher', () => {
+  const hasher = createOtpHasher({ secret: 'test-only-otp-hmac-secret-at-least-32-bytes' });
+  const USER_ID = '0192b7c4-5a1e-7c3a-9d2f-3b8e6f1a4c70';
+  const OTHER_USER_ID = '0192b7c4-5a1e-7c3a-9d2f-3b8e6f1a4c71';
+
+  it('hashes to 64 hex characters that depend on the user and the OTP', () => {
+    const stored = hasher.hash(USER_ID, '123456');
+
+    expect(stored).toMatch(/^[0-9a-f]{64}$/);
+    expect(stored).toBe(hasher.hash(USER_ID, '123456'));
+    expect(stored).not.toBe(hasher.hash(OTHER_USER_ID, '123456'));
+    expect(stored).not.toBe(hasher.hash(USER_ID, '123457'));
+  });
+
+  it('is keyed, so it differs from a bare SHA-256 of the same input', () => {
+    const bare = createHash('sha256').update(`${USER_ID}:123456`).digest('hex');
+
+    expect(hasher.hash(USER_ID, '123456')).not.toBe(bare);
+  });
+
+  it('matches the right OTP for the right user only', () => {
+    const stored = hasher.hash(USER_ID, '123456');
+
+    expect(hasher.matches(stored, USER_ID, '123456')).toBe(true);
+    expect(hasher.matches(stored, USER_ID, '654321')).toBe(false);
+    expect(hasher.matches(stored, OTHER_USER_ID, '123456')).toBe(false);
+  });
+
+  it('returns false instead of throwing for a stored hash of another length', () => {
+    expect(hasher.matches('abc', USER_ID, '123456')).toBe(false);
+  });
+
+  it('always fails the dummy check', () => {
+    expect(hasher.verifyDummy('123456')).toBe(false);
+    expect(hasher.verifyDummy('')).toBe(false);
   });
 });

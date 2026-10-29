@@ -1,3 +1,4 @@
+import { createHmac, timingSafeEqual } from 'node:crypto';
 import { hash, verify, type Algorithm } from '@node-rs/argon2';
 
 // `Algorithm` is a `const enum`: it has no runtime value and cannot be used under isolatedModules,
@@ -40,3 +41,33 @@ export const createPasswordHasher = ({ memoryCost, timeCost }: PasswordHasherPar
 };
 
 export type PasswordHasher = ReturnType<typeof createPasswordHasher>;
+
+// Not a real user: the dummy check hashes against it so an unknown email does the same work.
+const DUMMY_OTP_USER_ID = '00000000-0000-7000-8000-000000000000';
+
+// HMAC keyed by OTP_HMAC_SECRET (SDS 5.5): a 6-digit code has only 10^6 values, so an unkeyed
+// hash in a leaked table would be reversed instantly.
+export const createOtpHasher = ({ secret }: { secret: string }) => {
+  const hashOtp = (userId: string, otp: string): string =>
+    createHmac('sha256', secret).update(`${userId}:${otp}`).digest('hex');
+
+  const equal = (storedHash: string, candidate: string): boolean => {
+    const stored = Buffer.from(storedHash, 'hex');
+    const actual = Buffer.from(candidate, 'hex');
+    // timingSafeEqual throws on a length mismatch; a malformed stored value is simply no match.
+    return stored.length === actual.length && timingSafeEqual(stored, actual);
+  };
+
+  return {
+    hash: hashOtp,
+    matches: (storedHash: string, userId: string, otp: string): boolean =>
+      equal(storedHash, hashOtp(userId, otp)),
+    // Does the work of a failed match and always answers false.
+    verifyDummy: (otp: string): false => {
+      equal(hashOtp(DUMMY_OTP_USER_ID, otp), hashOtp(DUMMY_OTP_USER_ID, `${otp}x`));
+      return false;
+    },
+  };
+};
+
+export type OtpHasher = ReturnType<typeof createOtpHasher>;

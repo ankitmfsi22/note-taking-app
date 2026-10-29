@@ -2,7 +2,7 @@ openapi: 3.1.0
 info:
   title: Note Taking App API
   version: 0.1.0
-  summary: REST API of the Note Taking App (health and auth endpoints so far).
+  summary: REST API of the Note Taking App (health, auth and password-reset endpoints so far).
   description: |
     OpenAPI 3.1 document. It defines what every endpoint shares: the server
     base path, the security schemes and the binding error contract
@@ -11,7 +11,7 @@ info:
     `paths` grows ticket by ticket. Each ticket describes its endpoints in its
     own `openspec/changes/<change>/delta-openapi.yaml`, which is merged into
     this file when the change is archived (docs/SDS.md SA-44). AB-1001 added
-    `GET /health`. AB-1002 added the four auth endpoints. The executable request and response contracts are the Zod
+    `GET /health`. AB-1002 added the four auth endpoints. AB-1003 added forgot-password and reset-password. The executable request and response contracts are the Zod
     schemas in `packages/shared`.
 servers:
   - url: /api/v1
@@ -173,6 +173,65 @@ paths:
           $ref: '#/components/responses/ForbiddenOrigin'
         '500':
           $ref: '#/components/responses/InternalError'
+  /auth/forgot-password:
+    post:
+      operationId: forgotPassword
+      summary: Request a password-reset OTP
+      description: |
+        For an existing account, generates a 6-digit OTP valid for 10 minutes
+        and delivers it to the server console (AC-PWD-03, AC-PWD-10). Any
+        earlier unused OTP of the account is invalidated (AC-PWD-05). The
+        response is identical whether or not the email belongs to an account
+        (AC-PWD-02), and also when delivery fails.
+      tags: [auth]
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ForgotPasswordRequest'
+      responses:
+        '204':
+          description: Request accepted. No body, the same for a known and an unknown email.
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '500':
+          $ref: '#/components/responses/InternalError'
+  /auth/reset-password:
+    post:
+      operationId: resetPassword
+      summary: Set a new password with an OTP
+      description: |
+        On a correct, usable OTP, stores the new password, marks the OTP used
+        and revokes every refresh token of the user in one transaction
+        (AC-PWD-08). The user is not logged in: no cookie and no token are
+        returned. A wrong, expired, used, invalidated or unknown-account OTP
+        gives one error, `OTP_INVALID_OR_EXPIRED`, so nothing leaks
+        (ERR-PWD-02 to 07). The fifth wrong attempt invalidates the OTP
+        (AC-PWD-07). The new password is validated before the OTP is read, so
+        a weak password does not count as an attempt (ERR-PWD-05).
+      tags: [auth]
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ResetPasswordRequest'
+      responses:
+        '204':
+          description: Password changed. No body, no cookie.
+        '400':
+          description: |
+            Either the request failed validation (VALIDATION_ERROR, with
+            `details`) or the OTP was not accepted (OTP_INVALID_OR_EXPIRED).
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          $ref: '#/components/responses/InternalError'
 components:
   headers:
     SetRefreshCookie:
@@ -259,6 +318,33 @@ components:
           minLength: 1
           maxLength: 128
           description: No strength rule on login.
+    ForgotPasswordRequest:
+      type: object
+      required: [email]
+      properties:
+        email:
+          type: string
+          format: email
+          maxLength: 254
+          description: Trimmed and lower-cased before lookup.
+    ResetPasswordRequest:
+      type: object
+      required: [email, otp, newPassword]
+      properties:
+        email:
+          type: string
+          format: email
+          maxLength: 254
+          description: Trimmed and lower-cased before lookup.
+        otp:
+          type: string
+          pattern: '^\d{6}$'
+          description: The 6-digit code from the console log.
+        newPassword:
+          type: string
+          minLength: 8
+          maxLength: 128
+          description: At least one letter and one digit (AC-AUTH-03).
     AuthResponse:
       type: object
       required: [user, accessToken, expiresIn]

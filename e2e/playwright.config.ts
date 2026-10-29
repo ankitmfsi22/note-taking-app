@@ -6,6 +6,7 @@ import {
   E2E_ARGON2_TIME_COST,
   E2E_DATABASE_URL,
   E2E_JWT_ACCESS_SECRET,
+  E2E_OTP_HMAC_SECRET,
   FRONTEND_PORT,
 } from './support/env';
 
@@ -37,6 +38,7 @@ export default defineConfig({
         DATABASE_URL: E2E_DATABASE_URL,
         LOG_LEVEL: 'warn',
         JWT_ACCESS_SECRET: E2E_JWT_ACCESS_SECRET,
+        OTP_HMAC_SECRET: E2E_OTP_HMAC_SECRET,
         APP_ORIGIN: E2E_APP_ORIGIN,
         COOKIE_SECURE: 'false',
         ARGON2_MEMORY_KIB: String(E2E_ARGON2_MEMORY_KIB),

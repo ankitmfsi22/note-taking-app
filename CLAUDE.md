@@ -4,13 +4,14 @@
 ## Workflow (SDD, strict order, one ticket per session)
 
 - No production code without an approved OpenSpec change. Typos, dependency bumps and small fixes may skip the spec.
-- Human gates: spec (Rule 2), plan and tasks (Rule 3), each recorded by the user with `/approve` in the change's `approvals.md`; then the PR review. Never skip or auto-approve a gate.
+- Human gates: spec (Rule 2), recorded by the user with `/approve` in the change's `approvals.md`; then the PR review. Never skip or auto-approve a gate.
+- Gates follow the SDD guide (spec + PR) due to deadline. Plan and tasks (Rule 3) are still written, but have no approval gate.
 - Run `/clear` between tickets (Rule 4). Run `/compact` at about 70% context (Rule 5).
 - Tasks over about 45 minutes go to a subagent. Never use a `session-context.md` file as a workaround (Rule 6).
 - Tasks marked `[PARALLEL]` use git worktrees via `/parallel`. Frontend and backend work run in separate worktrees at the same time (Rule 7).
 - Models (Rule 8): Haiku for boilerplate, Sonnet for implementation, Opus with ultrathink for architecture only.
 - Context7 stays active. Verify every library API against live docs (Rule 9).
-- Ask `[y/n]` before every file write. List the files before each step (Rule 10). Never write files through shell commands.
+- List the files before each step (Rule 10); the tool permission prompt is the confirmation for each file write. Never write files through shell commands.
 
 ## Custom commands
 
@@ -19,9 +20,9 @@
 | Command | Purpose | Assignment name |
 | --- | --- | --- |
 | `/spec AB-xxxx` | Write the OpenSpec proposal, delta spec and `delta-openapi.yaml`; STOP for review | `/spec` |
-| `/sdd-plan AB-xxxx` | Write `design.md` from the approved spec; STOP for review | `/plan` |
-| `/sdd-tasks AB-xxxx` | Write `tasks.md` with `[PARALLEL]` markers; STOP for review | `/tasks` |
-| `/implement AB-xxxx` | Implement the approved tasks phase by phase with checkpoints | `/implement` |
+| `/sdd-plan AB-xxxx` | Write `design.md` from the approved spec, then continue to `/sdd-tasks` | `/plan` |
+| `/sdd-tasks AB-xxxx` | Write `tasks.md` with `[PARALLEL]` markers, then continue to `/implement` | `/tasks` |
+| `/implement AB-xxxx` | Implement the tasks phase by phase with checkpoints; commit and push each green phase | `/implement` |
 | `/parallel AB-xxxx` | Run `[PARALLEL]` tasks in separate git worktrees | `/parallel` |
 | `/sdd-review AB-xxxx` | Read-only `reviewer` agent in a fresh terminal: spec + FRS compliance | `/review` |
 | `/pr AB-xxxx` | Archive the change, then open the PR (only after all-green review) | `/pr` |
@@ -38,7 +39,7 @@
 
 - Commit: `type(scope): description AB#ticket`, for example `feat(auth): add login AB#1002`. Scope and `AB#` are required (Rule 14).
 - Branch: `feature/{domain}/AB-{ticket}-{short-name}`.
-- Never commit with failing tests, lint or type errors (Rule 13). The Husky pre-commit hook and commitlint enforce Rules 13 and 14. Ask before any commit.
+- Never commit with failing tests, lint or type errors (Rule 13). The Husky pre-commit hook and commitlint enforce Rules 13 and 14. In the guide flow, `/implement` commits and pushes the ticket branch after each green phase checkpoint; any other commit needs the user's go-ahead.
 - End commit messages with the attribution line given in the session reminder.
 
 ## Where to look
