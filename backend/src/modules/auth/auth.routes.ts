@@ -2,6 +2,7 @@ import {
   ForgotPasswordRequestSchema,
   LoginRequestSchema,
   RegisterRequestSchema,
+  ResetPasswordRequestSchema,
 } from '@note-app/shared';
 import cookieParser from 'cookie-parser';
 import { Router, type ErrorRequestHandler } from 'express';
@@ -39,6 +40,11 @@ export const createAuthRouter = ({
     '/forgot-password',
     validate({ body: ForgotPasswordRequestSchema }),
     passwordResetController.forgotPassword,
+  );
+  router.post(
+    '/reset-password',
+    validate({ body: ResetPasswordRequestSchema }),
+    passwordResetController.resetPassword,
   );
 
   // A refused refresh token also clears the browser's copy. The global error middleware still

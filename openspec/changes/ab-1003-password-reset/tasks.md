@@ -67,22 +67,22 @@ Tests first, in `backend/tests/integration/auth/forgot-password.test.ts` (Supert
 
 Tests first, in `backend/tests/integration/auth/reset-password.test.ts` (Supertest, real database, `createMutableClock` where time matters):
 
-- [ ] 7.1 Test `S-AB1003-05: a new OTP invalidates the earlier unused OTP` (10)
-- [ ] 7.2 Test `S-AB1003-07: reset with a correct OTP changes the password and uses the OTP` (15)
-- [ ] 7.3 Test `S-AB1003-08: reset revokes every refresh token and does not log in` (15)
-- [ ] 7.4 Test `S-AB1003-09: the old password stops working after a reset` (10)
-- [ ] 7.5 Test `S-AB1003-10: a used OTP is rejected` (10)
-- [ ] 7.6 Test `S-AB1003-11: a wrong OTP is rejected and counted` (10)
-- [ ] 7.7 Test `S-AB1003-12: an expired OTP is rejected` (clock advanced by exactly 10 minutes) (10)
-- [ ] 7.8 Test `S-AB1003-13: a weak new password is rejected and the OTP stays usable` (four passwords, `attempts` stays 0, a valid retry returns 204) (15)
-- [ ] 7.9 Test `S-AB1003-14: a reset for an unknown email returns the wrong-OTP error` (injected spy `otpHasher`, `verifyDummy` called once, same message as S-11) (15)
-- [ ] 7.10 Test `S-AB1003-15: the fifth wrong attempt invalidates the OTP` (15)
-- [ ] 7.11 Test `S-AB1003-16: after five failures a correct OTP is rejected until a new one is requested` (15)
-- [ ] 7.12 Test `S-AB1003-17: an OTP that is not six digits returns 400 VALIDATION_ERROR` (10)
-- [ ] 7.13 Test `S-AB1003-18: two concurrent resets with the same OTP succeed only once` (`Promise.all` on the real database) (20)
-- [ ] 7.14 `backend/src/modules/auth/password-reset.service.ts`: `resetPassword` (unknown email dummy, claim before compare, outcome returned and thrown after the commit, Argon2 hash after the match, `markOtpUsed` compare-and-set, `updatePasswordHash`, `revokeAllActiveForUser`), one error factory for every rejection (40)
-- [ ] 7.15 `password-reset.controller.ts` (`resetPassword`, `204` with no cookie) and the `POST /reset-password` route in `auth.routes.ts` (10)
-- [ ] 7.16 Checkpoint (5)
+- [x] 7.1 Test `S-AB1003-05: a new OTP invalidates the earlier unused OTP` (10)
+- [x] 7.2 Test `S-AB1003-07: reset with a correct OTP changes the password and uses the OTP` (15)
+- [x] 7.3 Test `S-AB1003-08: reset revokes every refresh token and does not log in` (15)
+- [x] 7.4 Test `S-AB1003-09: the old password stops working after a reset` (10)
+- [x] 7.5 Test `S-AB1003-10: a used OTP is rejected` (10)
+- [x] 7.6 Test `S-AB1003-11: a wrong OTP is rejected and counted` (10)
+- [x] 7.7 Test `S-AB1003-12: an expired OTP is rejected` (clock advanced by exactly 10 minutes) (10)
+- [x] 7.8 Test `S-AB1003-13: a weak new password is rejected and the OTP stays usable` (four passwords, `attempts` stays 0, a valid retry returns 204) (15)
+- [x] 7.9 Test `S-AB1003-14: a reset for an unknown email returns the wrong-OTP error` (injected spy `otpHasher`, `verifyDummy` called once, same message as S-11) (15)
+- [x] 7.10 Test `S-AB1003-15: the fifth wrong attempt invalidates the OTP` (15)
+- [x] 7.11 Test `S-AB1003-16: after five failures a correct OTP is rejected until a new one is requested` (15)
+- [x] 7.12 Test `S-AB1003-17: an OTP that is not six digits returns 400 VALIDATION_ERROR` (10)
+- [x] 7.13 Test `S-AB1003-18: two concurrent resets with the same OTP succeed only once` (`Promise.all` on the real database) (20)
+- [x] 7.14 `backend/src/modules/auth/password-reset.service.ts`: `resetPassword` (unknown email dummy, claim before compare, outcome returned and thrown after the commit, Argon2 hash after the match, `markOtpUsed` compare-and-set, `updatePasswordHash`, `revokeAllActiveForUser`), one error factory for every rejection (40)
+- [x] 7.15 `password-reset.controller.ts` (`resetPassword`, `204` with no cookie) and the `POST /reset-password` route in `auth.routes.ts` (10)
+- [x] 7.16 Checkpoint (5)
 
 ## 8. Verification and hand-off
 
