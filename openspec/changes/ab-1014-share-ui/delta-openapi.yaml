@@ -1,0 +1,18 @@
+openapi: 3.1.0
+info:
+  title: Note Taking App API (AB-1014 delta)
+  version: 0.1.0
+  description: |
+    Delta for ticket AB-1014 (frontend only). No path, schema, status or error
+    code is added or changed. The UI consumes these endpoints, defined by
+    AB-1008 in docs/api/openapi.yaml and docs/SDS.md section 7:
+    POST /notes/{noteId}/shares (201; 400 VALIDATION_ERROR, 404 NOTE_NOT_FOUND),
+    GET /notes/{noteId}/shares (200; 400, 404 NOTE_NOT_FOUND),
+    GET /shares (200; 400),
+    POST /shares/{shareId}/revoke (200, idempotent; 400, 404 SHARE_LINK_NOT_FOUND),
+    GET /public/shares/{token} (200; 400, 404 SHARE_LINK_NOT_FOUND).
+    The four owner endpoints also return 401 UNAUTHORIZED without a valid access token.
+    Nothing is merged into docs/api/openapi.yaml when this change is archived.
+servers:
+  - url: /api/v1
+paths: {}
