@@ -107,11 +107,11 @@ Then the code:
 
 ## 8. Cross-cutting scenarios
 
-- [ ] 8.1 Test `S-AB1002-03: responses never contain a password or hash` in `backend/tests/integration/auth/responses.test.ts` (register, login and refresh bodies) (20)
-- [ ] 8.2 Test `S-AB1002-11: passwords and tokens are not logged` in `backend/tests/integration/auth/logging.test.ts` (25)
-- [ ] 8.3 Test `S-AB1002-31: a valid access token reaches the handler with the user ID` in `backend/tests/integration/auth/require-auth.test.ts` (log in on `createApp`, call a test-local guarded app built with the same secret and clock) (20)
-- [ ] 8.4 `backend/src/common/logger.ts`: only if 8.2 shows a leak, extend `REDACT_PATHS` (15)
-- [ ] 8.5 Checkpoint (5)
+- [x] 8.1 Test `S-AB1002-03: responses never contain a password or hash` in `backend/tests/integration/auth/responses.test.ts` (register, login and refresh bodies) (20)
+- [x] 8.2 Test `S-AB1002-11: passwords and tokens are not logged` in `backend/tests/integration/auth/logging.test.ts` (25)
+- [x] 8.3 Test `S-AB1002-31: a valid access token reaches the handler with the user ID` in `backend/tests/integration/auth/require-auth.test.ts` (log in on `createApp`, call a test-local guarded app built with the same secret and clock) (20)
+- [x] 8.4 `backend/src/common/logger.ts`: only if 8.2 shows a leak, extend `REDACT_PATHS` (15). Not needed: 8.2 passed with the existing paths
+- [x] 8.5 Checkpoint (5)
 
 ## 9. Definition of done
 
