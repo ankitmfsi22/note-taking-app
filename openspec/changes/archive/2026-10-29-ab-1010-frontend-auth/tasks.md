@@ -32,3 +32,7 @@ Estimates in minutes. Test first in each phase. Every checkpoint: `pnpm build`, 
 - [x] 5.1 Add S-AB1010-07 and S-AB1010-08 to the spec; approved directly by the user in the phase-5 request (10)
 - [x] 5.2 Tests, then `/forgot-password` and `/reset-password` pages (45)
 - [x] 5.3 Checkpoint (5)
+
+## 6. Review and archive
+
+- [x] 6.1 `/sdd-review AB-1010` in a fresh terminal: all ✅ (0)
