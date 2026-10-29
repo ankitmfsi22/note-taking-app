@@ -4,9 +4,9 @@ Every checkpoint: `pnpm build`, `pnpm lint --max-warnings 0`, `pnpm format:check
 
 ## 1. Shared contracts
 
-- [ ] 1.1 Support tests for the share schemas (token pattern, expiry parsing, params)
-- [ ] 1.2 `share.ts`, `limits.ts`, `types.ts`, `index.ts`
-- [ ] 1.3 Checkpoint
+- [x] 1.1 Support tests for the share schemas (token pattern, expiry parsing, params)
+- [x] 1.2 `share.ts`, `limits.ts`, `types.ts`, `index.ts`
+- [x] 1.3 Checkpoint
 
 ## 2. Database
 
