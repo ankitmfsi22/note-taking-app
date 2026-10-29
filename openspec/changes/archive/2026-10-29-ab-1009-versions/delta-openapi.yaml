@@ -1,0 +1,209 @@
+openapi: 3.1.0
+info:
+  title: Note Taking App API (AB-1009 delta)
+  version: 0.1.0
+  description: |
+    Delta for ticket AB-1009. It adds the three version-history endpoints and
+    their schemas, and the `latestVersion` field of `NoteResponse`. It is
+    merged into docs/api/openapi.yaml when the change is archived
+    (docs/SDS.md SA-44). `NoteResponse` and `TipTapDoc` come from the AB-1004
+    delta. Statuses and error codes are binding (docs/SDS.md 4.3 and 7.1).
+servers:
+  - url: /api/v1
+paths:
+  /notes/{noteId}/versions:
+    get:
+      operationId: listNoteVersions
+      summary: List the retained versions of a note, newest first
+      description: |
+        Returns `versionNumber`, `title` and `createdAt` only, newest first,
+        paginated (AC-VER-05). A missing, another user's or soft-deleted note
+        is `404 NOTE_NOT_FOUND` (ERR-VER-01).
+      tags: [versions]
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/NoteId'
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/PageSize'
+      responses:
+        '200':
+          description: One page of versions.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/VersionListResponse'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          description: Note missing, not owned or soft-deleted (NOTE_NOT_FOUND).
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          $ref: '#/components/responses/InternalError'
+  /notes/{noteId}/versions/{versionNumber}:
+    get:
+      operationId: getNoteVersion
+      summary: View one version, read-only
+      description: Full title and content of a retained version (AC-VER-06).
+      tags: [versions]
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/NoteId'
+        - $ref: '#/components/parameters/VersionNumber'
+      responses:
+        '200':
+          description: The version.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/VersionDetail'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          description: |
+            Note missing, not owned or soft-deleted (NOTE_NOT_FOUND), or the
+            version number is missing or purged (VERSION_NOT_FOUND).
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          $ref: '#/components/responses/InternalError'
+  /notes/{noteId}/versions/{versionNumber}/restore:
+    post:
+      operationId: restoreNoteVersion
+      summary: Restore a version as a new latest version
+      description: |
+        In one transaction with a row lock on the note, sets the note to the
+        version's title and content and creates a new version; existing
+        versions are not changed (AC-VER-07, AC-VER-11). A target equal to
+        the current title and content is `409 VERSION_ALREADY_CURRENT`
+        (ERR-VER-03, SDS SA-20).
+      tags: [versions]
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/NoteId'
+        - $ref: '#/components/parameters/VersionNumber'
+      responses:
+        '200':
+          description: The updated note.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NoteResponse'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          description: |
+            Note missing, not owned or soft-deleted (NOTE_NOT_FOUND), or the
+            version number is missing or purged (VERSION_NOT_FOUND).
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '409':
+          description: The version equals the note's current title and content (VERSION_ALREADY_CURRENT).
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          $ref: '#/components/responses/InternalError'
+components:
+  parameters:
+    NoteId:
+      name: noteId
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+    VersionNumber:
+      name: versionNumber
+      in: path
+      required: true
+      schema:
+        type: integer
+        minimum: 1
+    Page:
+      name: page
+      in: query
+      required: false
+      schema:
+        type: integer
+        minimum: 1
+        default: 1
+    PageSize:
+      name: pageSize
+      in: query
+      required: false
+      schema:
+        type: integer
+        minimum: 1
+        maximum: 100
+        default: 20
+  schemas:
+    VersionListItem:
+      type: object
+      required: [versionNumber, title, createdAt]
+      additionalProperties: false
+      properties:
+        versionNumber:
+          type: integer
+          minimum: 1
+        title:
+          type: string
+          minLength: 1
+          maxLength: 200
+        createdAt:
+          type: string
+          format: date-time
+    VersionListResponse:
+      allOf:
+        - $ref: '#/components/schemas/PaginationMeta'
+        - type: object
+          required: [items]
+          properties:
+            items:
+              type: array
+              items:
+                $ref: '#/components/schemas/VersionListItem'
+    VersionDetail:
+      type: object
+      required: [versionNumber, title, content, createdAt]
+      additionalProperties: false
+      properties:
+        versionNumber:
+          type: integer
+          minimum: 1
+        title:
+          type: string
+          minLength: 1
+          maxLength: 200
+        content:
+          $ref: '#/components/schemas/TipTapDoc'
+        createdAt:
+          type: string
+          format: date-time
+    NoteResponse:
+      description: |
+        AB-1009 adds `latestVersion` to the AB-1004 `NoteResponse` (SDS 7.2,
+        SA-21). Merge this property into the existing schema.
+      type: object
+      required: [latestVersion]
+      properties:
+        latestVersion:
+          type: integer
+          minimum: 1
+          description: The note's latest version number (`Note.lastVersionNumber`).

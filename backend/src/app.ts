@@ -37,6 +37,10 @@ import { createTagsController } from './modules/tags/tags.controller.js';
 import { createTagsRepository } from './modules/tags/tags.repository.js';
 import { createNoteTagsRouter, createTagsRouter } from './modules/tags/tags.routes.js';
 import { createTagsService } from './modules/tags/tags.service.js';
+import { createVersionsController } from './modules/versions/versions.controller.js';
+import { createVersionsRepository } from './modules/versions/versions.repository.js';
+import { createVersionsRouter } from './modules/versions/versions.routes.js';
+import { createVersionsService } from './modules/versions/versions.service.js';
 
 export interface AppDeps {
   prisma: PrismaClient;
@@ -109,6 +113,20 @@ export const createApp = (deps: AppDeps): Express => {
       controller: createSharesController({
         service: createSharesService({
           repository: createSharesRepository(deps.prisma),
+          clock: deps.clock,
+        }),
+      }),
+      requireAuth,
+    }),
+  );
+  // Also before the notes router, whose router-level requireAuth would otherwise see these paths.
+  app.use(
+    '/api/v1/notes',
+    createVersionsRouter({
+      controller: createVersionsController({
+        service: createVersionsService({
+          notesRepository: createNotesRepository(deps.prisma),
+          versionsRepository: createVersionsRepository(deps.prisma),
           clock: deps.clock,
         }),
       }),

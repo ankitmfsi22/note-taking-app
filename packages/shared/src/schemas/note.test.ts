@@ -62,8 +62,22 @@ describe('NoteIdParamsSchema', () => {
 
 describe('NoteResponseSchema', () => {
   it('accepts a note and strips unlisted fields', () => {
-    const note = { id: ID, title: 't', content: EMPTY_DOC, tags: [], createdAt: AT, updatedAt: AT };
+    const note = {
+      id: ID,
+      title: 't',
+      content: EMPTY_DOC,
+      tags: [],
+      latestVersion: 1,
+      createdAt: AT,
+      updatedAt: AT,
+    };
     expect(NoteResponseSchema.parse({ ...note, userId: ID })).toEqual(note);
+  });
+
+  it('requires latestVersion to be an integer of at least 1', () => {
+    const note = { id: ID, title: 't', content: EMPTY_DOC, tags: [], createdAt: AT, updatedAt: AT };
+    expect(NoteResponseSchema.safeParse(note).success).toBe(false);
+    expect(NoteResponseSchema.safeParse({ ...note, latestVersion: 0 }).success).toBe(false);
   });
 });
 

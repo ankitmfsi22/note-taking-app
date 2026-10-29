@@ -50,6 +50,12 @@ import type {
   TagWithCountSchema,
 } from './schemas/tag.js';
 import type { TipTapDocSchema } from './schemas/tiptap.js';
+import type {
+  VersionDetailSchema,
+  VersionListItemSchema,
+  VersionListResponseSchema,
+  VersionParamsSchema,
+} from './schemas/version.js';
 
 export type Id = z.infer<typeof IdSchema>;
 export type ErrorCode = z.infer<typeof ErrorCodeSchema>;
@@ -90,3 +96,7 @@ export type SetNoteTagsRequest = z.infer<typeof SetNoteTagsRequestSchema>;
 export type NoteListQuery = z.infer<typeof NoteListQuerySchema>;
 export type NoteListItem = z.infer<typeof NoteListItemSchema>;
 export type NoteListResponse = z.infer<typeof NoteListResponseSchema>;
+export type VersionParams = z.infer<typeof VersionParamsSchema>;
+export type VersionListItem = z.infer<typeof VersionListItemSchema>;
+export type VersionListResponse = z.infer<typeof VersionListResponseSchema>;
+export type VersionDetail = z.infer<typeof VersionDetailSchema>;

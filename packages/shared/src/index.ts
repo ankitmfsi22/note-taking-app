@@ -7,4 +7,5 @@ export * from './schemas/search.js';
 export * from './schemas/share.js';
 export * from './schemas/tag.js';
 export * from './schemas/tiptap.js';
+export * from './schemas/version.js';
 export * from './types.js';

@@ -2,7 +2,7 @@ openapi: 3.1.0
 info:
   title: Note Taking App API
   version: 0.1.0
-  summary: REST API of the Note Taking App (health, auth, password-reset, notes, tags, search and sharing endpoints so far).
+  summary: REST API of the Note Taking App (health, auth, password-reset, notes, tags, search, sharing and version-history endpoints so far).
   description: |
     OpenAPI 3.1 document. It defines what every endpoint shares: the server
     base path, the security schemes and the binding error contract
@@ -11,7 +11,7 @@ info:
     `paths` grows ticket by ticket. Each ticket describes its endpoints in its
     own `openspec/changes/<change>/delta-openapi.yaml`, which is merged into
     this file when the change is archived (docs/SDS.md SA-44). AB-1001 added
-    `GET /health`. AB-1002 added the four auth endpoints. AB-1003 added forgot-password and reset-password. AB-1004 added notes CRUD, trash and restore. AB-1005 added the paginated notes list. AB-1006 added tags and note-tag replacement. AB-1007 added full-text search. AB-1008 added share links and the public read. The executable request and response contracts are the Zod
+    `GET /health`. AB-1002 added the four auth endpoints. AB-1003 added forgot-password and reset-password. AB-1004 added notes CRUD, trash and restore. AB-1005 added the paginated notes list. AB-1006 added tags and note-tag replacement. AB-1007 added full-text search. AB-1008 added share links and the public read. AB-1009 added version history and `latestVersion` on notes. The executable request and response contracts are the Zod
     schemas in `packages/shared`.
 servers:
   - url: /api/v1
@@ -599,6 +599,111 @@ paths:
           $ref: '#/components/responses/ShareLinkNotFound'
         '500':
           $ref: '#/components/responses/InternalError'
+  /notes/{noteId}/versions:
+    get:
+      operationId: listNoteVersions
+      summary: List the retained versions of a note, newest first
+      description: |
+        Returns `versionNumber`, `title` and `createdAt` only, newest first,
+        paginated (AC-VER-05). A missing, another user's or soft-deleted note
+        is `404 NOTE_NOT_FOUND` (ERR-VER-01).
+      tags: [versions]
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/NoteId'
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/PageSize'
+      responses:
+        '200':
+          description: One page of versions.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/VersionListResponse'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NoteNotFound'
+        '500':
+          $ref: '#/components/responses/InternalError'
+  /notes/{noteId}/versions/{versionNumber}:
+    get:
+      operationId: getNoteVersion
+      summary: View one version, read-only
+      description: Full title and content of a retained version (AC-VER-06).
+      tags: [versions]
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/NoteId'
+        - $ref: '#/components/parameters/VersionNumber'
+      responses:
+        '200':
+          description: The version.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/VersionDetail'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          description: |
+            Note missing, not owned or soft-deleted (NOTE_NOT_FOUND), or the
+            version number is missing or purged (VERSION_NOT_FOUND).
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          $ref: '#/components/responses/InternalError'
+  /notes/{noteId}/versions/{versionNumber}/restore:
+    post:
+      operationId: restoreNoteVersion
+      summary: Restore a version as a new latest version
+      description: |
+        In one transaction with a row lock on the note, sets the note to the
+        version's title and content and creates a new version; existing
+        versions are not changed (AC-VER-07, AC-VER-11). A target equal to
+        the current title and content is `409 VERSION_ALREADY_CURRENT`
+        (ERR-VER-03, SDS SA-20).
+      tags: [versions]
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/NoteId'
+        - $ref: '#/components/parameters/VersionNumber'
+      responses:
+        '200':
+          description: The updated note.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NoteResponse'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          description: |
+            Note missing, not owned or soft-deleted (NOTE_NOT_FOUND), or the
+            version number is missing or purged (VERSION_NOT_FOUND).
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '409':
+          description: The version equals the note's current title and content (VERSION_ALREADY_CURRENT).
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          $ref: '#/components/responses/InternalError'
   /search:
     get:
       operationId: searchNotes
@@ -819,6 +924,13 @@ components:
         minimum: 1
         maximum: 100
         default: 20
+    VersionNumber:
+      name: versionNumber
+      in: path
+      required: true
+      schema:
+        type: integer
+        minimum: 1
   headers:
     SetRefreshCookie:
       description: |
@@ -985,7 +1097,7 @@ components:
           $ref: '#/components/schemas/TipTapDoc'
     NoteResponse:
       type: object
-      required: [id, title, content, tags, createdAt, updatedAt]
+      required: [id, title, content, tags, latestVersion, createdAt, updatedAt]
       properties:
         id:
           type: string
@@ -999,6 +1111,10 @@ components:
           description: The note's tags, ordered by name (AB-1006).
           items:
             $ref: '#/components/schemas/TagResponse'
+        latestVersion:
+          type: integer
+          minimum: 1
+          description: The note's latest version number (`Note.lastVersionNumber`, AB-1009).
         createdAt:
           type: string
           format: date-time
@@ -1205,6 +1321,48 @@ components:
           type: object
           description: TipTap JSON document (TipTapDocSchema, SDS 8.1).
         updatedAt:
+          type: string
+          format: date-time
+    VersionListItem:
+      type: object
+      required: [versionNumber, title, createdAt]
+      additionalProperties: false
+      properties:
+        versionNumber:
+          type: integer
+          minimum: 1
+        title:
+          type: string
+          minLength: 1
+          maxLength: 200
+        createdAt:
+          type: string
+          format: date-time
+    VersionListResponse:
+      allOf:
+        - $ref: '#/components/schemas/PaginationMeta'
+        - type: object
+          required: [items]
+          properties:
+            items:
+              type: array
+              items:
+                $ref: '#/components/schemas/VersionListItem'
+    VersionDetail:
+      type: object
+      required: [versionNumber, title, content, createdAt]
+      additionalProperties: false
+      properties:
+        versionNumber:
+          type: integer
+          minimum: 1
+        title:
+          type: string
+          minLength: 1
+          maxLength: 200
+        content:
+          $ref: '#/components/schemas/TipTapDoc'
+        createdAt:
           type: string
           format: date-time
     SearchResultItem:

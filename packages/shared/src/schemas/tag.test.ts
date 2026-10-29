@@ -67,6 +67,7 @@ describe('TagListResponseSchema and NoteResponseSchema', () => {
       title: 't',
       content: EMPTY_DOC,
       tags: [tag],
+      latestVersion: 1,
       createdAt: AT,
       updatedAt: AT,
     };

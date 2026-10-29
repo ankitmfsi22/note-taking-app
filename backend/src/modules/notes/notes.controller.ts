@@ -26,6 +26,7 @@ export const toNoteResponse = (note: Note) =>
     title: note.title,
     content: note.content,
     tags: note.noteTags.map(({ tag }) => ({ ...tag, createdAt: tag.createdAt.toISOString() })),
+    latestVersion: note.lastVersionNumber,
     createdAt: note.createdAt.toISOString(),
     updatedAt: note.updatedAt.toISOString(),
   });

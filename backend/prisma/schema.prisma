@@ -66,9 +66,12 @@ model Note {
   // AB-1007: generated column, created in SQL only (migration notes_search_vector)
   searchVector Unsupported("tsvector")? @default(dbgenerated())
 
-  user       User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  lastVersionNumber Int @default(0) // AB-1009: monotonic counter
+
+  user       User          @relation(fields: [userId], references: [id], onDelete: Cascade)
   noteTags   NoteTag[] // SDS assigns AB-1006; created early by AB-1005
   shareLinks ShareLink[] // AB-1008
+  versions   NoteVersion[] // AB-1009
 
   @@index([userId, deletedAt, updatedAt(sort: Desc)]) // AB-1004: default list + trash
   @@index([userId, deletedAt, createdAt(sort: Desc)]) // AB-1005
@@ -118,4 +121,18 @@ model ShareLink {
   note Note @relation(fields: [noteId], references: [id], onDelete: Cascade)
 
   @@index([noteId])
+}
+
+// ---- AB-1009 --------------------------------------------------------
+model NoteVersion {
+  id            String   @id @default(uuid(7)) @db.Uuid
+  noteId        String   @db.Uuid
+  versionNumber Int
+  title         String   @db.VarChar(200)
+  content       Json     @db.JsonB
+  createdAt     DateTime @default(now()) @db.Timestamptz(3)
+
+  note Note @relation(fields: [noteId], references: [id], onDelete: Cascade)
+
+  @@unique([noteId, versionNumber]) // also serves "newest first"
 }

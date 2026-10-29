@@ -27,6 +27,7 @@ export const NoteResponseSchema = z.object({
   title: z.string(),
   content: TipTapDocSchema,
   tags: z.array(TagResponseSchema),
+  latestVersion: z.int().min(1),
   createdAt: z.iso.datetime(),
   updatedAt: z.iso.datetime(),
 });
