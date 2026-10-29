@@ -25,9 +25,9 @@ Every checkpoint: `pnpm build`, `pnpm lint --max-warnings 0`, `pnpm format:check
 
 ## 4. Trash purge
 
-- [ ] 4.1 Test `S-AB1004-06` restore and purge at the 30-day boundary
-- [ ] 4.2 `TrashPurgeJob`, purge repository, scheduler (unit test with fake timers), `JOBS_ENABLED`, `server.ts`, `purge-cli.ts`, `job:purge`
-- [ ] 4.3 Checkpoint
+- [x] 4.1 Test `S-AB1004-06` restore and purge at the 30-day boundary
+- [x] 4.2 `TrashPurgeJob`, purge repository, scheduler (unit test with fake timers), `JOBS_ENABLED`, `server.ts`, `purge-cli.ts`, `job:purge`
+- [x] 4.3 Checkpoint
 
 ## 5. Verification
 

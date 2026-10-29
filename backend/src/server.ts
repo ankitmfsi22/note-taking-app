@@ -3,6 +3,9 @@ import { systemClock } from './common/clock.js';
 import { createPrismaClient } from './common/db/prisma.js';
 import { createLogger } from './common/logger.js';
 import { loadEnv } from './config/env.js';
+import { startScheduler } from './jobs/scheduler.js';
+import { createTrashPurgeJob } from './jobs/trash-purge.job.js';
+import { createTrashPurgeRepository } from './modules/notes/notes.repository.js';
 import { buildEmailService } from './modules/email/build-email-service.js';
 
 const start = async (): Promise<void> => {
@@ -20,6 +23,18 @@ const start = async (): Promise<void> => {
     loadSink,
   });
   const app = createApp({ prisma, clock: systemClock, env, logger, emailService });
+  const scheduler = env.JOBS_ENABLED
+    ? startScheduler({
+        jobs: [
+          {
+            name: 'trash-purge',
+            run: createTrashPurgeJob({ repository: createTrashPurgeRepository(prisma) }).run,
+          },
+        ],
+        clock: systemClock,
+        logger,
+      })
+    : undefined;
 
   const server = app.listen(env.PORT, () => {
     logger.info({ port: env.PORT }, 'server listening');
@@ -27,6 +42,7 @@ const start = async (): Promise<void> => {
 
   const shutdown = (signal: string): void => {
     logger.info({ signal }, 'shutting down');
+    scheduler?.stop();
     server.close(() => {
       void prisma.$disconnect().finally(() => process.exit(0));
     });
