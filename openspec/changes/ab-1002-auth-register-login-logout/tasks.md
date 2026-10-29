@@ -57,29 +57,29 @@ Spec and plan approved 2026-10-28. Estimates are minutes. `(subagent)` marks a t
 
 Tests first, in `backend/tests/integration/auth/register.test.ts` and `login.test.ts` (Supertest, real database):
 
-- [ ] 6.1 Test `S-AB1002-01: register creates the user and logs them in` (15)
-- [ ] 6.2 Test `S-AB1002-02: register without a display name returns null` (10)
-- [ ] 6.3 Test `S-AB1002-04: email is trimmed and stored in lower case` (10)
-- [ ] 6.4 Test `S-AB1002-05: duplicate email in any letter case returns 409 EMAIL_TAKEN` (10)
-- [ ] 6.5 Test `S-AB1002-06: register with an invalid email returns 400 VALIDATION_ERROR` (10)
-- [ ] 6.6 Test `S-AB1002-07: register with a weak password returns 400 VALIDATION_ERROR` (15)
-- [ ] 6.7 Test `S-AB1002-08: register with missing fields returns 400 VALIDATION_ERROR` (10)
-- [ ] 6.8 Test `S-AB1002-09: password is stored as an Argon2id hash` (10)
-- [ ] 6.9 Test `S-AB1002-12: login with correct credentials returns tokens` (15)
-- [ ] 6.10 Test `S-AB1002-13: refresh token is stored hashed with a 7-day expiry` (15)
-- [ ] 6.11 Test `S-AB1002-14: refresh cookie has the required attributes` (15)
-- [ ] 6.12 Test `S-AB1002-15: login with missing fields returns 400 VALIDATION_ERROR` (10)
-- [ ] 6.13 Test `S-AB1002-16: wrong password returns 401 INVALID_CREDENTIALS` (10)
-- [ ] 6.14 Test `S-AB1002-17: unknown email returns the same error as a wrong password`, with a spy `passwordHasher` (20)
+- [x] 6.1 Test `S-AB1002-01: register creates the user and logs them in` (15)
+- [x] 6.2 Test `S-AB1002-02: register without a display name returns null` (10)
+- [x] 6.3 Test `S-AB1002-04: email is trimmed and stored in lower case` (10)
+- [x] 6.4 Test `S-AB1002-05: duplicate email in any letter case returns 409 EMAIL_TAKEN` (10)
+- [x] 6.5 Test `S-AB1002-06: register with an invalid email returns 400 VALIDATION_ERROR` (10)
+- [x] 6.6 Test `S-AB1002-07: register with a weak password returns 400 VALIDATION_ERROR` (15)
+- [x] 6.7 Test `S-AB1002-08: register with missing fields returns 400 VALIDATION_ERROR` (10)
+- [x] 6.8 Test `S-AB1002-09: password is stored as an Argon2id hash` (10)
+- [x] 6.9 Test `S-AB1002-12: login with correct credentials returns tokens` (15)
+- [x] 6.10 Test `S-AB1002-13: refresh token is stored hashed with a 7-day expiry` (15)
+- [x] 6.11 Test `S-AB1002-14: refresh cookie has the required attributes` (15)
+- [x] 6.12 Test `S-AB1002-15: login with missing fields returns 400 VALIDATION_ERROR` (10)
+- [x] 6.13 Test `S-AB1002-16: wrong password returns 401 INVALID_CREDENTIALS` (10)
+- [x] 6.14 Test `S-AB1002-17: unknown email returns the same error as a wrong password`, with a spy `passwordHasher` (20)
 
 Then the code:
 
-- [ ] 6.15 `backend/src/modules/auth/refresh-cookie.ts`: name, option builder, set helper, clear helper with `maxAge: 0` (15)
-- [ ] 6.16 `backend/src/modules/auth/auth.repository.ts`: `findUserByEmail`, `createUser` (null on `P2002`), `createRefreshToken`, `transaction(fn)` (40)
-- [ ] 6.17 `backend/src/modules/auth/auth.service.ts`: `register` and `login` with the dummy verify (40)
-- [ ] 6.18 `backend/src/modules/auth/auth.controller.ts` and `auth.routes.ts`: `POST /register` and `POST /login`, `cookie-parser` on the router, response parsed with `AuthResponseSchema` (30)
-- [ ] 6.19 `backend/src/app.ts`: build and mount the auth module, optional `passwordHasher` dependency (15)
-- [ ] 6.20 Checkpoint (5)
+- [x] 6.15 `backend/src/modules/auth/refresh-cookie.ts`: name, option builder, set helper, clear helper with `maxAge: 0` (15)
+- [x] 6.16 `backend/src/modules/auth/auth.repository.ts`: `findUserByEmail`, `createUser` (null on `P2002`), `createRefreshToken`, `transaction(fn)` (40)
+- [x] 6.17 `backend/src/modules/auth/auth.service.ts`: `register` and `login` with the dummy verify (40)
+- [x] 6.18 `backend/src/modules/auth/auth.controller.ts` and `auth.routes.ts`: `POST /register` and `POST /login`, `cookie-parser` on the router, response parsed with `AuthResponseSchema` (30)
+- [x] 6.19 `backend/src/app.ts`: build and mount the auth module, optional `passwordHasher` dependency (15)
+- [x] 6.20 Checkpoint (5)
 
 ## 7. Refresh, logout and origin check
 
