@@ -5,7 +5,7 @@ argument-hint: AB-xxxx
 
 Run the `[PARALLEL]` tasks of ticket $ARGUMENTS (Rule 7).
 
-1. Read `openspec/changes/<ticket>-*/tasks.md` (`<ticket>` is `$ARGUMENTS` in lowercase, for example `ab-1001`) and confirm the three approvals in `approvals.md`. Collect the tasks marked `[PARALLEL]` and group them by side: `backend` and `frontend` (and `shared` only if it is independent). If a group is empty or the groups touch the same file, say so and fall back to `/implement`.
+1. Read `openspec/changes/<ticket>-*/tasks.md` (`<ticket>` is `$ARGUMENTS` in lowercase, for example `ab-1001`) and confirm the spec approval in `approvals.md`. Collect the tasks marked `[PARALLEL]` and group them by side: `backend` and `frontend` (and `shared` only if it is independent). If a group is empty or the groups touch the same file, say so and fall back to `/implement`.
 2. Shared contracts first: if the parallel work needs new schemas in `packages/shared`, finish and build them in the main worktree before starting.
 3. For each side, list the worktree and branch, then ask [y/n]:
    - `git worktree add ../note-app-wt-<ticket>-<side> -b <current-branch>-<side>`
