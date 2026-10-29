@@ -23,9 +23,9 @@ No SDS or FRS change is needed (design.md, intro), so there is no prerequisite p
 
 ## 3. Database
 
-- [ ] 3.1 `backend/prisma/schema.prisma`: `model PasswordResetOtp` exactly as SDS 6.2 and `passwordResetOtps PasswordResetOtp[]` on `User` (10)
-- [ ] 3.2 `backend/prisma/migrations/<timestamp>_auth_password_reset_otp/migration.sql`: after `pnpm db:up`, run `prisma migrate dev --create-only --name auth_password_reset_otp`, read the SQL against the design checklist (`otpHash CHAR(64)`, `attempts INTEGER NOT NULL DEFAULT 0`, `timestamptz(3)` columns, index on `userId` and `createdAt DESC`, foreign key `ON DELETE CASCADE`), then apply and `prisma generate`; ask [y/n] before running the CLI (25)
-- [ ] 3.3 Checkpoint: existing AB-1001 and AB-1002 tests stay green on the new migration (5)
+- [x] 3.1 `backend/prisma/schema.prisma`: `model PasswordResetOtp` exactly as SDS 6.2 and `passwordResetOtps PasswordResetOtp[]` on `User` (10)
+- [x] 3.2 `backend/prisma/migrations/<timestamp>_auth_password_reset_otp/migration.sql`: after `pnpm db:up`, run `prisma migrate dev --create-only --name auth_password_reset_otp`, read the SQL against the design checklist (`otpHash CHAR(64)`, `attempts INTEGER NOT NULL DEFAULT 0`, `timestamptz(3)` columns, index on `userId` and `createdAt DESC`, foreign key `ON DELETE CASCADE`), then apply and `prisma generate`; ask [y/n] before running the CLI (25)
+- [x] 3.3 Checkpoint: existing AB-1001 and AB-1002 tests stay green on the new migration (5)
 
 ## 4. Security helpers
 
