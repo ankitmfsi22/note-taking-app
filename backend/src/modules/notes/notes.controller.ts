@@ -20,12 +20,12 @@ type NotePage = Awaited<ReturnType<NotesService['list']>>;
 const userIdOf = (res: Response): string => String(res.locals.userId);
 
 // Parsing with the shared schema drops userId, contentText and deletedAt from the body.
-const toNoteResponse = (note: Note) =>
+export const toNoteResponse = (note: Note) =>
   NoteResponseSchema.parse({
     id: note.id,
     title: note.title,
     content: note.content,
-    tags: [],
+    tags: note.noteTags.map(({ tag }) => ({ ...tag, createdAt: tag.createdAt.toISOString() })),
     createdAt: note.createdAt.toISOString(),
     updatedAt: note.updatedAt.toISOString(),
   });

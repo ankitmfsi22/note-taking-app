@@ -63,7 +63,9 @@ export const createNotesService = ({
     const cutoff = trashCutoff(clock.now());
     const note = await repository.transaction(async (tx) => {
       const trashed = await tx.findTrashedByIdForUser(noteId, userId, cutoff);
-      return trashed ? tx.markRestored(noteId, userId, cutoff, trashed.updatedAt) : null;
+      if (!trashed) return null;
+      await tx.markRestored(noteId, userId, cutoff, trashed.updatedAt);
+      return tx.findActiveByIdForUser(noteId, userId);
     });
     if (!note) throw noteNotFound();
     return note;
