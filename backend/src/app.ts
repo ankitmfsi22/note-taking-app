@@ -25,6 +25,18 @@ import { createNotesController } from './modules/notes/notes.controller.js';
 import { createNotesRepository } from './modules/notes/notes.repository.js';
 import { createNotesRouter } from './modules/notes/notes.routes.js';
 import { createNotesService } from './modules/notes/notes.service.js';
+import { createSearchController } from './modules/search/search.controller.js';
+import { createSearchRepository } from './modules/search/search.repository.js';
+import { createSearchRouter } from './modules/search/search.routes.js';
+import { createSearchService } from './modules/search/search.service.js';
+import { createSharesController } from './modules/shares/shares.controller.js';
+import { createSharesRepository } from './modules/shares/shares.repository.js';
+import { createSharesRouter } from './modules/shares/shares.routes.js';
+import { createSharesService } from './modules/shares/shares.service.js';
+import { createTagsController } from './modules/tags/tags.controller.js';
+import { createTagsRepository } from './modules/tags/tags.repository.js';
+import { createNoteTagsRouter, createTagsRouter } from './modules/tags/tags.routes.js';
+import { createTagsService } from './modules/tags/tags.service.js';
 import { createVersionsController } from './modules/versions/versions.controller.js';
 import { createVersionsRepository } from './modules/versions/versions.repository.js';
 import { createVersionsRouter } from './modules/versions/versions.routes.js';
@@ -94,7 +106,20 @@ export const createApp = (deps: AppDeps): Express => {
     clock: deps.clock,
   });
 
-  // Before the notes router, whose router-level requireAuth would otherwise see these paths first.
+  // Before the notes router, which would run requireAuth on /notes/:noteId/shares first.
+  app.use(
+    '/api/v1',
+    createSharesRouter({
+      controller: createSharesController({
+        service: createSharesService({
+          repository: createSharesRepository(deps.prisma),
+          clock: deps.clock,
+        }),
+      }),
+      requireAuth,
+    }),
+  );
+  // Also before the notes router, whose router-level requireAuth would otherwise see these paths.
   app.use(
     '/api/v1/notes',
     createVersionsRouter({
@@ -121,6 +146,21 @@ export const createApp = (deps: AppDeps): Express => {
       requireAuth,
     }),
   );
+  app.use(
+    '/api/v1/search',
+    createSearchRouter({
+      controller: createSearchController({
+        service: createSearchService({ repository: createSearchRepository(deps.prisma) }),
+      }),
+      requireAuth,
+    }),
+  );
+
+  const tagsController = createTagsController({
+    service: createTagsService({ repository: createTagsRepository(deps.prisma) }),
+  });
+  app.use('/api/v1/tags', createTagsRouter({ controller: tagsController, requireAuth }));
+  app.use('/api/v1/notes', createNoteTagsRouter({ controller: tagsController, requireAuth }));
 
   app.use(notFoundHandler);
   app.use(createErrorHandler(deps.logger));

@@ -656,8 +656,8 @@ No user-deletion feature exists (FRS 13). The `User` cascades only define integr
 | AB-1002 | `User`, `RefreshToken`. |
 | AB-1003 | `PasswordResetOtp`. |
 | AB-1004 | `Note` with indexes `(userId, deletedAt, updatedAt DESC)` and `(deletedAt)`. |
-| AB-1005 | Indexes `(userId, deletedAt, createdAt DESC)` and `(userId, deletedAt, title)`. |
-| AB-1006 | `Tag`, `NoteTag`, unique `(userId, nameKey)`. |
+| AB-1005 | Indexes `(userId, deletedAt, createdAt DESC)` and `(userId, deletedAt, title)`. Also `Tag`, `NoteTag`, unique `(userId, nameKey)`, pulled forward from AB-1006 because the list's tag filter needs them (owner decision, 2026-10-29). |
+| AB-1006 | No tables (created in AB-1005). Tag endpoints and note-tag replacement only. |
 | AB-1007 | **Hand-edited migration** (`prisma migrate dev --create-only`, then edit): adds the generated `searchVector` column and the GIN index. See below. |
 | AB-1008 | `ShareLink`. |
 | AB-1009 | `NoteVersion`, `Note.lastVersionNumber`, and a **backfill**: one version 1 per existing note and `lastVersionNumber = 1`. |

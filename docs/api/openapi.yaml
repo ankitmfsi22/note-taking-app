@@ -2,7 +2,7 @@ openapi: 3.1.0
 info:
   title: Note Taking App API
   version: 0.1.0
-  summary: REST API of the Note Taking App (health, auth, password-reset and notes endpoints so far).
+  summary: REST API of the Note Taking App (health, auth, password-reset, notes, tags, search and sharing endpoints so far).
   description: |
     OpenAPI 3.1 document. It defines what every endpoint shares: the server
     base path, the security schemes and the binding error contract
@@ -11,7 +11,7 @@ info:
     `paths` grows ticket by ticket. Each ticket describes its endpoints in its
     own `openspec/changes/<change>/delta-openapi.yaml`, which is merged into
     this file when the change is archived (docs/SDS.md SA-44). AB-1001 added
-    `GET /health`. AB-1002 added the four auth endpoints. AB-1003 added forgot-password and reset-password. AB-1004 added notes CRUD, trash and restore. The executable request and response contracts are the Zod
+    `GET /health`. AB-1002 added the four auth endpoints. AB-1003 added forgot-password and reset-password. AB-1004 added notes CRUD, trash and restore. AB-1005 added the paginated notes list. AB-1006 added tags and note-tag replacement. AB-1007 added full-text search. AB-1008 added share links and the public read. The executable request and response contracts are the Zod
     schemas in `packages/shared`.
 servers:
   - url: /api/v1
@@ -233,6 +233,68 @@ paths:
         '500':
           $ref: '#/components/responses/InternalError'
   /notes:
+    get:
+      operationId: listNotes
+      summary: List the caller's notes
+      description: |
+        Returns the caller's non-deleted notes, paginated (AC-LIST-01,
+        AC-LIST-02). Sorted by `sortBy` and `sortOrder`, ties broken by `id`
+        (AC-LIST-03, AC-LIST-04). `tagIds` filters with OR, each note once
+        (AC-LIST-05). A page beyond the last returns empty `items` with
+        correct totals (AC-LIST-07). Any `tagIds` entry that is missing or
+        not the caller's gives `404 TAG_NOT_FOUND` (AC-LIST-08).
+      tags: [notes]
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/PageSize'
+        - name: sortBy
+          in: query
+          required: false
+          schema:
+            type: string
+            enum: [updatedAt, createdAt, title]
+            default: updatedAt
+        - name: sortOrder
+          in: query
+          required: false
+          schema:
+            type: string
+            enum: [asc, desc]
+            default: desc
+        - name: tagIds
+          in: query
+          required: false
+          description: Comma-separated tag UUIDs, at most 10 after duplicates are removed (SDS SA-26).
+          style: form
+          explode: false
+          schema:
+            type: array
+            minItems: 1
+            maxItems: 10
+            items:
+              type: string
+              format: uuid
+      responses:
+        '200':
+          description: One page of note list items.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NoteListResponse'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          description: A `tagIds` entry does not exist or belongs to another user (TAG_NOT_FOUND).
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          $ref: '#/components/responses/InternalError'
     post:
       operationId: createNote
       summary: Create a note
@@ -376,6 +438,359 @@ paths:
           $ref: '#/components/responses/Unauthorized'
         '404':
           $ref: '#/components/responses/NoteNotFound'
+        '500':
+          $ref: '#/components/responses/InternalError'
+  /notes/{noteId}/shares:
+    parameters:
+      - $ref: '#/components/parameters/NoteId'
+    post:
+      operationId: createShareLink
+      summary: Create a public share link for a note
+      description: |
+        Creates a link for the caller's non-deleted note (AC-SHARE-01). A note
+        may have several links (AC-SHARE-02). The token is 32 random bytes as
+        base64url (AC-SHARE-03). `expiresAt` is optional, in the future and at
+        most 365 days ahead (AC-SHARE-04, ERR-SHARE-02). A missing, another
+        user's or soft-deleted note is NOTE_NOT_FOUND (ERR-SHARE-01).
+      tags: [shares]
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateShareLinkRequest'
+      responses:
+        '201':
+          description: Link created. The token is returned so the owner can copy the link.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ShareLinkResponse'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NoteNotFound'
+        '500':
+          $ref: '#/components/responses/InternalError'
+    get:
+      operationId: listNoteShareLinks
+      summary: List all links of one note
+      description: All statuses, with creation time, expiry, view count and status (AC-SHARE-09, AC-SHARE-11).
+      tags: [shares]
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Every link of the note.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ShareLinkListResponse'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NoteNotFound'
+        '500':
+          $ref: '#/components/responses/InternalError'
+  /shares:
+    get:
+      operationId: listActiveShareLinks
+      summary: List the caller's active links across all notes
+      description: |
+        Paginated. Excludes revoked, expired and soft-deleted-note links
+        (AC-SHARE-11, SA-17).
+      tags: [shares]
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/PageSize'
+      responses:
+        '200':
+          description: One page of active links.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ActiveShareLinkListResponse'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/InternalError'
+  /shares/{shareId}/revoke:
+    post:
+      operationId: revokeShareLink
+      summary: Revoke a share link (idempotent)
+      description: |
+        Sets `revokedAt` only when it is null. Revoking an already revoked link
+        returns 200 and changes nothing (AC-SHARE-10, ERR-SHARE-04). Other links
+        of the note are untouched (AC-SHARE-02). A missing or another user's
+        link is SHARE_LINK_NOT_FOUND (ERR-SHARE-03).
+      tags: [shares]
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: shareId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: The link after revoke.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ShareLinkResponse'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/ShareLinkNotFound'
+        '500':
+          $ref: '#/components/responses/InternalError'
+  /public/shares/{token}:
+    get:
+      operationId: getPublicSharedNote
+      summary: Read a shared note without logging in
+      description: |
+        Public and read-only (AC-SHARE-05). Any Authorization header is ignored
+        (ERR-SHARE-09). One `UPDATE ... RETURNING` checks availability,
+        increments the view count by exactly 1 and returns the note
+        (AC-SHARE-07, SDS 8.3). Unknown, revoked, expired and deleted-note links
+        are the same 404 and count nothing (AC-SHARE-14, ERR-SHARE-05 to 07).
+      tags: [public]
+      security: []
+      parameters:
+        - name: token
+          in: path
+          required: true
+          schema:
+            type: string
+            pattern: '^[A-Za-z0-9_-]{43}$'
+      responses:
+        '200':
+          description: Title, content and last-updated time only (AC-SHARE-06).
+          headers:
+            Cache-Control:
+              schema:
+                type: string
+                enum: [no-store]
+            X-Robots-Tag:
+              schema:
+                type: string
+                enum: [noindex]
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PublicSharedNote'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '404':
+          $ref: '#/components/responses/ShareLinkNotFound'
+        '500':
+          $ref: '#/components/responses/InternalError'
+  /search:
+    get:
+      operationId: searchNotes
+      summary: Full-text search over the caller's notes
+      description: |
+        PostgreSQL full-text search (`plainto_tsquery('english')`) over the
+        title and content text of the caller's non-deleted notes
+        (AC-SRCH-01 to 03). Ordered by relevance (title above content), then
+        `updatedAt` descending, then `id` (AC-SRCH-04). Operator characters
+        are plain text (AC-SRCH-10). No match gives empty `items`
+        (AC-SRCH-09). `titleHighlight` and `snippet` are HTML-escaped except
+        for `<mark>` and `</mark>` (AC-SRCH-05, AC-SRCH-06).
+      tags: [search]
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: q
+          in: query
+          required: true
+          description: Trimmed, then 2 to 200 characters (AC-SRCH-08).
+          schema:
+            type: string
+            minLength: 2
+            maxLength: 200
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/PageSize'
+      responses:
+        '200':
+          description: One page of results. A page beyond the end has empty `items` and correct totals.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SearchResponse'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/InternalError'
+  /tags:
+    get:
+      operationId: listTags
+      summary: List the caller's tags with note counts
+      description: |
+        Every tag of the caller, not paginated (SDS SA-25). `noteCount` counts
+        only the caller's non-deleted notes (AC-TAG-05, AC-TAG-06).
+      tags: [tags]
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: The caller's tags.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TagListResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/InternalError'
+    post:
+      operationId: createTag
+      summary: Create a tag
+      description: |
+        Name unique per user ignoring case (`nameKey`, AC-TAG-02). Colour
+        defaults to `#6B7280` (AC-TAG-03).
+      tags: [tags]
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TagCreateRequest'
+      responses:
+        '201':
+          description: Tag created.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TagResponse'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '409':
+          description: The caller already has a tag with this name in any letter case (TAG_NAME_TAKEN).
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          $ref: '#/components/responses/InternalError'
+  /tags/{tagId}:
+    parameters:
+      - name: tagId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    patch:
+      operationId: updateTag
+      summary: Rename or recolour a tag
+      description: At least one of `name` or `color`. Visible on every note using the tag (AC-TAG-09).
+      tags: [tags]
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TagUpdateRequest'
+      responses:
+        '200':
+          description: Tag updated.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TagResponse'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/TagNotFound'
+        '409':
+          description: Another tag of the caller already has this name in any letter case (TAG_NAME_TAKEN).
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          $ref: '#/components/responses/InternalError'
+    delete:
+      operationId: deleteTag
+      summary: Delete a tag
+      description: Detaches the tag from all notes; no note is changed (AC-TAG-08).
+      tags: [tags]
+      security:
+        - bearerAuth: []
+      responses:
+        '204':
+          description: Tag deleted. No body.
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/TagNotFound'
+        '500':
+          $ref: '#/components/responses/InternalError'
+  /notes/{noteId}/tags:
+    put:
+      operationId: setNoteTags
+      summary: Replace the tags of a note
+      description: |
+        Replaces the whole tag set in one transaction (AC-TAG-07). Duplicate ids
+        are removed, then at most 10 remain. Does not change `updatedAt` and
+        creates no version (SDS SA-24).
+      tags: [tags]
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/NoteId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SetNoteTagsRequest'
+      responses:
+        '200':
+          description: The note with its new tags.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NoteResponse'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          description: |
+            The note is missing, not owned or soft-deleted (NOTE_NOT_FOUND), or
+            a tag id is missing or not owned (TAG_NOT_FOUND). The note is unchanged.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
         '500':
           $ref: '#/components/responses/InternalError'
 components:
@@ -581,9 +996,9 @@ components:
           $ref: '#/components/schemas/TipTapDoc'
         tags:
           type: array
-          description: Always empty until AB-1006 adds tags (TagResponse).
+          description: The note's tags, ordered by name (AB-1006).
           items:
-            type: object
+            $ref: '#/components/schemas/TagResponse'
         createdAt:
           type: string
           format: date-time
@@ -623,6 +1038,247 @@ components:
               type: array
               items:
                 $ref: '#/components/schemas/TrashListItem'
+    TagResponse:
+      type: object
+      required: [id, name, color, createdAt]
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+          maxLength: 30
+        color:
+          type: string
+          pattern: '^#[0-9A-Fa-f]{6}$'
+        createdAt:
+          type: string
+          format: date-time
+    TagCreateRequest:
+      type: object
+      required: [name]
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 30
+          description: Trimmed before validation.
+        color:
+          type: string
+          pattern: '^#[0-9A-Fa-f]{6}$'
+          description: Defaults to `#6B7280`.
+    TagUpdateRequest:
+      type: object
+      minProperties: 1
+      description: At least one of `name` or `color`.
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 30
+          description: Trimmed before validation.
+        color:
+          type: string
+          pattern: '^#[0-9A-Fa-f]{6}$'
+    TagWithCount:
+      type: object
+      description: '`TagResponse` plus `noteCount`.'
+      required: [id, name, color, createdAt, noteCount]
+      additionalProperties: false
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+          minLength: 1
+          maxLength: 30
+        color:
+          type: string
+          pattern: '^#[0-9A-Fa-f]{6}$'
+        createdAt:
+          type: string
+          format: date-time
+        noteCount:
+          type: integer
+          minimum: 0
+          description: Caller's non-deleted notes carrying this tag.
+    TagListResponse:
+      type: object
+      required: [items]
+      additionalProperties: false
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/TagWithCount'
+    SetNoteTagsRequest:
+      type: object
+      required: [tagIds]
+      properties:
+        tagIds:
+          type: array
+          description: |
+            Duplicates are removed, then at most 10 ids are allowed (so no
+            `maxItems` on the raw array). Empty removes all tags.
+          items:
+            type: string
+            format: uuid
+    CreateShareLinkRequest:
+      type: object
+      properties:
+        expiresAt:
+          type: string
+          format: date-time
+          description: Optional ISO 8601 datetime, in the future and at most 365 days ahead. Omitted means the link lasts until revoked.
+    ShareLinkStatus:
+      type: string
+      enum: [active, expired, revoked]
+      description: Derived from revokedAt and expiresAt with the injected clock (SDS 8.3).
+    ShareLinkResponse:
+      type: object
+      required: [id, noteId, token, expiresAt, revokedAt, viewCount, status, createdAt]
+      properties:
+        id:
+          type: string
+          format: uuid
+        noteId:
+          type: string
+          format: uuid
+        token:
+          type: string
+          pattern: '^[A-Za-z0-9_-]{43}$'
+          description: 256-bit base64url token, stored in plaintext (SA-16).
+        expiresAt:
+          type: [string, 'null']
+          format: date-time
+        revokedAt:
+          type: [string, 'null']
+          format: date-time
+        viewCount:
+          type: integer
+          minimum: 0
+        status:
+          $ref: '#/components/schemas/ShareLinkStatus'
+        createdAt:
+          type: string
+          format: date-time
+    ShareLinkListResponse:
+      type: object
+      required: [items]
+      additionalProperties: false
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/ShareLinkResponse'
+    ActiveShareLinkItem:
+      allOf:
+        - $ref: '#/components/schemas/ShareLinkResponse'
+        - type: object
+          required: [noteTitle]
+          properties:
+            noteTitle:
+              type: string
+              minLength: 1
+              maxLength: 200
+    ActiveShareLinkListResponse:
+      allOf:
+        - $ref: '#/components/schemas/PaginationMeta'
+        - type: object
+          required: [items]
+          properties:
+            items:
+              type: array
+              items:
+                $ref: '#/components/schemas/ActiveShareLinkItem'
+    PublicSharedNote:
+      type: object
+      required: [title, content, updatedAt]
+      additionalProperties: false
+      properties:
+        title:
+          type: string
+          minLength: 1
+          maxLength: 200
+        content:
+          type: object
+          description: TipTap JSON document (TipTapDocSchema, SDS 8.1).
+        updatedAt:
+          type: string
+          format: date-time
+    SearchResultItem:
+      type: object
+      required: [id, title, titleHighlight, snippet, tags, updatedAt]
+      additionalProperties: false
+      properties:
+        id:
+          type: string
+          format: uuid
+        title:
+          type: string
+          description: The raw note title (plain text, not escaped).
+        titleHighlight:
+          type: string
+          description: HTML-escaped title with every matched word wrapped in `<mark>` and `</mark>`.
+        snippet:
+          type: string
+          description: |
+            HTML-escaped fragments of the content text (up to 2, joined by
+            ` … `) with matched words wrapped in `<mark>` and `</mark>`.
+            The only markup in the string is `<mark>` and `</mark>`.
+        tags:
+          type: array
+          items:
+            $ref: '#/components/schemas/TagResponse'
+        updatedAt:
+          type: string
+          format: date-time
+    SearchResponse:
+      allOf:
+        - $ref: '#/components/schemas/PaginationMeta'
+        - type: object
+          required: [items]
+          properties:
+            items:
+              type: array
+              items:
+                $ref: '#/components/schemas/SearchResultItem'
+    NoteListItem:
+      type: object
+      required: [id, title, preview, tags, createdAt, updatedAt]
+      properties:
+        id:
+          type: string
+          format: uuid
+        title:
+          type: string
+          minLength: 1
+          maxLength: 200
+        preview:
+          type: string
+          maxLength: 150
+          description: First 150 characters of the plain text, whitespace collapsed (SDS 8.1).
+        tags:
+          type: array
+          items:
+            $ref: '#/components/schemas/TagResponse'
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+    NoteListResponse:
+      allOf:
+        - $ref: '#/components/schemas/PaginationMeta'
+        - type: object
+          required: [items]
+          properties:
+            items:
+              type: array
+              items:
+                $ref: '#/components/schemas/NoteListItem'
     ErrorCode:
       type: string
       description: Stable machine-readable error code. Clients branch on this, never on `message`.
@@ -712,6 +1368,20 @@ components:
             $ref: '#/components/schemas/ErrorResponse'
     InternalError:
       description: Unexpected failure (INTERNAL_ERROR).
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    ShareLinkNotFound:
+      description: |
+        Owner: link missing or not owned. Public: unknown, revoked, expired or
+        deleted-note link, indistinguishable (SHARE_LINK_NOT_FOUND).
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    TagNotFound:
+      description: Tag missing or owned by another user (TAG_NOT_FOUND).
       content:
         application/json:
           schema:
