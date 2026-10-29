@@ -43,15 +43,11 @@ describe('loadEnv', () => {
   it('S-AB1003-24: the env schema enforces the OTP_HMAC_SECRET rules', () => {
     const { OTP_HMAC_SECRET: _omitted, ...missing } = valid;
     expect(() => loadEnv(missing)).toThrow(/OTP_HMAC_SECRET/);
-    expect(() => loadEnv({ ...valid, OTP_HMAC_SECRET: 'b'.repeat(31) })).toThrow(
-      /OTP_HMAC_SECRET/,
-    );
+    expect(() => loadEnv({ ...valid, OTP_HMAC_SECRET: 'b'.repeat(31) })).toThrow(/OTP_HMAC_SECRET/);
     expect(() => loadEnv({ ...valid, OTP_HMAC_SECRET: valid.JWT_ACCESS_SECRET })).toThrow(
       /OTP_HMAC_SECRET/,
     );
-    expect(loadEnv({ ...valid, OTP_HMAC_SECRET: 'c'.repeat(32) }).OTP_HMAC_SECRET).toHaveLength(
-      32,
-    );
+    expect(loadEnv({ ...valid, OTP_HMAC_SECRET: 'c'.repeat(32) }).OTP_HMAC_SECRET).toHaveLength(32);
   });
 
   it('S-AB1002-10: production rejects Argon2 parameters below the minimum', () => {
