@@ -16,7 +16,7 @@ The assignment fixes a 15-minute JWT access token and a 7-day refresh token stor
 - **Rotation:** `POST /auth/refresh` revokes the presented token and issues a new one in one transaction, using a compare-and-set update so two concurrent calls cannot both succeed.
 - **Session restore:** on app start the SPA calls `/auth/refresh`. The cookie is sent automatically, and the response carries a fresh access token and the user.
 - **CSRF:** the cookie is used only by `/auth/refresh` and `/auth/logout`. They are protected by `SameSite=Strict` and an Origin check.
-- **Reuse detection (family revocation):** presenting a token that is found with `revokedAt` set revokes every active refresh token of that user, commits, then returns `401 INVALID_REFRESH_TOKEN` (AC-AUTH-12). Unknown or merely expired tokens return the same `401` and revoke nothing.
+- **Reuse detection (family revocation):** presenting a token that was already rotated (replaced by a newer token) revokes every active refresh token of that user, commits, then returns `401 INVALID_REFRESH_TOKEN` (AC-AUTH-12). Unknown, merely expired and logged-out tokens return the same `401` and revoke nothing else.
 - **Single flight:** the SPA shares one in-flight refresh promise and uses the Web Locks API across tabs, so rotation never races with itself.
 
 ## Consequences
@@ -26,7 +26,7 @@ The assignment fixes a 15-minute JWT access token and a 7-day refresh token stor
 - Reload costs one refresh round trip before the first screen.
 - A stolen refresh token that is used after the real client rotated it (or the reverse) signs the user out on every device, which limits the thief's window to the next refresh.
 - A legitimate double refresh with one cookie (two tabs at once) is indistinguishable from reuse and also signs the user out everywhere. The single-flight promise and Web Locks prevent it, and a test proves it.
-- A token revoked by logout that is presented again also counts as reuse and revokes the user's other sessions.
+- A token revoked by logout that is presented again is rejected with `401` but does not count as reuse, so it revokes nothing else. The cost is that a thief holding a token the real user logged out with gets no detection signal from it.
 
 ## Alternatives considered
 

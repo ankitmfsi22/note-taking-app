@@ -1,5 +1,5 @@
 import type { ErrorDetail } from '@note-app/shared';
-import type { RequestHandler } from 'express';
+import type { RequestHandler, Response } from 'express';
 import type { z } from 'zod';
 import { AppError } from '../errors/app-error.js';
 
@@ -36,3 +36,13 @@ export const validate =
     res.locals.valid = valid;
     next();
   };
+
+// The caller names the type (from packages/shared) because the backend cannot import zod at runtime
+// to infer it. Reaching this without validate({ body }) is a wiring bug, so it is a plain Error (500).
+export const validBody = <T>(res: Response): T => {
+  const valid: unknown = res.locals.valid;
+  if (typeof valid !== 'object' || valid === null || !('body' in valid)) {
+    throw new Error('validBody called on a route without validate({ body })');
+  }
+  return valid.body as T;
+};

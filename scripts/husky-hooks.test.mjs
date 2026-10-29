@@ -16,6 +16,12 @@ import { fileURLToPath } from 'node:url';
 const root = join(dirname(fileURLToPath(import.meta.url)), '..');
 const preCommit = join(root, 'scripts', 'pre-commit.sh');
 
+// Git exports GIT_DIR, GIT_INDEX_FILE and friends to hooks, as absolute paths in a linked worktree.
+// A child git started with them would work on the real repository instead of the throwaway one.
+const env = Object.fromEntries(
+  Object.entries(process.env).filter(([key]) => !key.startsWith('GIT_')),
+);
+
 // Runs scripts/pre-commit.sh in a throwaway git repository whose staged files are `staged`, with a
 // fake `pnpm` on the PATH that records its arguments and fails when its first argument is `failOn`.
 const runPreCommit = (staged, failOn = '') => {
@@ -29,7 +35,7 @@ const runPreCommit = (staged, failOn = '') => {
   );
   chmodSync(join(bin, 'pnpm'), 0o755);
 
-  const git = (...args) => spawnSync('git', args, { cwd: dir, encoding: 'utf8' });
+  const git = (...args) => spawnSync('git', args, { cwd: dir, encoding: 'utf8', env });
   git('init', '-q');
   for (const file of staged) {
     mkdirSync(dirname(join(dir, file)), { recursive: true });
@@ -40,7 +46,7 @@ const runPreCommit = (staged, failOn = '') => {
   const result = spawnSync('sh', [preCommit], {
     cwd: dir,
     encoding: 'utf8',
-    env: { ...process.env, PATH: `${bin}:${process.env.PATH}`, FAIL_ON: failOn },
+    env: { ...env, PATH: `${bin}:${env.PATH}`, FAIL_ON: failOn },
   });
   const calls = existsSync(log) ? readFileSync(log, 'utf8').trim().split('\n') : [];
   return { status: result.status, calls };

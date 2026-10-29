@@ -2,7 +2,7 @@ openapi: 3.1.0
 info:
   title: Note Taking App API
   version: 0.1.0
-  summary: REST API of the Note Taking App (AB-1001 baseline, health endpoint only).
+  summary: REST API of the Note Taking App (health and auth endpoints so far).
   description: |
     OpenAPI 3.1 document. It defines what every endpoint shares: the server
     base path, the security schemes and the binding error contract
@@ -11,7 +11,7 @@ info:
     `paths` grows ticket by ticket. Each ticket describes its endpoints in its
     own `openspec/changes/<change>/delta-openapi.yaml`, which is merged into
     this file when the change is archived (docs/SDS.md SA-44). AB-1001 added
-    `GET /health`. The executable request and response contracts are the Zod
+    `GET /health`. AB-1002 added the four auth endpoints. The executable request and response contracts are the Zod
     schemas in `packages/shared`.
 servers:
   - url: /api/v1
@@ -42,7 +42,150 @@ paths:
                 $ref: '#/components/schemas/HealthResponse'
         '500':
           $ref: '#/components/responses/InternalError'
+  /auth/register:
+    post:
+      operationId: register
+      summary: Register and log in
+      description: |
+        Creates the user and logs them in. Sets the `refresh_token` cookie.
+        The email is trimmed and stored in lower case (AC-AUTH-02).
+      tags: [auth]
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RegisterRequest'
+      responses:
+        '201':
+          description: User created and logged in.
+          headers:
+            Set-Cookie:
+              $ref: '#/components/headers/SetRefreshCookie'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthResponse'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '409':
+          description: The email is already registered, in any letter case (EMAIL_TAKEN).
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          $ref: '#/components/responses/InternalError'
+  /auth/login:
+    post:
+      operationId: login
+      summary: Log in
+      description: |
+        Returns an access token (15 minutes) and sets the `refresh_token`
+        cookie (7 days). Wrong email and wrong password give the same error
+        (AC-AUTH-10).
+      tags: [auth]
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+      responses:
+        '200':
+          description: Logged in.
+          headers:
+            Set-Cookie:
+              $ref: '#/components/headers/SetRefreshCookie'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthResponse'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '401':
+          description: Wrong email or password (INVALID_CREDENTIALS).
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          $ref: '#/components/responses/InternalError'
+  /auth/refresh:
+    post:
+      operationId: refresh
+      summary: Rotate the refresh token and get a new access token
+      description: |
+        Uses the `refresh_token` cookie. The presented token is revoked and a
+        new one is set (rotation, AC-AUTH-07). Presenting a token that was
+        already rotated (replaced by a newer token) revokes every active
+        refresh token of that user first (AC-AUTH-12). A token revoked by
+        logout, an unknown token and an expired token revoke nothing.
+        A present `Origin` header must equal the app origin.
+      tags: [auth]
+      security:
+        - refreshCookie: []
+      responses:
+        '200':
+          description: New access token and rotated cookie.
+          headers:
+            Set-Cookie:
+              $ref: '#/components/headers/SetRefreshCookie'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthResponse'
+        '401':
+          description: |
+            Refresh cookie missing, unknown, expired, revoked or already used
+            (INVALID_REFRESH_TOKEN). The cookie is cleared.
+          headers:
+            Set-Cookie:
+              $ref: '#/components/headers/ClearRefreshCookie'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenOrigin'
+        '500':
+          $ref: '#/components/responses/InternalError'
+  /auth/logout:
+    post:
+      operationId: logout
+      summary: Log out
+      description: |
+        Revokes the presented refresh token if it exists and is active, clears
+        the cookie, and always answers 204 (ERR-AUTH-06). Other sessions of the
+        user stay signed in. A present `Origin` header must equal the app origin.
+      tags: [auth]
+      security:
+        - refreshCookie: []
+      responses:
+        '204':
+          description: Logged out. The cookie is cleared. No body.
+          headers:
+            Set-Cookie:
+              $ref: '#/components/headers/ClearRefreshCookie'
+        '403':
+          $ref: '#/components/responses/ForbiddenOrigin'
+        '500':
+          $ref: '#/components/responses/InternalError'
 components:
+  headers:
+    SetRefreshCookie:
+      description: |
+        `refresh_token=<opaque>; HttpOnly; SameSite=Strict; Path=/api/v1/auth;
+        Max-Age=604800`, plus `Secure` in production. The only place the
+        refresh token is delivered (SDS SA-03).
+      schema:
+        type: string
+    ClearRefreshCookie:
+      description: The same cookie with an empty value and `Max-Age=0`.
+      schema:
+        type: string
   securitySchemes:
     bearerAuth:
       type: http
@@ -65,6 +208,71 @@ components:
         status:
           type: string
           enum: [ok]
+    PublicUser:
+      type: object
+      required: [id, email, displayName, createdAt]
+      additionalProperties: false
+      properties:
+        id:
+          type: string
+          format: uuid
+        email:
+          type: string
+          format: email
+          maxLength: 254
+        displayName:
+          type: [string, 'null']
+          minLength: 1
+          maxLength: 100
+        createdAt:
+          type: string
+          format: date-time
+    RegisterRequest:
+      type: object
+      required: [email, password]
+      properties:
+        email:
+          type: string
+          format: email
+          maxLength: 254
+          description: Trimmed and lower-cased before validation and storage.
+        password:
+          type: string
+          minLength: 8
+          maxLength: 128
+          description: At least one letter and one digit (AC-AUTH-03).
+        displayName:
+          type: string
+          minLength: 1
+          maxLength: 100
+          description: Trimmed. Optional.
+    LoginRequest:
+      type: object
+      required: [email, password]
+      properties:
+        email:
+          type: string
+          format: email
+          maxLength: 254
+        password:
+          type: string
+          minLength: 1
+          maxLength: 128
+          description: No strength rule on login.
+    AuthResponse:
+      type: object
+      required: [user, accessToken, expiresIn]
+      additionalProperties: false
+      properties:
+        user:
+          $ref: '#/components/schemas/PublicUser'
+        accessToken:
+          type: string
+          description: HS256 JWT, issuer `note-app`, audience `note-app-api`. Keep in memory only.
+        expiresIn:
+          type: integer
+          enum: [900]
+          description: Access token lifetime in seconds.
     ErrorCode:
       type: string
       description: Stable machine-readable error code. Clients branch on this, never on `message`.
@@ -136,6 +344,12 @@ components:
   responses:
     Unauthorized:
       description: Access token missing, malformed, invalid or expired (UNAUTHORIZED).
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    ForbiddenOrigin:
+      description: The `Origin` header is present and is not the app origin (FORBIDDEN_ORIGIN).
       content:
         application/json:
           schema:

@@ -6,3 +6,30 @@ generator client {
 datasource db {
   provider = "postgresql"
 }
+
+// ---- AB-1002 --------------------------------------------------------
+model User {
+  id           String   @id @default(uuid(7)) @db.Uuid
+  email        String   @unique @db.VarChar(254) // stored lower-case (A-03)
+  passwordHash String // Argon2id PHC string
+  displayName  String?  @db.VarChar(100) // SA-11
+  createdAt    DateTime @default(now()) @db.Timestamptz(3)
+  updatedAt    DateTime @updatedAt @db.Timestamptz(3)
+
+  refreshTokens RefreshToken[]
+}
+
+model RefreshToken {
+  id        String    @id @default(uuid(7)) @db.Uuid
+  userId    String    @db.Uuid
+  tokenHash String    @unique @db.Char(64) // SHA-256 hex
+  expiresAt DateTime  @db.Timestamptz(3)
+  revokedAt DateTime? @db.Timestamptz(3)
+  rotatedAt DateTime? @db.Timestamptz(3) // set with revokedAt only by rotation (reuse detection)
+  createdAt DateTime  @default(now()) @db.Timestamptz(3)
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([expiresAt]) // housekeeping purge
+}

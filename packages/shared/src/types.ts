@@ -1,5 +1,11 @@
 import type { z } from 'zod';
 import type {
+  AuthResponseSchema,
+  LoginRequestSchema,
+  PublicUserSchema,
+  RegisterRequestSchema,
+} from './schemas/auth.js';
+import type {
   ErrorCodeSchema,
   ErrorDetailSchema,
   ErrorResponseSchema,
@@ -12,3 +18,7 @@ export type ErrorCode = z.infer<typeof ErrorCodeSchema>;
 export type ErrorDetail = z.infer<typeof ErrorDetailSchema>;
 export type ErrorResponse = z.infer<typeof ErrorResponseSchema>;
 export type HealthResponse = z.infer<typeof HealthResponseSchema>;
+export type RegisterRequest = z.infer<typeof RegisterRequestSchema>;
+export type LoginRequest = z.infer<typeof LoginRequestSchema>;
+export type PublicUser = z.infer<typeof PublicUserSchema>;
+export type AuthResponse = z.infer<typeof AuthResponseSchema>;
