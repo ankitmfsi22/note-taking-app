@@ -225,5 +225,10 @@ describe('notes CRUD', () => {
     const after = await prisma.note.findUniqueOrThrow({ where: { id: note.id } });
     expect(after.deletedAt).toBeNull();
     expect(after.updatedAt.toISOString()).toBe(note.updatedAt);
+
+    // ERR-NOTE-05: restoring an own note that is not deleted is not found.
+    const again = await api.restore(note.id);
+    expect(again.status).toBe(404);
+    expect(errorOf(again.body).code).toBe('NOTE_NOT_FOUND');
   });
 });
