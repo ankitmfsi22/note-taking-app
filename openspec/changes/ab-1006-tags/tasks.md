@@ -4,9 +4,9 @@ Every checkpoint: `pnpm build`, `pnpm lint --max-warnings 0`, `pnpm format:check
 
 ## 1. Shared contracts
 
-- [ ] 1.1 Support tests for the tag request, params, list and `SetNoteTagsRequestSchema` (trim, colour, at-least-one, de-dup then max 10) and `NoteResponse` with tags
-- [ ] 1.2 Limits, tag schemas, `NoteResponseSchema.tags`, `types.ts`
-- [ ] 1.3 Checkpoint
+- [x] 1.1 Support tests for the tag request, params, list and `SetNoteTagsRequestSchema` (trim, colour, at-least-one, de-dup then max 10) and `NoteResponse` with tags
+- [x] 1.2 Limits, tag schemas, `NoteResponseSchema.tags`, `types.ts`
+- [x] 1.3 Checkpoint
 
 ## 2. Tag CRUD
 

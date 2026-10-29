@@ -26,7 +26,15 @@ import type {
   TrashListItemSchema,
   TrashListResponseSchema,
 } from './schemas/note.js';
-import type { TagResponseSchema } from './schemas/tag.js';
+import type {
+  SetNoteTagsRequestSchema,
+  TagCreateRequestSchema,
+  TagIdParamsSchema,
+  TagListResponseSchema,
+  TagResponseSchema,
+  TagUpdateRequestSchema,
+  TagWithCountSchema,
+} from './schemas/tag.js';
 import type { TipTapDocSchema } from './schemas/tiptap.js';
 
 export type Id = z.infer<typeof IdSchema>;
@@ -49,6 +57,12 @@ export type NoteResponse = z.infer<typeof NoteResponseSchema>;
 export type TrashListItem = z.infer<typeof TrashListItemSchema>;
 export type TrashListResponse = z.infer<typeof TrashListResponseSchema>;
 export type TagResponse = z.infer<typeof TagResponseSchema>;
+export type TagCreateRequest = z.infer<typeof TagCreateRequestSchema>;
+export type TagUpdateRequest = z.infer<typeof TagUpdateRequestSchema>;
+export type TagIdParams = z.infer<typeof TagIdParamsSchema>;
+export type TagWithCount = z.infer<typeof TagWithCountSchema>;
+export type TagListResponse = z.infer<typeof TagListResponseSchema>;
+export type SetNoteTagsRequest = z.infer<typeof SetNoteTagsRequestSchema>;
 export type NoteListQuery = z.infer<typeof NoteListQuerySchema>;
 export type NoteListItem = z.infer<typeof NoteListItemSchema>;
 export type NoteListResponse = z.infer<typeof NoteListResponseSchema>;
