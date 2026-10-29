@@ -15,12 +15,12 @@ Every checkpoint: `pnpm build`, `pnpm lint --max-warnings 0`, `pnpm format:check
 
 ## 3. Owner endpoints
 
-- [ ] 3.1 Test `S-AB1008-01` create two links
-- [ ] 3.2 Test `S-AB1008-03` revoke idempotent and lists
-- [ ] 3.3 Test `S-AB1008-05` ownership 404 and 401
-- [ ] 3.4 Test `S-AB1008-06` validation 400
-- [ ] 3.5 Repository, service, controller, routes, `app.ts` (owner routes)
-- [ ] 3.6 Checkpoint
+- [x] 3.1 Test `S-AB1008-01` create two links
+- [x] 3.2 Test `S-AB1008-03` revoke idempotent and lists
+- [x] 3.3 Test `S-AB1008-05` ownership 404 and 401
+- [x] 3.4 Test `S-AB1008-06` validation 400
+- [x] 3.5 Repository, service, controller, routes, `app.ts` (owner routes)
+- [x] 3.6 Checkpoint
 
 ## 4. Public read
 

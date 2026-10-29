@@ -25,6 +25,10 @@ import { createNotesController } from './modules/notes/notes.controller.js';
 import { createNotesRepository } from './modules/notes/notes.repository.js';
 import { createNotesRouter } from './modules/notes/notes.routes.js';
 import { createNotesService } from './modules/notes/notes.service.js';
+import { createSharesController } from './modules/shares/shares.controller.js';
+import { createSharesRepository } from './modules/shares/shares.repository.js';
+import { createSharesRouter } from './modules/shares/shares.routes.js';
+import { createSharesService } from './modules/shares/shares.service.js';
 
 export interface AppDeps {
   prisma: PrismaClient;
@@ -85,6 +89,22 @@ export const createApp = (deps: AppDeps): Express => {
     }),
   );
 
+  const requireAuth = createRequireAuth({ secret: deps.env.JWT_ACCESS_SECRET, clock: deps.clock });
+
+  // Before the notes router, which would run requireAuth on /notes/:noteId/shares first.
+  app.use(
+    '/api/v1',
+    createSharesRouter({
+      controller: createSharesController({
+        service: createSharesService({
+          repository: createSharesRepository(deps.prisma),
+          clock: deps.clock,
+        }),
+      }),
+      requireAuth,
+    }),
+  );
+
   app.use(
     '/api/v1/notes',
     createNotesRouter({
@@ -94,7 +114,7 @@ export const createApp = (deps: AppDeps): Express => {
           clock: deps.clock,
         }),
       }),
-      requireAuth: createRequireAuth({ secret: deps.env.JWT_ACCESS_SECRET, clock: deps.clock }),
+      requireAuth,
     }),
   );
 
