@@ -14,18 +14,6 @@ Business truth lives in [`docs/FRS.md`](docs/FRS.md), technical truth in [`docs/
 - **Sharing:** many public read-only links per note, with expiry, revoke, and an atomic view counter.
 - **Version history:** full snapshots on every change, newest 50 kept, restore creates a new version.
 
-## Screenshots
-
-> Placeholder. Add images under `docs/screenshots/` and link them here.
-
-| Screen | Image |
-| --- | --- |
-| Notes list | _TODO_ |
-| Editor | _TODO_ |
-| Search results | _TODO_ |
-| Share modal and public page | _TODO_ |
-| Version drawer | _TODO_ |
-
 ## Tech stack
 
 Exact pinned versions, from [`docs/SDS.md`](docs/SDS.md) section 3. No `latest` tags or version ranges are used anywhere.
