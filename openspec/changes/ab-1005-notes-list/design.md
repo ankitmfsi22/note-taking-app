@@ -6,7 +6,7 @@ Spec: `specs/notes-list/spec.md` (approved 2026-10-29). SDS 6.2, 6.4, 7.1 (#14),
 
 | Layer | Files |
 | --- | --- |
-| Shared | `constants/limits.ts` (`LIST_TAG_IDS_MAX`); `schemas/tag.ts` (`TagResponseSchema`, pulled forward from AB-1006); `schemas/note.ts` (`NoteListQuerySchema`, `NoteListItemSchema`, `NoteListResponseSchema`); `types.ts`, `index.ts` |
+| Shared | `constants/limits.ts` (`LIST_TAG_IDS_MAX`, `TAG_NAME_MAX`); `schemas/tag.ts` (`TagResponseSchema`, pulled forward from AB-1006); `schemas/note.ts` (`NoteListQuerySchema`, `NoteListItemSchema`, `NoteListResponseSchema`); `types.ts`, `index.ts` |
 | DB | `Tag` and `NoteTag` exactly as SDS 6.2 (unique `(userId, nameKey)`, `NoteTag(tagId)`), plus `Note` indexes `(userId, deletedAt, createdAt DESC)` and `(userId, deletedAt, title)`; migration `notes_list_tags` |
 | Backend | `modules/notes/notes.{repository,service,controller,routes}.ts` |
 

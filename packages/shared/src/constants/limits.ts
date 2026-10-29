@@ -14,3 +14,5 @@ export const TRASH_RETENTION_DAYS = 30;
 export const PREVIEW_MAX = 150;
 export const PAGE_SIZE_DEFAULT = 20;
 export const PAGE_SIZE_MAX = 100;
+export const TAG_NAME_MAX = 30;
+export const LIST_TAG_IDS_MAX = 10;

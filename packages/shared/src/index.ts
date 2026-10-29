@@ -3,5 +3,6 @@ export * from './schemas/auth.js';
 export * from './schemas/common.js';
 export * from './schemas/health.js';
 export * from './schemas/note.js';
+export * from './schemas/tag.js';
 export * from './schemas/tiptap.js';
 export * from './types.js';

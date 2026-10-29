@@ -4,9 +4,9 @@ Every checkpoint: `pnpm build`, `pnpm lint --max-warnings 0`, `pnpm format:check
 
 ## 1. Shared contracts
 
-- [ ] 1.1 Support tests for `NoteListQuerySchema` (defaults, coercion, each rejected rule, de-duplication) and `NoteListResponseSchema`
-- [ ] 1.2 `LIST_TAG_IDS_MAX`, `tag.ts` (`TagResponseSchema`), note list schemas, `types.ts`, `index.ts`
-- [ ] 1.3 Checkpoint
+- [x] 1.1 Support tests for `NoteListQuerySchema` (defaults, coercion, each rejected rule, de-duplication) and `NoteListResponseSchema`
+- [x] 1.2 `LIST_TAG_IDS_MAX`, `TAG_NAME_MAX`, `tag.ts` (`TagResponseSchema`), note list schemas, `types.ts`, `index.ts`
+- [x] 1.3 Checkpoint
 
 ## 2. Database
 
