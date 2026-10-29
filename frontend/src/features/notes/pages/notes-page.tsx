@@ -4,6 +4,7 @@ import { Link, useNavigate, useSearchParams } from 'react-router';
 import { ConfirmDialog } from '@/components/confirm-dialog';
 import { Pager } from '@/components/pager';
 import { Button } from '@/components/ui/button';
+import { SearchSection } from '@/features/search/components/search-section';
 import { TagManager } from '@/features/tags/components/tag-manager';
 import { useTagsQuery } from '@/features/tags/queries';
 import { ListToolbar } from '../components/list-toolbar';
@@ -11,7 +12,7 @@ import { NoteList } from '../components/note-list';
 import { parseListParams, toSearchParams, type ListParams } from '../list-params';
 import { useCreateNoteMutation, useDeleteNoteMutation, useNotesQuery } from '../queries';
 
-export function Component() {
+function NotesList() {
   const [searchParams, setSearchParams] = useSearchParams();
   // The URL is the only copy of page, sort and tag filter (AC-FELIST-03).
   const params = parseListParams(searchParams);
@@ -94,5 +95,14 @@ export function Component() {
         onCancel={() => setPendingDelete(null)}
       />
     </section>
+  );
+}
+
+// The search box mounts above the list (AB-1013); the list unmounts while a search is active.
+export function Component() {
+  return (
+    <SearchSection>
+      <NotesList />
+    </SearchSection>
   );
 }
