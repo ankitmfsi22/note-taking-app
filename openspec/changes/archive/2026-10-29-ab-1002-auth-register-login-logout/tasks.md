@@ -122,7 +122,7 @@ Then the code:
 - [x] 9.5 Manual smoke test against `pnpm dev` and the dev database, without reading any `.env` file: register, login, refresh (twice, the second with the old cookie), logout, then each error scenario (409, 400 variants, 401 wrong credentials, 401 unknown refresh, 403 foreign origin, 401 without token on a guarded route) (40). Run by the user with a script against `src/server.ts` on the dev database (65 of 65 checks passed). No guarded route exists yet, so that item is covered only by S-29 to S-31
 - [x] 9.6 Confirm no password, token or hash appears in the server log from 9.5 (5)
 - [x] 9.7 Checkpoint: `pnpm build`, `pnpm lint --max-warnings 0`, `pnpm test` (5)
-- [ ] 9.8 Reminder: run `/sdd-review AB-1002` in a fresh terminal (new Claude instance, read-only `reviewer` agent). Run `/pr AB-1002` only when it shows all ✅ (0)
+- [x] 9.8 Reminder: run `/sdd-review AB-1002` in a fresh terminal (new Claude instance, read-only `reviewer` agent). Run `/pr AB-1002` only when it shows all ✅ (0)
 
 ## Coverage: requirement to tasks
 
