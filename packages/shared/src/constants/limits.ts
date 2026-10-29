@@ -4,3 +4,6 @@ export const PASSWORD_MAX = 128;
 export const DISPLAY_NAME_MAX = 100;
 export const ACCESS_TOKEN_TTL_SECONDS = 900;
 export const REFRESH_TOKEN_TTL_DAYS = 7;
+export const OTP_LENGTH = 6;
+export const OTP_TTL_MINUTES = 10;
+export const OTP_MAX_ATTEMPTS = 5;

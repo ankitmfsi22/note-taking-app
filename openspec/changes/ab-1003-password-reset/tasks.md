@@ -6,11 +6,11 @@ No SDS or FRS change is needed (design.md, intro), so there is no prerequisite p
 
 ## 1. Shared contracts [PARALLEL]
 
-- [ ] 1.1 `packages/shared/src/constants/limits.ts`: add `OTP_LENGTH` 6, `OTP_TTL_MINUTES` 10, `OTP_MAX_ATTEMPTS` 5 (5)
-- [ ] 1.2 `packages/shared/src/schemas/auth.test.ts`: one accepted and one rejected case per rule of `ForgotPasswordRequestSchema` (email trimmed, lower-cased, valid, max 254) and `ResetPasswordRequestSchema` (email as above, `otp` exactly 6 digits, `newPassword` 8 to 128 with a letter and a digit); keep a case proving `RegisterRequestSchema` still rejects the same passwords after the refactor (20)
-- [ ] 1.3 `packages/shared/src/schemas/auth.ts`: extract the register password rule into an exported `NewPasswordSchema`, use it in `RegisterRequestSchema`, add `ForgotPasswordRequestSchema` and `ResetPasswordRequestSchema` (OTP pattern from `OTP_LENGTH`), verified against Zod 4 with Context7 (20)
-- [ ] 1.4 `packages/shared/src/types.ts` and `src/index.ts`: export `ForgotPasswordRequest` and `ResetPasswordRequest` (5)
-- [ ] 1.5 Checkpoint (`pnpm build` rebuilds `dist` for the backend) (5)
+- [x] 1.1 `packages/shared/src/constants/limits.ts`: add `OTP_LENGTH` 6, `OTP_TTL_MINUTES` 10, `OTP_MAX_ATTEMPTS` 5 (5)
+- [x] 1.2 `packages/shared/src/schemas/auth.test.ts`: one accepted and one rejected case per rule of `ForgotPasswordRequestSchema` (email trimmed, lower-cased, valid, max 254) and `ResetPasswordRequestSchema` (email as above, `otp` exactly 6 digits, `newPassword` 8 to 128 with a letter and a digit); keep a case proving `RegisterRequestSchema` still rejects the same passwords after the refactor (20)
+- [x] 1.3 `packages/shared/src/schemas/auth.ts`: extract the register password rule into an exported `NewPasswordSchema`, use it in `RegisterRequestSchema`, add `ForgotPasswordRequestSchema` and `ResetPasswordRequestSchema` (OTP pattern from `OTP_LENGTH`), verified against Zod 4 with Context7 (20)
+- [x] 1.4 `packages/shared/src/types.ts` and `src/index.ts`: export `ForgotPasswordRequest` and `ResetPasswordRequest` (5)
+- [x] 1.5 Checkpoint (`pnpm build` rebuilds `dist` for the backend) (5)
 
 ## 2. Environment and e2e variables [PARALLEL]
 
