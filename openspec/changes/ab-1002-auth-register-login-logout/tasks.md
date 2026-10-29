@@ -28,20 +28,20 @@ Spec and plan approved 2026-10-28. Estimates are minutes. `(subagent)` marks a t
 
 ## 3. Database and test infrastructure
 
-- [ ] 3.1 `backend/prisma/schema.prisma`: `User` and `RefreshToken` from SDS 6.2 including `rotatedAt`, without the relations of later tickets (15)
-- [ ] 3.2 `backend/prisma/migrations/<timestamp>_auth_user_refresh_token/migration.sql`: after `pnpm db:up`, run `prisma migrate dev --create-only --name auth_user_refresh_token`, read the SQL against the design checklist (unique `email` and `tokenHash`, `CHAR(64)`, indexes on `userId` and `expiresAt`, `ON DELETE CASCADE`, `timestamptz(3)`), then apply and `prisma generate`; ask [y/n] before running the CLI (25)
-- [ ] 3.3 `backend/tests/setup/global-setup.ts` and `backend/vitest.config.ts`: run `prisma migrate deploy` once against `TEST_DATABASE_URL`, fail with a message that names `pnpm db:up` (20)
-- [ ] 3.4 `backend/tests/support/db.ts`: `useTestDatabase()` returns a Prisma client, truncates every table except `_prisma_migrations` before each test, disconnects after all (20)
-- [ ] 3.5 `backend/tests/support/test-app.ts`: new env values (cheap Argon2), `createMutableClock`, `registerUser` and refresh-cookie helpers, optional `passwordHasher` override (25)
-- [ ] 3.6 Checkpoint: existing AB-1001 tests stay green on the real migration (5)
+- [x] 3.1 `backend/prisma/schema.prisma`: `User` and `RefreshToken` from SDS 6.2 including `rotatedAt`, without the relations of later tickets (15)
+- [x] 3.2 `backend/prisma/migrations/<timestamp>_auth_user_refresh_token/migration.sql`: after `pnpm db:up`, run `prisma migrate dev --create-only --name auth_user_refresh_token`, read the SQL against the design checklist (unique `email` and `tokenHash`, `CHAR(64)`, indexes on `userId` and `expiresAt`, `ON DELETE CASCADE`, `timestamptz(3)`), then apply and `prisma generate`; ask [y/n] before running the CLI (25)
+- [x] 3.3 `backend/tests/setup/global-setup.ts` and `backend/vitest.config.ts`: run `prisma migrate deploy` once against `TEST_DATABASE_URL`, fail with a message that names `pnpm db:up` (20)
+- [x] 3.4 `backend/tests/support/db.ts`: `useTestDatabase()` returns a Prisma client, truncates every table except `_prisma_migrations` before each test, disconnects after all (20)
+- [x] 3.5 `backend/tests/support/test-app.ts`: new env values (cheap Argon2), `createMutableClock`, `registerUser` and refresh-cookie helpers, optional `passwordHasher` override (25)
+- [x] 3.6 Checkpoint: existing AB-1001 tests stay green on the real migration (5)
 
 ## 4. Security helpers
 
-- [ ] 4.1 `backend/src/common/security/tokens.test.ts`: access token claims and `exp - iat` 900, `alg: none`, HS512, wrong secret, wrong audience and wrong issuer rejected, expiry by fake clock, refresh token is 43 base64url characters and its hash is 64 hex characters (20)
-- [ ] 4.2 `backend/src/common/security/tokens.ts`: `signAccessToken`, `verifyAccessToken`, `generateRefreshToken`, `hashRefreshToken` (25)
-- [ ] 4.3 `backend/src/common/security/hash.test.ts`: hash starts with `$argon2id$`, verify true and false, the dummy hash uses the configured parameters (15)
-- [ ] 4.4 `backend/src/common/security/hash.ts`: `createPasswordHasher` with a lazily computed dummy hash and no `algorithm` option (20)
-- [ ] 4.5 Checkpoint (5)
+- [x] 4.1 `backend/src/common/security/tokens.test.ts`: access token claims and `exp - iat` 900, `alg: none`, HS512, wrong secret, wrong audience and wrong issuer rejected, expiry by fake clock, refresh token is 43 base64url characters and its hash is 64 hex characters (20)
+- [x] 4.2 `backend/src/common/security/tokens.ts`: `signAccessToken`, `verifyAccessToken`, `generateRefreshToken`, `hashRefreshToken` (25)
+- [x] 4.3 `backend/src/common/security/hash.test.ts`: hash starts with `$argon2id$`, verify true and false, the dummy hash uses the configured parameters (15)
+- [x] 4.4 `backend/src/common/security/hash.ts`: `createPasswordHasher` with a lazily computed dummy hash and no `algorithm` option (20)
+- [x] 4.5 Checkpoint (5)
 
 ## 5. HTTP middleware
 
