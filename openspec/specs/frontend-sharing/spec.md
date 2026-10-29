@@ -33,11 +33,11 @@ Revoke SHALL open the shared `ConfirmDialog`; only on confirm SHALL it call `POS
 - **THEN** the row leaves the list after the refetch; and with an empty result the page shows an empty state
 
 ### Requirement: Public shared note page (AC-FESHARE-06, AC-FESHARE-07, ERR-SHARE-09)
-`/s/:token` SHALL need no login, send no `Authorization` header, call `GET /public/shares/:token`, and render `title`, `content` and `updatedAt` read-only inside `PublicLayout`. The page SHALL show no editing controls and no owner data. `content` SHALL be rendered as React elements from the TipTap JSON using only the allow-listed nodes and marks of `TipTapDocSchema`; it SHALL NOT use `innerHTML` or `dangerouslySetInnerHTML`, and link marks SHALL only use `http`, `https` or `mailto` URLs.
+`/s/:token` SHALL need no login, send no `Authorization` header, call `GET /public/shares/:token` and render `title`, `content` and `updatedAt` read-only. It SHALL show no editing controls or owner data. `content` SHALL be rendered as React elements using only the `TipTapDocSchema` nodes and marks; it SHALL NOT use `innerHTML`, and any link URL other than `http`, `https` or `mailto` SHALL make `PublicSharedNoteSchema` reject the document and the page show "This link is not available".
 
 #### Scenario: S-AB1014-04 public page renders the note read-only and safely
-- **WHEN** a logged-out visitor opens `/s/<token>` and the API returns a note whose text contains `<script>alert(1)</script>` and a link mark with a `javascript:` href
-- **THEN** the title, formatted content and last-updated time are shown, the script text appears as literal text and no script element is created, the unsafe link is rendered as plain text, no `Authorization` header was sent, and no editor, Share, Delete or owner information is on the page
+- **WHEN** a logged-out visitor opens `/s/<token>` and the API returns a note whose text contains `<script>alert(1)</script>`, and, separately, the API returns a note with a link mark with a `javascript:` href
+- **THEN** for the first note the title, formatted content and last-updated time are shown, the script text appears as literal text and no script element is created, no `Authorization` header was sent, and no editor, Share, Delete or owner information is on the page; the second note is rejected by `PublicSharedNoteSchema` and the page shows "This link is not available"
 
 ### Requirement: Unavailable link state (AC-FESHARE-06, ERR-SHARE-05 to 07)
 For any non-200 answer, including `404 SHARE_LINK_NOT_FOUND` for an unknown, revoked, expired or deleted-note link, the public page SHALL show one "This link is not available" state that does not reveal which cause applies.
