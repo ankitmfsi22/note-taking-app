@@ -402,7 +402,8 @@ All 16 tickets are merged. Pull requests are in [ankitmfsi22/note-taking-app](ht
 - **Two human gates after AB-1003.** Because of the deadline, tickets after AB-1003 follow the SDD guide: only the spec approval and the PR review are human gates. Design and tasks are still written, but have no approval gate.
 - **Backend and frontend in parallel on two machines (Rule 7).** Backend and frontend tickets were built at the same time on two machines, each ticket on its own branch and worktree, and merged in ticket order.
 - **PR #1 was merged by mistake.** The AB-1001 setup branch was merged into `main` through PR #1 (2026-10-28) when that was not intended. Project setup is tracked under PR #2 in the status table.
-- **UUIDv4 backfill.** Ids the application creates use UUIDv7, but the one-time version-1 backfill in the `versions_note_version` migration uses `gen_random_uuid()` (UUIDv4), because PostgreSQL 16 has no built-in `uuidv7()`. The owner accepted this exception on 2026-10-29 (recorded in `openspec/changes/ab-1009-versions/design.md`).
+- **Hook bypass on the frontend machine.** The Windows machine had no Docker database, so the pre-commit hook could not run the backend tests there; frontend commits from that machine used `--no-verify`. Every one of those branches was verified by the full CI (build, lint, format, tests with coverage against PostgreSQL, spec checks, E2E) before its PR was merged.
+- **UUIDv4 backfill.** Ids the application creates use UUIDv7, but the one-time version-1 backfill in the `versions_note_version` migration uses `gen_random_uuid()` (UUIDv4), because PostgreSQL 16 has no built-in `uuidv7()`. The owner accepted this exception on 2026-10-29 (recorded in `openspec/changes/archive/2026-10-29-ab-1009-versions/design.md`).
 
 ## Out of scope
 
