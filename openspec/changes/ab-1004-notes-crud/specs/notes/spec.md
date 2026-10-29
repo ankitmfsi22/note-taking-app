@@ -36,3 +36,10 @@ Every note endpoint SHALL require a valid Bearer access token, else `401 UNAUTHO
 #### Scenario: S-AB1004-06 restore and purge at the 30-day boundary
 - **WHEN** note X was deleted 30 days minus one second before `now` and note Y exactly 30 days before `now`, `TrashPurgeJob.run(now)` runs, and the user calls `POST /notes/:noteId/restore` for each
 - **THEN** X survives the purge and its restore is `200`; Y is physically removed and its restore is `404` with `error.code` `NOTE_NOT_FOUND`
+
+### Requirement: Automatic trash purge (AC-NOTE-09, SDS 8.5)
+The server SHALL run the trash purge job automatically, once at startup and then every hour, using the injected `Clock`, and a failed run SHALL be logged without stopping later runs. The `JOBS_ENABLED` setting (default `true`) SHALL turn the schedule off when `false`; the purge then runs only through `pnpm --filter backend run job:purge`.
+
+#### Scenario: S-AB1004-07 the purge job runs at startup and hourly, and JOBS_ENABLED=false turns it off
+- **WHEN** background jobs are started with `JOBS_ENABLED` `true` and time advances by one hour, and separately with `JOBS_ENABLED` `false`
+- **THEN** with `true` the trash purge runs once at startup with `Clock.now()` and again after one hour; with `false` nothing is scheduled and the purge never runs

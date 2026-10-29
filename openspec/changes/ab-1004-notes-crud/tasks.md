@@ -28,6 +28,8 @@ Every checkpoint: `pnpm build`, `pnpm lint --max-warnings 0`, `pnpm format:check
 - [x] 4.1 Test `S-AB1004-06` restore and purge at the 30-day boundary
 - [x] 4.2 `TrashPurgeJob`, purge repository, scheduler (unit test with fake timers), `JOBS_ENABLED`, `server.ts`, `purge-cli.ts`, `job:purge`
 - [x] 4.3 Checkpoint
+- [x] 4.4 Test `S-AB1004-07` the purge job runs at startup and hourly, and `JOBS_ENABLED=false` turns it off; `jobs/background-jobs.ts` holds the `JOBS_ENABLED` decision used by `server.ts`
+- [x] 4.5 Checkpoint
 
 ## 5. Verification
 
