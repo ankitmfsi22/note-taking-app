@@ -35,7 +35,7 @@ const tokenFor = async (app: Express) => {
 
 const setup = async () => {
   const clock = createMutableClock(START);
-  const { app } = createTestApp({ prisma, clock });
+  const { app, logs } = createTestApp({ prisma, clock });
   const tokenA = await tokenFor(app);
   const tokenB = await tokenFor(app);
   const as = (token: string) => (req: request.Test) => req.set('Authorization', `Bearer ${token}`);
@@ -59,10 +59,26 @@ const setup = async () => {
   const publicView = (token: string) => request(app).get(`/api/v1/public/shares/${token}`);
   const createLink = async (api: ReturnType<typeof apiFor>, noteId: string, body: object = {}) =>
     ShareLinkResponseSchema.parse((await api.create(noteId, body)).body);
-  return { app, clock, tokenB, a: apiFor(tokenA), b: apiFor(tokenB), publicView, createLink };
+  return { app, clock, logs, tokenB, a: apiFor(tokenA), b: apiFor(tokenB), publicView, createLink };
 };
 
 describe('public share read', () => {
+  it('never writes the share token to the log', async () => {
+    const { logs, a, publicView, createLink } = await setup();
+    const note = await a.createNote();
+    const link = await createLink(a, note.id);
+
+    const unknownToken = 'U'.repeat(43);
+
+    expect((await publicView(link.token)).status).toBe(200);
+    expect((await publicView(unknownToken)).status).toBe(404);
+
+    const text = logs.text();
+    expect(text).toContain('/api/v1/public/shares/[redacted]');
+    expect(text).not.toContain(link.token);
+    expect(text).not.toContain(unknownToken);
+  });
+
   it('S-AB1008-02: public view returns the note read-only and counts 50 concurrent views exactly', async () => {
     const { app, tokenB, a, createLink } = await setup();
     const note = await a.createNote();
