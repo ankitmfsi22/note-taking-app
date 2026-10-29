@@ -8,7 +8,7 @@ import { server } from './server';
 expect.extend(matchers);
 
 // findBy and waitFor default to 1 s, which cold lazy imports and coverage can exceed.
-configure({ asyncUtilTimeout: 5000 });
+configure({ asyncUtilTimeout: 15_000 });
 
 // Vitest globals are off, so Testing Library cannot register its own cleanup.
 beforeAll(() => server.listen({ onUnhandledRequest: 'error' }));

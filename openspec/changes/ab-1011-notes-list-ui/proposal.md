@@ -32,7 +32,7 @@ Authorization-denied: S-AB1011-06 (guest at `/notes/trash` goes to login; a fail
 
 - **[ASSUMPTION — confirm]** "New note" creates the note with the title `Untitled` and the default empty document, then navigates to `/notes/:noteId`. That route is built by AB-1012 (parallel); until it lands the router shows the not-found page, and the test only asserts the request and the navigation.
 - **[ASSUMPTION — confirm]** Days remaining in Trash is computed in the browser from `deletedAt` plus `TRASH_RETENTION_DAYS` (30) with `Math.ceil`, the same rule as the server's `daysRemaining`, via a pure helper that takes `now`.
-- **[ASSUMPTION — confirm]** Invalid or missing `page`, `sortBy`, `sortOrder` or `tagIds` in the URL fall back to the defaults (page 1, `updatedAt`, `desc`, no tags) without an error. A `404 TAG_NOT_FOUND` from the list (a deleted tag in a shared URL) drops the unknown tag filter and shows a notice.
+- **[ASSUMPTION — confirm]** Invalid or missing `page`, `sortBy`, `sortOrder` or `tagIds` in the URL fall back to the defaults (page 1, `updatedAt`, `desc`, no tags) without an error.
 - **[ASSUMPTION — confirm]** Page size is fixed at the default 20; there is no page size control.
 - **[ASSUMPTION — confirm]** SDS 9.6 lists `sonner` toasts. AB-1012 adds it in parallel, so this ticket uses inline status and alert messages and no toasts.
 - **[ASSUMPTION — confirm]** Deleting a tag asks for confirmation through the same `ConfirmDialog` (FRS A-36 lists notes, links and versions only).
