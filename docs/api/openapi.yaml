@@ -2,7 +2,7 @@ openapi: 3.1.0
 info:
   title: Note Taking App API
   version: 0.1.0
-  summary: REST API of the Note Taking App (health, auth, password-reset, notes and tags endpoints so far).
+  summary: REST API of the Note Taking App (health, auth, password-reset, notes, tags and search endpoints so far).
   description: |
     OpenAPI 3.1 document. It defines what every endpoint shares: the server
     base path, the security schemes and the binding error contract
@@ -11,7 +11,7 @@ info:
     `paths` grows ticket by ticket. Each ticket describes its endpoints in its
     own `openspec/changes/<change>/delta-openapi.yaml`, which is merged into
     this file when the change is archived (docs/SDS.md SA-44). AB-1001 added
-    `GET /health`. AB-1002 added the four auth endpoints. AB-1003 added forgot-password and reset-password. AB-1004 added notes CRUD, trash and restore. AB-1005 added the paginated notes list. AB-1006 added tags and note-tag replacement. The executable request and response contracts are the Zod
+    `GET /health`. AB-1002 added the four auth endpoints. AB-1003 added forgot-password and reset-password. AB-1004 added notes CRUD, trash and restore. AB-1005 added the paginated notes list. AB-1006 added tags and note-tag replacement. AB-1007 added full-text search. The executable request and response contracts are the Zod
     schemas in `packages/shared`.
 servers:
   - url: /api/v1
@@ -438,6 +438,45 @@ paths:
           $ref: '#/components/responses/Unauthorized'
         '404':
           $ref: '#/components/responses/NoteNotFound'
+        '500':
+          $ref: '#/components/responses/InternalError'
+  /search:
+    get:
+      operationId: searchNotes
+      summary: Full-text search over the caller's notes
+      description: |
+        PostgreSQL full-text search (`plainto_tsquery('english')`) over the
+        title and content text of the caller's non-deleted notes
+        (AC-SRCH-01 to 03). Ordered by relevance (title above content), then
+        `updatedAt` descending, then `id` (AC-SRCH-04). Operator characters
+        are plain text (AC-SRCH-10). No match gives empty `items`
+        (AC-SRCH-09). `titleHighlight` and `snippet` are HTML-escaped except
+        for `<mark>` and `</mark>` (AC-SRCH-05, AC-SRCH-06).
+      tags: [search]
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: q
+          in: query
+          required: true
+          description: Trimmed, then 2 to 200 characters (AC-SRCH-08).
+          schema:
+            type: string
+            minLength: 2
+            maxLength: 200
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/PageSize'
+      responses:
+        '200':
+          description: One page of results. A page beyond the end has empty `items` and correct totals.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SearchResponse'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
         '500':
           $ref: '#/components/responses/InternalError'
   /tags:
@@ -926,6 +965,43 @@ components:
           items:
             type: string
             format: uuid
+    SearchResultItem:
+      type: object
+      required: [id, title, titleHighlight, snippet, tags, updatedAt]
+      additionalProperties: false
+      properties:
+        id:
+          type: string
+          format: uuid
+        title:
+          type: string
+          description: The raw note title (plain text, not escaped).
+        titleHighlight:
+          type: string
+          description: HTML-escaped title with every matched word wrapped in `<mark>` and `</mark>`.
+        snippet:
+          type: string
+          description: |
+            HTML-escaped fragments of the content text (up to 2, joined by
+            ` … `) with matched words wrapped in `<mark>` and `</mark>`.
+            The only markup in the string is `<mark>` and `</mark>`.
+        tags:
+          type: array
+          items:
+            $ref: '#/components/schemas/TagResponse'
+        updatedAt:
+          type: string
+          format: date-time
+    SearchResponse:
+      allOf:
+        - $ref: '#/components/schemas/PaginationMeta'
+        - type: object
+          required: [items]
+          properties:
+            items:
+              type: array
+              items:
+                $ref: '#/components/schemas/SearchResultItem'
     NoteListItem:
       type: object
       required: [id, title, preview, tags, createdAt, updatedAt]
