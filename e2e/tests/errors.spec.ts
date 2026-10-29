@@ -1,4 +1,5 @@
 import { createAccount, loginUser, registerUser, uniqueEmail } from '../support/auth';
+import { E2E_APP_ORIGIN } from '../support/env';
 import { expect, test } from '../support/fixtures';
 
 test('S-AB1016-03 invalid login shows an error and creates no session', async ({
@@ -59,9 +60,17 @@ test('S-AB1016-04 a revoked public link and a too-short password are rejected', 
   const signup = await browser.newContext();
   const signupPage = await signup.newPage();
   await registerUser(signupPage, shortEmail, 'abc');
-  // The shared schema rejects it in the form (the same rule the API answers with 400).
+  // The shared schema rejects it in the form, and the API gives the same answer.
   await expect(signupPage.getByLabel('Password')).toHaveAttribute('aria-invalid', 'true');
   await expect(signupPage.getByText(/8 characters/)).toBeVisible();
+  const response = await signupPage.request.post('/api/v1/auth/register', {
+    data: { email: shortEmail, password: 'abc' },
+    headers: { Origin: E2E_APP_ORIGIN },
+  });
+  expect(response.status()).toBe(400);
+  expect(((await response.json()) as { error: { code: string } }).error.code).toBe(
+    'VALIDATION_ERROR',
+  );
   await expect(signupPage).toHaveURL(/\/register/);
   await loginUser(signupPage, shortEmail, 'abc');
   await expect(signupPage.getByRole('alert')).toHaveText('Email or password is incorrect.');
