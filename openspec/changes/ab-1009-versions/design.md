@@ -6,6 +6,7 @@ Spec: `specs/versions/spec.md` (approved 2026-10-29). SDS 6.2, 7.1 (#26 to #28),
 
 - Shared: `constants/limits.ts` (`VERSION_KEEP = 50`), `schemas/version.ts` (`VersionParamsSchema`, `VersionListItemSchema`, `VersionListResponseSchema`, `VersionDetailSchema`), `note.ts` (`latestVersion` in `NoteResponseSchema`), `types.ts`, `index.ts`.
 - DB: `NoteVersion` model, `Note.lastVersionNumber`, migration `versions_note_version` with the version-1 backfill.
+- Accepted exception (owner, 2026-10-29): the one-time version-1 backfill in the migration uses `gen_random_uuid()` (UUIDv4), because PostgreSQL 16 has no built-in `uuidv7()`. Every row the application creates keeps the Prisma `uuid(7)` default.
 - Backend: `modules/versions/{versions.repository,versions.service,versions.controller,versions.routes}.ts`; small edits to the notes repository and service (save transaction); `app.ts` mounts `/api/v1/notes` versions routes.
 
 ## Key decisions
