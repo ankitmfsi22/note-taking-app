@@ -42,6 +42,10 @@ const setup = async (path = '/notes') => {
   server.use(
     http.get('*/api/v1/tags', () => HttpResponse.json({ items: [] })),
     http.get('*/api/v1/notes', () => HttpResponse.json(notesPageOf([]))),
+    // Opening a result navigates to the editor, which loads the note.
+    http.get('*/api/v1/notes/:noteId', () =>
+      HttpResponse.json(errorBody('NOTE_NOT_FOUND', 'Note not found'), { status: 404 }),
+    ),
   );
   const router = createMemoryRouter(routes, { initialEntries: [path] });
   render(
@@ -87,7 +91,7 @@ describe('search section', () => {
       ),
     );
     const { router, box, user, debounce } = await setup();
-    expect(screen.getByText(NORMAL_LIST)).toBeInTheDocument();
+    expect(await screen.findByText(NORMAL_LIST, {}, LOAD)).toBeInTheDocument();
 
     await user.type(box, 'b');
     await debounce(400);
@@ -185,17 +189,17 @@ describe('search section', () => {
 
     // Clear while the request for the old query is still in flight.
     await user.clear(box);
-    expect(screen.getByText(NORMAL_LIST)).toBeInTheDocument();
+    expect(await screen.findByText(NORMAL_LIST, {}, LOAD)).toBeInTheDocument();
     expect(router.state.location.search).toBe('');
     await debounce(400);
     await act(() => vi.advanceTimersByTimeAsync(200));
     expect(screen.queryByText('Old result')).not.toBeInTheDocument();
-    expect(screen.getByText(NORMAL_LIST)).toBeInTheDocument();
+    expect(await screen.findByText(NORMAL_LIST, {}, LOAD)).toBeInTheDocument();
 
     // Fewer than two characters also returns to the list.
     await user.type(box, 'p');
     await debounce();
-    expect(screen.getByText(NORMAL_LIST)).toBeInTheDocument();
+    expect(await screen.findByText(NORMAL_LIST, {}, LOAD)).toBeInTheDocument();
   });
 
   it('S-AB1013-05: a 400 or 500 shows an error state with retry and operator text is sent plain', async () => {
