@@ -51,17 +51,17 @@ No SDS or FRS change is needed (design.md, intro), so there is no prerequisite p
 
 Tests first, in `backend/tests/integration/auth/forgot-password.test.ts` (Supertest, real database) unless noted:
 
-- [ ] 6.1 `backend/tests/support/email.ts`: `createSpyEmailService()` that records `{ email, otp }`, offers `otpFor(email)`, and can be set to reject (10)
-- [ ] 6.2 Test `S-AB1003-01: forgot-password for a known email returns 204 and sends the OTP` (10)
-- [ ] 6.3 Test `S-AB1003-02: known and unknown email give an identical response` (15)
-- [ ] 6.4 Test `S-AB1003-04: the OTP is stored only as an HMAC` (recompute the HMAC with the test secret, compare with a bare SHA-256) (15)
-- [ ] 6.5 Test `S-AB1003-06: forgot-password with a malformed email returns 400 VALIDATION_ERROR` (10)
-- [ ] 6.6 Test `S-AB1003-25: an email delivery failure does not change the forgot-password response` (rejecting spy, `createLogCapture` shows neither OTP nor email) (15)
-- [ ] 6.7 Test `S-AB1003-03: the OTP is six digits and expires after ten minutes` in `backend/src/modules/auth/password-reset.service.test.ts` (fake repository, fake clock, injected `generateOtp` below 100000) (20)
-- [ ] 6.8 `backend/src/modules/auth/auth.repository.ts`: `invalidateUnusedOtps`, `createOtp`, `findLatestOtp`, `claimOtpAttempt`, `findOtp`, `invalidateOtp`, `markOtpUsed`, `updatePasswordHash`, every method with `userId` in its `WHERE`; Prisma `updateMany` with atomic `increment` and `lt` checked with Context7 (30)
-- [ ] 6.9 `backend/src/modules/auth/password-reset.service.ts`: `createPasswordResetService` with `requestOtp` (transaction, then `sendOtp` in a deliberate `try/catch` that logs the error name only) (25)
-- [ ] 6.10 `backend/src/modules/auth/password-reset.controller.ts` (`forgotPassword`), the `POST /forgot-password` route, `app.ts` (`emailService` required, `otpHasher` optional) and the spy as the `createTestApp` default (25)
-- [ ] 6.11 Checkpoint (5)
+- [x] 6.1 `backend/tests/support/email.ts`: `createSpyEmailService()` that records `{ email, otp }`, offers `otpFor(email)`, and can be set to reject (10)
+- [x] 6.2 Test `S-AB1003-01: forgot-password for a known email returns 204 and sends the OTP` (10)
+- [x] 6.3 Test `S-AB1003-02: known and unknown email give an identical response` (15)
+- [x] 6.4 Test `S-AB1003-04: the OTP is stored only as an HMAC` (recompute the HMAC with the test secret, compare with a bare SHA-256) (15)
+- [x] 6.5 Test `S-AB1003-06: forgot-password with a malformed email returns 400 VALIDATION_ERROR` (10)
+- [x] 6.6 Test `S-AB1003-25: an email delivery failure does not change the forgot-password response` (rejecting spy, `createLogCapture` shows neither OTP nor email) (15)
+- [x] 6.7 Test `S-AB1003-03: the OTP is six digits and expires after ten minutes` in `backend/src/modules/auth/password-reset.service.test.ts` (fake repository, fake clock, injected `generateOtp` below 100000) (20)
+- [x] 6.8 `backend/src/modules/auth/auth.repository.ts`: `invalidateUnusedOtps`, `createOtp`, `findLatestOtp`, `claimOtpAttempt`, `findOtp`, `invalidateOtp`, `markOtpUsed`, `updatePasswordHash`, every method with `userId` in its `WHERE`; Prisma `updateMany` with atomic `increment` and `lt` checked with Context7 (30)
+- [x] 6.9 `backend/src/modules/auth/password-reset.service.ts`: `createPasswordResetService` with `requestOtp` (transaction, then `sendOtp` in a deliberate `try/catch` that logs the error name only) (25)
+- [x] 6.10 `backend/src/modules/auth/password-reset.controller.ts` (`forgotPassword`), the `POST /forgot-password` route, `app.ts` (`emailService` required, `otpHasher` optional) and the spy as the `createTestApp` default (25)
+- [x] 6.11 Checkpoint (5)
 
 ## 7. Reset password
 

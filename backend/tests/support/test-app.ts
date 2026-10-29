@@ -6,6 +6,7 @@ import { createApp, type AppDeps } from '../../src/app.js';
 import { createLogger } from '../../src/common/logger.js';
 import { loadEnv } from '../../src/config/env.js';
 import type { PrismaClient } from '../../src/generated/prisma/client.js';
+import { createSpyEmailService } from './email.js';
 
 export const TEST_DATABASE_URL =
   process.env['TEST_DATABASE_URL'] ??
@@ -68,6 +69,7 @@ export const createTestApp = (overrides: Partial<AppDeps> = {}) => {
     prisma: unusablePrisma,
     clock: fixedClock('2026-10-28T12:00:00.000Z'),
     logger: createLogger(env, logs.stream),
+    emailService: createSpyEmailService(),
     ...overrides,
     env,
   });

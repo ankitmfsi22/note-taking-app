@@ -60,6 +60,75 @@ const methodsFor = (db: Db) => ({
         data: { revokedAt: now },
       })
     ).count,
+
+  // ---- Password reset (AB-1003). The user is known here, so every query is scoped by userId.
+
+  invalidateUnusedOtps: async (userId: string, now: Date): Promise<number> =>
+    (
+      await db.passwordResetOtp.updateMany({
+        where: { userId, usedAt: null, invalidatedAt: null },
+        data: { invalidatedAt: now },
+      })
+    ).count,
+
+  createOtp: ({
+    userId,
+    otpHash,
+    expiresAt,
+  }: Pick<Prisma.PasswordResetOtpUncheckedCreateInput, 'userId' | 'otpHash' | 'expiresAt'>) =>
+    db.passwordResetOtp.create({ data: { userId, otpHash, expiresAt } }),
+
+  // Newest first, with id as the tie-break, so two OTPs issued in the same millisecond still have
+  // exactly one latest.
+  findLatestOtp: (userId: string) =>
+    db.passwordResetOtp.findFirst({
+      where: { userId },
+      orderBy: [{ createdAt: 'desc' }, { id: 'desc' }],
+    }),
+
+  // One atomic UPDATE that counts the attempt only while the OTP is still usable and under the
+  // limit, so parallel guesses cannot all slip in below it. 0 means the OTP cannot be tried.
+  claimOtpAttempt: async (
+    id: string,
+    userId: string,
+    now: Date,
+    maxAttempts: number,
+  ): Promise<number> =>
+    (
+      await db.passwordResetOtp.updateMany({
+        where: {
+          id,
+          userId,
+          usedAt: null,
+          invalidatedAt: null,
+          expiresAt: { gt: now },
+          attempts: { lt: maxAttempts },
+        },
+        data: { attempts: { increment: 1 } },
+      })
+    ).count,
+
+  findOtp: (id: string, userId: string) => db.passwordResetOtp.findFirst({ where: { id, userId } }),
+
+  invalidateOtp: async (id: string, userId: string, now: Date): Promise<number> =>
+    (
+      await db.passwordResetOtp.updateMany({
+        where: { id, userId, invalidatedAt: null },
+        data: { invalidatedAt: now },
+      })
+    ).count,
+
+  // Compare-and-set: of two concurrent resets with one OTP, only one sees usedAt still null.
+  markOtpUsed: async (id: string, userId: string, now: Date): Promise<number> =>
+    (
+      await db.passwordResetOtp.updateMany({
+        where: { id, userId, usedAt: null },
+        data: { usedAt: now },
+      })
+    ).count,
+
+  updatePasswordHash: (userId: string, passwordHash: string) =>
+    db.user.update({ where: { id: userId }, data: { passwordHash } }),
 });
 
 export const createAuthRepository = (prisma: PrismaClient) => ({
