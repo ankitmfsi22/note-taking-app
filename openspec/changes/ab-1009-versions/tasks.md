@@ -10,8 +10,8 @@ Every checkpoint: `pnpm build`, `pnpm lint --max-warnings 0`, `pnpm format:check
 
 ## 2. Database
 
-- [ ] 2.1 `NoteVersion`, `Note.lastVersionNumber`, migration `versions_note_version` with backfill (create-only, review SQL, apply, generate)
-- [ ] 2.2 Checkpoint
+- [x] 2.1 `NoteVersion`, `Note.lastVersionNumber`, migration `versions_note_version` with backfill (create-only, review SQL, apply, generate)
+- [x] 2.2 Checkpoint
 
 ## 3. Save transaction
 

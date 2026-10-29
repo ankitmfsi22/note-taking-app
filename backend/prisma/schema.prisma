@@ -63,8 +63,25 @@ model Note {
   createdAt   DateTime  @default(now()) @db.Timestamptz(3)
   updatedAt   DateTime  @updatedAt @db.Timestamptz(3)
 
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  lastVersionNumber Int @default(0) // AB-1009: monotonic counter
+
+  user     User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  versions NoteVersion[] // AB-1009
 
   @@index([userId, deletedAt, updatedAt(sort: Desc)]) // AB-1004: default list + trash
   @@index([deletedAt]) // AB-1004: purge scan
+}
+
+// ---- AB-1009 --------------------------------------------------------
+model NoteVersion {
+  id            String   @id @default(uuid(7)) @db.Uuid
+  noteId        String   @db.Uuid
+  versionNumber Int
+  title         String   @db.VarChar(200)
+  content       Json     @db.JsonB
+  createdAt     DateTime @default(now()) @db.Timestamptz(3)
+
+  note Note @relation(fields: [noteId], references: [id], onDelete: Cascade)
+
+  @@unique([noteId, versionNumber]) // also serves "newest first"
 }
