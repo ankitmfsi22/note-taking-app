@@ -1,4 +1,9 @@
-import { TAG_COLOR_DEFAULT, type TagCreateRequest, type TagUpdateRequest } from '@note-app/shared';
+import {
+  TAG_COLOR_DEFAULT,
+  TAG_NAME_MAX,
+  type TagCreateRequest,
+  type TagUpdateRequest,
+} from '@note-app/shared';
 import { AppError } from '../../common/errors/app-error.js';
 import type { TagsRepository } from './tags.repository.js';
 
@@ -9,11 +14,23 @@ const nameTaken = () => new AppError('TAG_NAME_TAKEN', 'A tag with this name alr
 // SDS 7.3: the name is already trimmed by the schema.
 export const nameKeyOf = (name: string): string => name.trim().normalize('NFKC').toLowerCase();
 
+// NFKC can lengthen a valid name ('㎒' becomes 'mhz'). A key wider than the VarChar(30) column is
+// a validation error, not a database failure. Spread counts code points, as PostgreSQL does.
+const checkedNameKey = (name: string): string => {
+  const nameKey = nameKeyOf(name);
+  if ([...nameKey].length > TAG_NAME_MAX) {
+    throw new AppError('VALIDATION_ERROR', 'Request validation failed', [
+      { field: 'name', message: `Name must be at most ${TAG_NAME_MAX} characters once normalised` },
+    ]);
+  }
+  return nameKey;
+};
+
 export const createTagsService = ({ repository }: { repository: TagsRepository }) => ({
   create: async (userId: string, { name, color }: TagCreateRequest) => {
     const tag = await repository.createForUser(userId, {
       name,
-      nameKey: nameKeyOf(name),
+      nameKey: checkedNameKey(name),
       color: (color ?? TAG_COLOR_DEFAULT).toUpperCase(),
     });
     if (!tag) throw nameTaken();
@@ -25,7 +42,7 @@ export const createTagsService = ({ repository }: { repository: TagsRepository }
   update: async (userId: string, tagId: string, { name, color }: TagUpdateRequest) => {
     const result = await repository.updateForUser(tagId, userId, {
       name,
-      nameKey: name === undefined ? undefined : nameKeyOf(name),
+      nameKey: name === undefined ? undefined : checkedNameKey(name),
       color: color?.toUpperCase(),
     });
     if (result === 'missing') throw tagNotFound();

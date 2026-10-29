@@ -60,6 +60,22 @@ const tagRows = () => prisma.tag.count();
 const noteTagRows = () => prisma.noteTag.count();
 
 describe('tags', () => {
+  it('rejects a name whose normalised key outgrows the column with 400, never 500', async () => {
+    const { a } = await setup();
+    const tag = await a.newTag('Plain');
+
+    // Each '㎒' is one character but NFKC turns it into 'MHz', so 30 of them become 90.
+    for (const response of [
+      await a.createTag({ name: '㎒'.repeat(30) }),
+      await a.updateTag(tag.id, { name: '㎒'.repeat(30) }),
+    ]) {
+      expect(response.status).toBe(400);
+      expect(errorOf(response.body).code).toBe('VALIDATION_ERROR');
+      expect(errorOf(response.body).details?.map((detail) => detail.field)).toContain('name');
+    }
+    expect(await tagRows()).toBe(1);
+  });
+
   it('S-AB1006-01: create tags and list them with note counts that ignore soft-deleted notes', async () => {
     const { a, b } = await setup();
     const created = await a.createTag({ name: 'Work' });

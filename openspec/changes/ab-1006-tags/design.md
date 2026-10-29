@@ -29,4 +29,4 @@ Spec: `specs/tags/spec.md` (approved 2026-10-29). SDS 4.3, 6.2 to 6.4, 7.1 (#15 
 | Rename, recolour, delete | `update`, `remove`, cascade | 05 |
 | Replace note tags | `setForNote` transaction | 06 |
 
-Risks: a `nameKey` that grows past 30 characters under NFKC (column `VarChar(30)`); order of `NOTE_NOT_FOUND` before `TAG_NOT_FOUND`.
+Risks: a `nameKey` that grows past 30 characters under NFKC (column `VarChar(30)`) is rejected in the service with `400 VALIDATION_ERROR` on `name` instead of a database error (support test in `tags.test.ts`; no SDS column change); order of `NOTE_NOT_FOUND` before `TAG_NOT_FOUND`.
