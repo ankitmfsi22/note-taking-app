@@ -34,6 +34,10 @@ export const routes: RouteObject[] = [
         children: [
           { path: '/notes', lazy: () => import('@/features/notes/pages/notes-page') },
           { path: '/notes/trash', lazy: () => import('@/features/trash/pages/trash-page') },
+          {
+            path: '/notes/:noteId',
+            lazy: () => import('@/features/editor/pages/note-editor-page'),
+          },
         ],
       },
       { path: '*', lazy: () => import('./not-found') },
