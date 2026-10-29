@@ -29,11 +29,11 @@ No SDS or FRS change is needed (design.md, intro), so there is no prerequisite p
 
 ## 4. Security helpers
 
-- [ ] 4.1 `backend/src/common/security/tokens.test.ts`: support test for `generateOtp`: always 6 digits, zero-padded for a forced value below 100000, never reaches 1000000 (10)
-- [ ] 4.2 `backend/src/common/security/tokens.ts`: `generateOtp(random = randomInt)`, verified against Node 22 with Context7 (5)
-- [ ] 4.3 `backend/src/common/security/hash.test.ts`: support tests for `createOtpHasher`: `hash` is 64 hex characters and depends on user and OTP, `matches` true and false, a stored hash of another length returns false, `verifyDummy` always false (15)
-- [ ] 4.4 `backend/src/common/security/hash.ts`: `createOtpHasher({ secret })` with `hash`, `matches` (`timingSafeEqual` on two `Buffer`s) and `verifyDummy` (20)
-- [ ] 4.5 Checkpoint (5)
+- [x] 4.1 `backend/src/common/security/tokens.test.ts`: support test for `generateOtp`: always 6 digits, zero-padded for a forced value below 100000, never reaches 1000000 (10)
+- [x] 4.2 `backend/src/common/security/tokens.ts`: `generateOtp(random = randomInt)`, verified against Node 22 with Context7 (5)
+- [x] 4.3 `backend/src/common/security/hash.test.ts`: support tests for `createOtpHasher`: `hash` is 64 hex characters and depends on user and OTP, `matches` true and false, a stored hash of another length returns false, `verifyDummy` always false (15)
+- [x] 4.4 `backend/src/common/security/hash.ts`: `createOtpHasher({ secret })` with `hash`, `matches` (`timingSafeEqual` on two `Buffer`s) and `verifyDummy` (20)
+- [x] 4.5 Checkpoint (5)
 
 ## 5. Email module and test sink
 
