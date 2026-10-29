@@ -1,0 +1,104 @@
+openapi: 3.1.0
+info:
+  title: Note Taking App API (AB-1007 delta)
+  version: 0.1.0
+  description: |
+    Delta for ticket AB-1007. It adds only `GET /search` and its schemas.
+    It is merged into docs/api/openapi.yaml when the change is archived
+    (docs/SDS.md SA-44). Statuses and error codes are binding
+    (docs/SDS.md sections 4.3 and 7.1). `TagResponse` is added by the
+    AB-1006 delta, which is archived first.
+servers:
+  - url: /api/v1
+paths:
+  /search:
+    get:
+      operationId: searchNotes
+      summary: Full-text search over the caller's notes
+      description: |
+        PostgreSQL full-text search (`plainto_tsquery('english')`) over the
+        title and content text of the caller's non-deleted notes
+        (AC-SRCH-01 to 03). Ordered by relevance (title above content), then
+        `updatedAt` descending, then `id` (AC-SRCH-04). Operator characters
+        are plain text (AC-SRCH-10). No match gives empty `items`
+        (AC-SRCH-09). `titleHighlight` and `snippet` are HTML-escaped except
+        for `<mark>` and `</mark>` (AC-SRCH-05, AC-SRCH-06).
+      tags: [search]
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: q
+          in: query
+          required: true
+          description: Trimmed, then 2 to 200 characters (AC-SRCH-08).
+          schema:
+            type: string
+            minLength: 2
+            maxLength: 200
+        - name: page
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            default: 1
+        - name: pageSize
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 20
+      responses:
+        '200':
+          description: One page of results. A page beyond the end has empty `items` and correct totals.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SearchResponse'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/InternalError'
+components:
+  schemas:
+    SearchResultItem:
+      type: object
+      required: [id, title, titleHighlight, snippet, tags, updatedAt]
+      additionalProperties: false
+      properties:
+        id:
+          type: string
+          format: uuid
+        title:
+          type: string
+          description: The raw note title (plain text, not escaped).
+        titleHighlight:
+          type: string
+          description: HTML-escaped title with every matched word wrapped in `<mark>` and `</mark>`.
+        snippet:
+          type: string
+          description: |
+            HTML-escaped fragments of the content text (up to 2, joined by
+            ` … `) with matched words wrapped in `<mark>` and `</mark>`.
+            The only markup in the string is `<mark>` and `</mark>`.
+        tags:
+          type: array
+          items:
+            $ref: '#/components/schemas/TagResponse'
+        updatedAt:
+          type: string
+          format: date-time
+    SearchResponse:
+      allOf:
+        - $ref: '#/components/schemas/PaginationMeta'
+        - type: object
+          required: [items]
+          properties:
+            items:
+              type: array
+              items:
+                $ref: '#/components/schemas/SearchResultItem'
