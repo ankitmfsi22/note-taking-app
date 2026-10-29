@@ -40,7 +40,7 @@ Estimates in minutes. Test first in each phase. Every checkpoint: `pnpm build`, 
 
 - [x] 6.1 `pnpm test --coverage` at least 80% on new code; `pnpm check:scenarios` (every S-AB1012 scenario has exactly one test); `pnpm spec:validate` (10)
 - [ ] 6.2 Manual smoke in `pnpm dev` with the backend: open a note, type, watch Saving then Saved, stop the backend and watch Failed and Retry, close the tab with unsaved edits, open a deleted note (20)
-- [ ] 6.3 Reminder: run `/sdd-review AB-1012` in a fresh terminal; `/pr` only when all items are ✅ (0)
+- [x] 6.3 Reminder: run `/sdd-review AB-1012` in a fresh terminal; `/pr` only when all items are ✅ (0)
 
 ## Requirement and scenario map
 
