@@ -94,8 +94,21 @@ test('S-AB1016-01 the full journey passes end to end', async ({ browser, page })
   await visitor.close();
   await page.getByRole('button', { name: 'Close' }).click();
 
-  // TODO(AB#1016): after PR #16 merges, edit again, open the version history and restore a
-  // version here (AC-E2E-01).
+  // Edit again, then restore the version from before that edit through the history drawer.
+  await fillNote(page, `${TITLE} v2`);
+  await page.getByRole('button', { name: 'Version history' }).click();
+  const versions = page.getByRole('list', { name: 'Versions' }).getByRole('button');
+  const topBefore = (await versions.first().textContent()) ?? '';
+  const count = await versions.count();
+  await versions.nth(1).click();
+  await expect(page.getByRole('heading', { name: TITLE, exact: true })).toBeVisible();
+  await page.getByRole('button', { name: 'Restore this version' }).click();
+  await page.getByRole('alertdialog').getByRole('button', { name: 'Restore', exact: true }).click();
+  await expect(versions).toHaveCount(count + 1);
+  await expect(versions.first()).not.toHaveText(topBefore);
+  await page.keyboard.press('Escape');
+  await expect(page.getByRole('textbox', { name: 'Title' })).toHaveValue(TITLE);
+  await expect(page.getByText(BODY)).toBeVisible();
 
   // Delete the note, restore it from Trash, log out.
   await page.getByRole('link', { name: 'Back to notes' }).click();
