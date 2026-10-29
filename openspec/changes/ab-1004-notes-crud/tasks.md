@@ -15,13 +15,13 @@ Every checkpoint: `pnpm build`, `pnpm lint --max-warnings 0`, `pnpm format:check
 
 ## 3. Notes endpoints
 
-- [ ] 3.1 Test `S-AB1004-01` create, read and update
-- [ ] 3.2 Test `S-AB1004-02` invalid input returns 400
-- [ ] 3.3 Test `S-AB1004-03` other user's or missing note returns 404
-- [ ] 3.4 Test `S-AB1004-04` no token 401, malformed id 400
-- [ ] 3.5 Test `S-AB1004-05` soft delete, trash list, restore
-- [ ] 3.6 `content-text.ts` (with unit test), `validParams`/`validQuery`, repository, service, controller, routes, `app.ts`
-- [ ] 3.7 Checkpoint
+- [x] 3.1 Test `S-AB1004-01` create, read and update
+- [x] 3.2 Test `S-AB1004-02` invalid input returns 400
+- [x] 3.3 Test `S-AB1004-03` other user's or missing note returns 404
+- [x] 3.4 Test `S-AB1004-04` no token 401, malformed id 400
+- [x] 3.5 Test `S-AB1004-05` soft delete, trash list, restore
+- [x] 3.6 `content-text.ts` (with unit test), `validParams`/`validQuery`, repository, service, controller, routes, `app.ts`
+- [x] 3.7 Checkpoint
 
 ## 4. Trash purge
 

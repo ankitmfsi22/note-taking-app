@@ -85,7 +85,8 @@ const OrderedListNodeSchema = z.strictObject({
   content: z.array(ListItemNodeSchema).optional(),
 });
 
-const BlockNodeSchema = z.union([
+// Exported so declaration files can name the recursive type instead of eliding it to `any`.
+export const BlockNodeSchema = z.union([
   ParagraphNodeSchema,
   HeadingNodeSchema,
   CodeBlockNodeSchema,
@@ -94,7 +95,7 @@ const BlockNodeSchema = z.union([
   OrderedListNodeSchema,
 ]);
 
-const DocNodeSchema = z.strictObject({
+export const DocNodeSchema = z.strictObject({
   type: z.literal('doc'),
   content: z.array(BlockNodeSchema).optional(),
 });

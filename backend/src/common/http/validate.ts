@@ -39,10 +39,14 @@ export const validate =
 
 // The caller names the type (from packages/shared) because the backend cannot import zod at runtime
 // to infer it. Reaching this without validate({ body }) is a wiring bug, so it is a plain Error (500).
-export const validBody = <T>(res: Response): T => {
+const validPart = <T>(res: Response, part: keyof RequestSchemas): T => {
   const valid: unknown = res.locals.valid;
-  if (typeof valid !== 'object' || valid === null || !('body' in valid)) {
-    throw new Error('validBody called on a route without validate({ body })');
+  if (typeof valid !== 'object' || valid === null || !(part in valid)) {
+    throw new Error(`valid ${part} read on a route without validate({ ${part} })`);
   }
-  return valid.body as T;
+  return (valid as Record<string, unknown>)[part] as T;
 };
+
+export const validBody = <T>(res: Response): T => validPart<T>(res, 'body');
+export const validParams = <T>(res: Response): T => validPart<T>(res, 'params');
+export const validQuery = <T>(res: Response): T => validPart<T>(res, 'query');
