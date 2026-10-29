@@ -2,7 +2,7 @@ openapi: 3.1.0
 info:
   title: Note Taking App API
   version: 0.1.0
-  summary: REST API of the Note Taking App (health, auth, password-reset, notes, tags and search endpoints so far).
+  summary: REST API of the Note Taking App (health, auth, password-reset, notes, tags, search and sharing endpoints so far).
   description: |
     OpenAPI 3.1 document. It defines what every endpoint shares: the server
     base path, the security schemes and the binding error contract
@@ -11,7 +11,7 @@ info:
     `paths` grows ticket by ticket. Each ticket describes its endpoints in its
     own `openspec/changes/<change>/delta-openapi.yaml`, which is merged into
     this file when the change is archived (docs/SDS.md SA-44). AB-1001 added
-    `GET /health`. AB-1002 added the four auth endpoints. AB-1003 added forgot-password and reset-password. AB-1004 added notes CRUD, trash and restore. AB-1005 added the paginated notes list. AB-1006 added tags and note-tag replacement. AB-1007 added full-text search. The executable request and response contracts are the Zod
+    `GET /health`. AB-1002 added the four auth endpoints. AB-1003 added forgot-password and reset-password. AB-1004 added notes CRUD, trash and restore. AB-1005 added the paginated notes list. AB-1006 added tags and note-tag replacement. AB-1007 added full-text search. AB-1008 added share links and the public read. The executable request and response contracts are the Zod
     schemas in `packages/shared`.
 servers:
   - url: /api/v1
@@ -438,6 +438,165 @@ paths:
           $ref: '#/components/responses/Unauthorized'
         '404':
           $ref: '#/components/responses/NoteNotFound'
+        '500':
+          $ref: '#/components/responses/InternalError'
+  /notes/{noteId}/shares:
+    parameters:
+      - $ref: '#/components/parameters/NoteId'
+    post:
+      operationId: createShareLink
+      summary: Create a public share link for a note
+      description: |
+        Creates a link for the caller's non-deleted note (AC-SHARE-01). A note
+        may have several links (AC-SHARE-02). The token is 32 random bytes as
+        base64url (AC-SHARE-03). `expiresAt` is optional, in the future and at
+        most 365 days ahead (AC-SHARE-04, ERR-SHARE-02). A missing, another
+        user's or soft-deleted note is NOTE_NOT_FOUND (ERR-SHARE-01).
+      tags: [shares]
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateShareLinkRequest'
+      responses:
+        '201':
+          description: Link created. The token is returned so the owner can copy the link.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ShareLinkResponse'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NoteNotFound'
+        '500':
+          $ref: '#/components/responses/InternalError'
+    get:
+      operationId: listNoteShareLinks
+      summary: List all links of one note
+      description: All statuses, with creation time, expiry, view count and status (AC-SHARE-09, AC-SHARE-11).
+      tags: [shares]
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Every link of the note.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ShareLinkListResponse'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NoteNotFound'
+        '500':
+          $ref: '#/components/responses/InternalError'
+  /shares:
+    get:
+      operationId: listActiveShareLinks
+      summary: List the caller's active links across all notes
+      description: |
+        Paginated. Excludes revoked, expired and soft-deleted-note links
+        (AC-SHARE-11, SA-17).
+      tags: [shares]
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/PageSize'
+      responses:
+        '200':
+          description: One page of active links.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ActiveShareLinkListResponse'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/InternalError'
+  /shares/{shareId}/revoke:
+    post:
+      operationId: revokeShareLink
+      summary: Revoke a share link (idempotent)
+      description: |
+        Sets `revokedAt` only when it is null. Revoking an already revoked link
+        returns 200 and changes nothing (AC-SHARE-10, ERR-SHARE-04). Other links
+        of the note are untouched (AC-SHARE-02). A missing or another user's
+        link is SHARE_LINK_NOT_FOUND (ERR-SHARE-03).
+      tags: [shares]
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: shareId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: The link after revoke.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ShareLinkResponse'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/ShareLinkNotFound'
+        '500':
+          $ref: '#/components/responses/InternalError'
+  /public/shares/{token}:
+    get:
+      operationId: getPublicSharedNote
+      summary: Read a shared note without logging in
+      description: |
+        Public and read-only (AC-SHARE-05). Any Authorization header is ignored
+        (ERR-SHARE-09). One `UPDATE ... RETURNING` checks availability,
+        increments the view count by exactly 1 and returns the note
+        (AC-SHARE-07, SDS 8.3). Unknown, revoked, expired and deleted-note links
+        are the same 404 and count nothing (AC-SHARE-14, ERR-SHARE-05 to 07).
+      tags: [public]
+      security: []
+      parameters:
+        - name: token
+          in: path
+          required: true
+          schema:
+            type: string
+            pattern: '^[A-Za-z0-9_-]{43}$'
+      responses:
+        '200':
+          description: Title, content and last-updated time only (AC-SHARE-06).
+          headers:
+            Cache-Control:
+              schema:
+                type: string
+                enum: [no-store]
+            X-Robots-Tag:
+              schema:
+                type: string
+                enum: [noindex]
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PublicSharedNote'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '404':
+          $ref: '#/components/responses/ShareLinkNotFound'
         '500':
           $ref: '#/components/responses/InternalError'
   /search:
@@ -965,6 +1124,89 @@ components:
           items:
             type: string
             format: uuid
+    CreateShareLinkRequest:
+      type: object
+      properties:
+        expiresAt:
+          type: string
+          format: date-time
+          description: Optional ISO 8601 datetime, in the future and at most 365 days ahead. Omitted means the link lasts until revoked.
+    ShareLinkStatus:
+      type: string
+      enum: [active, expired, revoked]
+      description: Derived from revokedAt and expiresAt with the injected clock (SDS 8.3).
+    ShareLinkResponse:
+      type: object
+      required: [id, noteId, token, expiresAt, revokedAt, viewCount, status, createdAt]
+      properties:
+        id:
+          type: string
+          format: uuid
+        noteId:
+          type: string
+          format: uuid
+        token:
+          type: string
+          pattern: '^[A-Za-z0-9_-]{43}$'
+          description: 256-bit base64url token, stored in plaintext (SA-16).
+        expiresAt:
+          type: [string, 'null']
+          format: date-time
+        revokedAt:
+          type: [string, 'null']
+          format: date-time
+        viewCount:
+          type: integer
+          minimum: 0
+        status:
+          $ref: '#/components/schemas/ShareLinkStatus'
+        createdAt:
+          type: string
+          format: date-time
+    ShareLinkListResponse:
+      type: object
+      required: [items]
+      additionalProperties: false
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/ShareLinkResponse'
+    ActiveShareLinkItem:
+      allOf:
+        - $ref: '#/components/schemas/ShareLinkResponse'
+        - type: object
+          required: [noteTitle]
+          properties:
+            noteTitle:
+              type: string
+              minLength: 1
+              maxLength: 200
+    ActiveShareLinkListResponse:
+      allOf:
+        - $ref: '#/components/schemas/PaginationMeta'
+        - type: object
+          required: [items]
+          properties:
+            items:
+              type: array
+              items:
+                $ref: '#/components/schemas/ActiveShareLinkItem'
+    PublicSharedNote:
+      type: object
+      required: [title, content, updatedAt]
+      additionalProperties: false
+      properties:
+        title:
+          type: string
+          minLength: 1
+          maxLength: 200
+        content:
+          type: object
+          description: TipTap JSON document (TipTapDocSchema, SDS 8.1).
+        updatedAt:
+          type: string
+          format: date-time
     SearchResultItem:
       type: object
       required: [id, title, titleHighlight, snippet, tags, updatedAt]
@@ -1126,6 +1368,14 @@ components:
             $ref: '#/components/schemas/ErrorResponse'
     InternalError:
       description: Unexpected failure (INTERNAL_ERROR).
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    ShareLinkNotFound:
+      description: |
+        Owner: link missing or not owned. Public: unknown, revoked, expired or
+        deleted-note link, indistinguishable (SHARE_LINK_NOT_FOUND).
       content:
         application/json:
           schema:
