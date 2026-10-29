@@ -18,11 +18,19 @@ import type { HealthResponseSchema } from './schemas/health.js';
 import type {
   NoteCreateRequestSchema,
   NoteIdParamsSchema,
+  NoteListItemSchema,
+  NoteListQuerySchema,
+  NoteListResponseSchema,
   NoteResponseSchema,
   NoteUpdateRequestSchema,
   TrashListItemSchema,
   TrashListResponseSchema,
 } from './schemas/note.js';
+import type {
+  SearchQuerySchema,
+  SearchResponseSchema,
+  SearchResultItemSchema,
+} from './schemas/search.js';
 import type {
   ActiveShareLinkListResponseSchema,
   CreateShareLinkRequestSchema,
@@ -32,6 +40,15 @@ import type {
   ShareLinkResponseSchema,
   ShareTokenParamsSchema,
 } from './schemas/share.js';
+import type {
+  SetNoteTagsRequestSchema,
+  TagCreateRequestSchema,
+  TagIdParamsSchema,
+  TagListResponseSchema,
+  TagResponseSchema,
+  TagUpdateRequestSchema,
+  TagWithCountSchema,
+} from './schemas/tag.js';
 import type { TipTapDocSchema } from './schemas/tiptap.js';
 
 export type Id = z.infer<typeof IdSchema>;
@@ -60,3 +77,16 @@ export type ShareLinkResponse = z.infer<typeof ShareLinkResponseSchema>;
 export type ShareLinkListResponse = z.infer<typeof ShareLinkListResponseSchema>;
 export type ActiveShareLinkListResponse = z.infer<typeof ActiveShareLinkListResponseSchema>;
 export type PublicSharedNote = z.infer<typeof PublicSharedNoteSchema>;
+export type SearchQuery = z.infer<typeof SearchQuerySchema>;
+export type SearchResultItem = z.infer<typeof SearchResultItemSchema>;
+export type SearchResponse = z.infer<typeof SearchResponseSchema>;
+export type TagResponse = z.infer<typeof TagResponseSchema>;
+export type TagCreateRequest = z.infer<typeof TagCreateRequestSchema>;
+export type TagUpdateRequest = z.infer<typeof TagUpdateRequestSchema>;
+export type TagIdParams = z.infer<typeof TagIdParamsSchema>;
+export type TagWithCount = z.infer<typeof TagWithCountSchema>;
+export type TagListResponse = z.infer<typeof TagListResponseSchema>;
+export type SetNoteTagsRequest = z.infer<typeof SetNoteTagsRequestSchema>;
+export type NoteListQuery = z.infer<typeof NoteListQuerySchema>;
+export type NoteListItem = z.infer<typeof NoteListItemSchema>;
+export type NoteListResponse = z.infer<typeof NoteListResponseSchema>;

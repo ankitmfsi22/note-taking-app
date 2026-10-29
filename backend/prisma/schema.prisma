@@ -19,6 +19,7 @@ model User {
   refreshTokens     RefreshToken[]
   passwordResetOtps PasswordResetOtp[] // AB-1003
   notes             Note[] // AB-1004
+  tags              Tag[] // SDS assigns AB-1006; created early by AB-1005
 }
 
 model RefreshToken {
@@ -62,12 +63,46 @@ model Note {
   deletedAt   DateTime? @db.Timestamptz(3) // soft delete
   createdAt   DateTime  @default(now()) @db.Timestamptz(3)
   updatedAt   DateTime  @updatedAt @db.Timestamptz(3)
+  // AB-1007: generated column, created in SQL only (migration notes_search_vector)
+  searchVector Unsupported("tsvector")? @default(dbgenerated())
 
   user       User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  noteTags   NoteTag[] // SDS assigns AB-1006; created early by AB-1005
   shareLinks ShareLink[] // AB-1008
 
   @@index([userId, deletedAt, updatedAt(sort: Desc)]) // AB-1004: default list + trash
+  @@index([userId, deletedAt, createdAt(sort: Desc)]) // AB-1005
+  @@index([userId, deletedAt, title]) // AB-1005
   @@index([deletedAt]) // AB-1004: purge scan
+  @@index([searchVector], type: Gin, map: "Note_searchVector_idx") // AB-1007
+}
+
+// ---- AB-1006 (tables created early by AB-1005 for the list tag filter; endpoints stay AB-1006)
+model Tag {
+  id        String   @id @default(uuid(7)) @db.Uuid
+  userId    String   @db.Uuid
+  name      String   @db.VarChar(30) // as typed (trimmed)
+  nameKey   String   @db.VarChar(30) // NFKC + lower-case, for uniqueness
+  color     String   @default("#6B7280") @db.VarChar(7)
+  createdAt DateTime @default(now()) @db.Timestamptz(3)
+  updatedAt DateTime @updatedAt @db.Timestamptz(3)
+
+  user     User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  noteTags NoteTag[]
+
+  @@unique([userId, nameKey])
+}
+
+model NoteTag {
+  noteId    String   @db.Uuid
+  tagId     String   @db.Uuid
+  createdAt DateTime @default(now()) @db.Timestamptz(3)
+
+  note Note @relation(fields: [noteId], references: [id], onDelete: Cascade)
+  tag  Tag  @relation(fields: [tagId], references: [id], onDelete: Cascade)
+
+  @@id([noteId, tagId])
+  @@index([tagId])
 }
 
 // ---- AB-1008
