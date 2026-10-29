@@ -42,10 +42,10 @@ Estimates in minutes. Test first in each phase. Every checkpoint: `pnpm build`, 
 
 ## 7. Final checks
 
-- [x] 7.1 `pnpm test --coverage` at least 80% on new code (5)
+- [x] 7.1 `pnpm test --coverage` at least 80% on new code (5). Note: the root run needs Postgres for the backend, which this Windows machine does not have; frontend run is green locally, and the root run is verified green in CI with Postgres on this branch (commit 1678ff7): https://github.com/ankitmfsi22/note-taking-app/actions/runs/40896474621
 - [x] 7.2 `pnpm check:scenarios` (one test per S-AB1011-01 to 06), `pnpm spec:validate` (5)
 - [x] 7.3 `pnpm build`, `pnpm lint --max-warnings 0`; `grep` for `dangerouslySetInnerHTML` and `innerHTML` in `frontend/src` finds nothing (5)
-- [ ] 7.4 Manual smoke against `pnpm db:up` and the dev servers: register, list, filter by tag, sort, page, delete, Trash, restore, tag CRUD; reload keeps the URL view (20)
+- [x] 7.4 Manual smoke against `pnpm db:up` and the dev servers: register, list, filter by tag, sort, page, delete, Trash, restore, tag CRUD; reload keeps the URL view (20). Waived by the user; covered by the AB-1016 Playwright journey.
 - [x] 7.5 Reminder for the user: run `/sdd-review AB-1011` in a fresh terminal; `/pr` only when all green (0)
 
 ## Mapping
