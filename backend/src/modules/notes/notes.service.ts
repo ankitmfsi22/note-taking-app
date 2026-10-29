@@ -1,6 +1,7 @@
 import {
   TRASH_RETENTION_DAYS,
   type NoteCreateRequest,
+  type NoteListQuery,
   type NoteUpdateRequest,
   type PaginationQuery,
   type TipTapDoc,
@@ -62,10 +63,39 @@ export const createNotesService = ({
     const cutoff = trashCutoff(clock.now());
     const note = await repository.transaction(async (tx) => {
       const trashed = await tx.findTrashedByIdForUser(noteId, userId, cutoff);
-      return trashed ? tx.markRestored(noteId, userId, cutoff, trashed.updatedAt) : null;
+      if (!trashed) return null;
+      await tx.markRestored(noteId, userId, cutoff, trashed.updatedAt);
+      return tx.findActiveByIdForUser(noteId, userId);
     });
     if (!note) throw noteNotFound();
     return note;
+  },
+
+  list: async (userId: string, { page, pageSize, sortBy, sortOrder, tagIds }: NoteListQuery) => {
+    // One error whether a tag is missing or another user's (AC-LIST-08, FR-X-1).
+    if (
+      tagIds !== undefined &&
+      (await repository.countTagsForUser(userId, tagIds)) < tagIds.length
+    ) {
+      throw new AppError('TAG_NOT_FOUND', 'Tag not found');
+    }
+    const { items, total } = await repository.listActiveForUser(userId, {
+      sortBy,
+      sortOrder,
+      tagIds,
+      skip: (page - 1) * pageSize,
+      take: pageSize,
+    });
+    return {
+      items: items.map(({ contentText, ...item }) => ({
+        ...item,
+        preview: previewOf(contentText),
+      })),
+      page,
+      pageSize,
+      total,
+      totalPages: Math.ceil(total / pageSize),
+    };
   },
 
   listTrash: async (userId: string, { page, pageSize }: PaginationQuery) => {

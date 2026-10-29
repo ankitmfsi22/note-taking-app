@@ -1,4 +1,4 @@
-import type { TipTapDoc } from '@note-app/shared';
+import type { NoteListQuery, TipTapDoc } from '@note-app/shared';
 import { Prisma, type PrismaClient } from '../../generated/prisma/client.js';
 
 type Db = PrismaClient | Prisma.TransactionClient;
@@ -9,6 +9,11 @@ interface NoteWrite {
   contentText: string;
 }
 
+type NoteListOptions = Pick<NoteListQuery, 'sortBy' | 'sortOrder' | 'tagIds'> & {
+  skip: number;
+  take: number;
+};
+
 // undefined leaves the column unchanged.
 type NoteUpdate = { [K in keyof NoteWrite]?: NoteWrite[K] | undefined };
 
@@ -17,6 +22,11 @@ const toData = ({ title, content, contentText }: NoteUpdate) => ({
   ...(content === undefined ? {} : { content }),
   ...(contentText === undefined ? {} : { contentText }),
 });
+
+// Tags of a note, in the order the API returns them (spec: nameKey ascending).
+export const withTags = {
+  noteTags: { select: { tag: true }, orderBy: [{ tag: { nameKey: 'asc' } }, { tagId: 'asc' }] },
+} satisfies Prisma.NoteInclude;
 
 // Every method is scoped by userId and named for the rows it can see (SDS 6.5): "active" means
 // deletedAt IS NULL, "trashed" means deletedAt > cutoff (now - 30 days).
@@ -31,10 +41,11 @@ const methodsFor = (db: Db) => ({
         createdAt: now,
         updatedAt: now,
       },
+      include: withTags,
     }),
 
   findActiveByIdForUser: (id: string, userId: string) =>
-    db.note.findFirst({ where: { id, userId, deletedAt: null } }),
+    db.note.findFirst({ where: { id, userId, deletedAt: null }, include: withTags }),
 
   // null when the note is missing, not owned or trashed (P2025), so the service never sees Prisma.
   updateActiveForUser: async (id: string, userId: string, data: NoteUpdate, now: Date) => {
@@ -42,6 +53,7 @@ const methodsFor = (db: Db) => ({
       return await db.note.update({
         where: { id, userId, deletedAt: null },
         data: { ...toData(data), updatedAt: now },
+        include: withTags,
       });
     } catch (error) {
       if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2025') {
@@ -63,13 +75,19 @@ const methodsFor = (db: Db) => ({
   findTrashedByIdForUser: (id: string, userId: string, cutoff: Date) =>
     db.note.findFirst({ where: { id, userId, deletedAt: { gt: cutoff } } }),
 
-  markRestored: async (id: string, userId: string, cutoff: Date, updatedAt: Date) =>
+  // updateManyAndReturn cannot include relations, so the caller re-reads the active note.
+  markRestored: async (
+    id: string,
+    userId: string,
+    cutoff: Date,
+    updatedAt: Date,
+  ): Promise<number> =>
     (
-      await db.note.updateManyAndReturn({
+      await db.note.updateMany({
         where: { id, userId, deletedAt: { gt: cutoff } },
         data: { deletedAt: null, updatedAt },
       })
-    )[0] ?? null,
+    ).count,
 
   listTrashedForUser: async (
     userId: string,
@@ -90,6 +108,44 @@ const methodsFor = (db: Db) => ({
     // The WHERE requires deletedAt > cutoff, so it is never null in these rows.
     return { items: items.map((item) => ({ ...item, deletedAt: item.deletedAt as Date })), total };
   },
+
+  // `some` is a subquery, not a join, so a note with several matching tags appears once (SDS 7.3).
+  listActiveForUser: async (userId: string, options: NoteListOptions) => {
+    const { sortBy, sortOrder, tagIds, skip, take } = options;
+    const where: Prisma.NoteWhereInput = {
+      userId,
+      deletedAt: null,
+      ...(tagIds === undefined ? {} : { noteTags: { some: { tagId: { in: tagIds } } } }),
+    };
+    const [items, total] = await Promise.all([
+      db.note.findMany({
+        where,
+        // id breaks ties in the same direction, so pages never overlap or skip a note.
+        orderBy: [{ [sortBy]: sortOrder }, { id: sortOrder }],
+        skip,
+        take,
+        select: {
+          id: true,
+          title: true,
+          contentText: true,
+          createdAt: true,
+          updatedAt: true,
+          noteTags: { select: { tag: true }, orderBy: { tag: { name: 'asc' } } },
+        },
+      }),
+      db.note.count({ where }),
+    ]);
+    return {
+      items: items.map(({ noteTags, ...item }) => ({
+        ...item,
+        tags: noteTags.map(({ tag }) => tag),
+      })),
+      total,
+    };
+  },
+
+  countTagsForUser: (userId: string, tagIds: string[]) =>
+    db.tag.count({ where: { userId, id: { in: tagIds } } }),
 });
 
 export const createNotesRepository = (prisma: PrismaClient) => ({

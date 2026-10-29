@@ -186,4 +186,27 @@ describe('search', () => {
     await prisma.note.update({ where: { id }, data: { contentText: 'oranges' } });
     expect(SearchResponseSchema.parse((await api.search('q=oranges')).body).total).toBe(1);
   });
+
+  it('returns the note tags on each result, ordered by name', async () => {
+    const { api } = await setup();
+    const id = await api.create('Budget notes');
+    await api.create('Budget untagged');
+    const note = await prisma.note.findUniqueOrThrow({ where: { id } });
+    const [zed, alpha] = await Promise.all(
+      ['Zed', 'Alpha'].map((name) =>
+        prisma.tag.create({ data: { userId: note.userId, name, nameKey: name.toLowerCase() } }),
+      ),
+    );
+    await prisma.noteTag.createMany({
+      data: [zed, alpha].map((tag) => ({ noteId: id, tagId: tag?.id ?? '' })),
+    });
+
+    const { items } = SearchResponseSchema.parse((await api.search('q=budget')).body);
+
+    expect(items.find((item) => item.id === id)?.tags.map((tag) => tag.name)).toEqual([
+      'Alpha',
+      'Zed',
+    ]);
+    expect(items.find((item) => item.id !== id)?.tags).toEqual([]);
+  });
 });

@@ -29,6 +29,10 @@ import { createSearchController } from './modules/search/search.controller.js';
 import { createSearchRepository } from './modules/search/search.repository.js';
 import { createSearchRouter } from './modules/search/search.routes.js';
 import { createSearchService } from './modules/search/search.service.js';
+import { createTagsController } from './modules/tags/tags.controller.js';
+import { createTagsRepository } from './modules/tags/tags.repository.js';
+import { createNoteTagsRouter, createTagsRouter } from './modules/tags/tags.routes.js';
+import { createTagsService } from './modules/tags/tags.service.js';
 
 export interface AppDeps {
   prisma: PrismaClient;
@@ -114,6 +118,12 @@ export const createApp = (deps: AppDeps): Express => {
       requireAuth,
     }),
   );
+
+  const tagsController = createTagsController({
+    service: createTagsService({ repository: createTagsRepository(deps.prisma) }),
+  });
+  app.use('/api/v1/tags', createTagsRouter({ controller: tagsController, requireAuth }));
+  app.use('/api/v1/notes', createNoteTagsRouter({ controller: tagsController, requireAuth }));
 
   app.use(notFoundHandler);
   app.use(createErrorHandler(deps.logger));

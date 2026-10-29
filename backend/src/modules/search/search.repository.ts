@@ -1,5 +1,12 @@
 import type { PrismaClient } from '../../generated/prisma/client.js';
 
+export interface SearchTag {
+  id: string;
+  name: string;
+  color: string;
+  createdAt: string;
+}
+
 export interface SearchRow {
   id: string;
   title: string;
@@ -58,9 +65,26 @@ export const createSearchRepository = (prisma: PrismaClient) => ({
     return Number(rows[0]?.total ?? 0);
   },
 
-  // tags wired when AB-1005/1006 are merged
-  findTagsForNotes: (_userId: string, noteIds: string[]): Promise<Map<string, never[]>> =>
-    Promise.resolve(new Map(noteIds.map((id) => [id, []]))),
+  // The tags of the page's notes, ordered by name like the notes list. userId is in the WHERE, so
+  // only the caller's notes are read.
+  findTagsForNotes: async (
+    userId: string,
+    noteIds: string[],
+  ): Promise<Map<string, SearchTag[]>> => {
+    const links = await prisma.noteTag.findMany({
+      where: { noteId: { in: noteIds }, note: { userId } },
+      select: {
+        noteId: true,
+        tag: { select: { id: true, name: true, color: true, createdAt: true } },
+      },
+      orderBy: [{ tag: { name: 'asc' } }, { tagId: 'asc' }],
+    });
+    const byNote = new Map<string, SearchTag[]>(noteIds.map((id) => [id, []]));
+    for (const { noteId, tag } of links) {
+      byNote.get(noteId)?.push({ ...tag, createdAt: tag.createdAt.toISOString() });
+    }
+    return byNote;
+  },
 });
 
 export type SearchRepository = ReturnType<typeof createSearchRepository>;

@@ -26,8 +26,8 @@ Each result SHALL carry `titleHighlight` and a `snippet` in which every matched 
 - **THEN** each response is `400` with `error.code` `VALIDATION_ERROR` and `error.details` naming `q` (or `pageSize` for the last), and no search query is run
 
 #### Scenario: S-AB1007-04 operator syntax is treated as plain words
-- **WHEN** a user owns a note containing `budget` and calls `GET /search` with `q` equal to `budget & !(x:*) |`
-- **THEN** the response is `200` (never `500`), the note is returned, and the term `budget` is the only one highlighted
+- **WHEN** a user owns a note containing `budget x` and calls `GET /search` with `q` equal to `budget & !(x:*) |`
+- **THEN** the response is `200` (never `500`) and the note is returned, the query is read as the plain words `budget` and `x` (`plainto_tsquery` drops every operator character), and only those two words are highlighted
 
 ### Requirement: Scoped results and empty matches
 Results SHALL include only the caller's notes with `deletedAt` null, enforced by `userId` and `"deletedAt" IS NULL` in the query (AC-SRCH-03, ERR-SRCH-05). A call without a valid access token SHALL be `401 UNAUTHORIZED` (ERR-SRCH-04). A query with no match, or made only of stop words, SHALL return `200` with empty `items` (AC-SRCH-09).
