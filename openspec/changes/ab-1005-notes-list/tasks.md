@@ -15,14 +15,14 @@ Every checkpoint: `pnpm build`, `pnpm lint --max-warnings 0`, `pnpm format:check
 
 ## 3. List endpoint
 
-- [ ] 3.1 Test `S-AB1005-01` default first page and page beyond the last
-- [ ] 3.2 Test `S-AB1005-02` sort by title ascending, ties by id
-- [ ] 3.3 Test `S-AB1005-03` invalid query returns 400
-- [ ] 3.4 Test `S-AB1005-04` no token 401, other users' notes never listed
-- [ ] 3.5 Test `S-AB1005-05` soft-deleted notes excluded from items and totals
-- [ ] 3.6 Test `S-AB1005-06` OR tag filter once each, foreign tag 404
-- [ ] 3.7 Repository `listActiveForUser`, `countTagsForUser`; service `list`; controller; route `GET /`
-- [ ] 3.8 Checkpoint
+- [x] 3.1 Test `S-AB1005-01` default first page and page beyond the last
+- [x] 3.2 Test `S-AB1005-02` sort by title ascending, ties by id
+- [x] 3.3 Test `S-AB1005-03` invalid query returns 400
+- [x] 3.4 Test `S-AB1005-04` no token 401, other users' notes never listed
+- [x] 3.5 Test `S-AB1005-05` soft-deleted notes excluded from items and totals
+- [x] 3.6 Test `S-AB1005-06` OR tag filter once each, foreign tag 404
+- [x] 3.7 Repository `listActiveForUser`, `countTagsForUser`; service `list`; controller; route `GET /`
+- [x] 3.8 Checkpoint
 
 ## 4. Verification
 
