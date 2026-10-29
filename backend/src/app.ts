@@ -11,6 +11,7 @@ import { createAuthController } from './modules/auth/auth.controller.js';
 import { createAuthRepository } from './modules/auth/auth.repository.js';
 import { createAuthRouter } from './modules/auth/auth.routes.js';
 import { createAuthService } from './modules/auth/auth.service.js';
+import type { EmailService } from './modules/email/email.service.js';
 import { healthRouter } from './modules/health/health.routes.js';
 
 export interface AppDeps {
@@ -20,6 +21,7 @@ export interface AppDeps {
   logger: Logger;
   // Tests inject a spy; production builds one from the Argon2 settings in env.
   passwordHasher?: PasswordHasher;
+  emailService?: EmailService;
 }
 
 export const createApp = (deps: AppDeps): Express => {

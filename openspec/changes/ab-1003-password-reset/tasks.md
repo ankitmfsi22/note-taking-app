@@ -37,15 +37,15 @@ No SDS or FRS change is needed (design.md, intro), so there is no prerequisite p
 
 ## 5. Email module and test sink
 
-- [ ] 5.1 Test `S-AB1003-19: ConsoleEmailService logs the email and OTP to the console` in `backend/src/modules/email/email.service.test.ts` (injected `write` spy, no network call) (10)
-- [ ] 5.2 Test `S-AB1003-20: the test sink appends a JSON line per OTP when NODE_ENV is test` in the same file (temporary file, two calls, last line, ISO `issuedAt` from the fake clock, file mode `0600`) (15)
-- [ ] 5.3 Test `S-AB1003-23: the console log is unchanged while the sink is active` in the same file (10)
-- [ ] 5.4 Test `S-AB1003-22: building the email service outside test never imports the sink` in `backend/src/modules/email/build-email-service.test.ts` (spied loader never called for development and production, called once for test) (15)
-- [ ] 5.5 `backend/src/modules/email/email.service.ts`: `EmailService`, `OtpSink` and `OtpSinkModule` types, `ConsoleEmailService({ write, sink? })` (write first, then sink) (15)
-- [ ] 5.6 `backend/src/testing/otp-test-sink.ts`: `createOtpTestSink({ filePath?, clock })` with `mkdir` recursive and `appendFile` mode `0o600`, default path at the repository root `e2e/.output/otp.jsonl`; imports only types from the email module; verified against Node 22 with Context7 (15)
-- [ ] 5.7 `backend/src/modules/email/build-email-service.ts`: `buildEmailService({ env, write, clock, loadSink? })`, calling `loadSink` only when `env.NODE_ENV === 'test'` (15)
-- [ ] 5.8 `backend/src/server.ts`: make `start` async, build the email service with `write` on `process.stdout.write`, and declare `loadSink` only in the `NODE_ENV === 'test'` branch (15)
-- [ ] 5.9 Checkpoint (5)
+- [x] 5.1 Test `S-AB1003-19: ConsoleEmailService logs the email and OTP to the console` in `backend/src/modules/email/email.service.test.ts` (injected `write` spy, no network call) (10)
+- [x] 5.2 Test `S-AB1003-20: the test sink appends a JSON line per OTP when NODE_ENV is test` in the same file (temporary file, two calls, last line, ISO `issuedAt` from the fake clock, file mode `0600`) (15)
+- [x] 5.3 Test `S-AB1003-23: the console log is unchanged while the sink is active` in the same file (10)
+- [x] 5.4 Test `S-AB1003-22: building the email service outside test never imports the sink` in `backend/src/modules/email/build-email-service.test.ts` (spied loader never called for development and production, called once for test) (15)
+- [x] 5.5 `backend/src/modules/email/email.service.ts`: `EmailService`, `OtpSink` and `OtpSinkModule` types, `ConsoleEmailService({ write, sink? })` (write first, then sink) (15)
+- [x] 5.6 `backend/src/testing/otp-test-sink.ts`: `createOtpTestSink({ filePath?, clock })` with `mkdir` recursive and `appendFile` mode `0o600`, default path at the repository root `e2e/.output/otp.jsonl`; imports only types from the email module; verified against Node 22 with Context7 (15)
+- [x] 5.7 `backend/src/modules/email/build-email-service.ts`: `buildEmailService({ env, write, clock, loadSink? })`, calling `loadSink` only when `env.NODE_ENV === 'test'` (15)
+- [x] 5.8 `backend/src/server.ts`: make `start` async, build the email service with `write` on `process.stdout.write`, and declare `loadSink` only in the `NODE_ENV === 'test'` branch (15)
+- [x] 5.9 Checkpoint (5)
 
 ## 6. Forgot-password
 
