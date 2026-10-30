@@ -407,7 +407,7 @@ All 16 tickets are merged; a final-polish change for the API docs is in review. 
 | AB-1014 | Frontend: share modal, links, public page | Merged | [#13](https://github.com/ankitmfsi22/note-taking-app/pull/13) |
 | AB-1015 | Frontend: version drawer | Merged | [#16](https://github.com/ankitmfsi22/note-taking-app/pull/16) |
 | AB-1016 | E2E: Playwright journey | Merged | [#17](https://github.com/ankitmfsi22/note-taking-app/pull/17) |
-| AB-1016 | API docs: Swagger UI and complete OpenAPI spec (`api-docs` change) | In review | pending |
+| AB-1016 | API docs: Swagger UI and complete OpenAPI spec (`api-docs` change) | In review | [#21](https://github.com/ankitmfsi22/note-taking-app/pull/21) |
 
 ## Decisions and deviations
 
