@@ -14,6 +14,7 @@ Business truth lives in [`docs/FRS.md`](docs/FRS.md), technical truth in [`docs/
 - **Sharing:** many public read-only links per note, with expiry, revoke, and an atomic view counter.
 - **Version history:** full snapshots on every change, newest 50 kept, restore creates a new version.
 - **Docker:** `docker compose --profile full up --build` runs database, API and web UI (see [Run with Docker](#run-with-docker)).
+- **API docs:** Swagger UI at `/api/docs` over a complete OpenAPI 3.1 spec of all 28 endpoints, checked against the real routes by a test.
 
 ## Tech stack
 
@@ -127,7 +128,7 @@ sequenceDiagram
 ├── docs/
 │   ├── FRS.md  SDS.md       requirements and design
 │   ├── decisions/           ADR-0001 to ADR-0008
-│   ├── api/openapi.yaml     API description
+│   ├── api/openapi.yaml     OpenAPI 3.1 spec, served at /api/docs
 │   └── reference/           assignment and SDD guide
 ├── openspec/                config.yaml, specs/ (current behaviour), changes/ (active)
 ├── .claude/                 settings.json, agents/, commands/, hooks/, skills/
@@ -162,6 +163,7 @@ Open <http://localhost:8080>. The first build downloads dependencies and takes a
 `backend` waits for a healthy `db`, and `frontend` for a healthy `backend`. All three restart unless stopped.
 
 - **Environment:** `JWT_ACCESS_SECRET` and `OTP_HMAC_SECRET` are required (compose fails without them). Optional: `DOCKER_DB_PASSWORD` (default `noteapp_docker_only`, the database is not published), `DOCKER_APP_ORIGIN` (default `http://localhost:8080`; set it to the URL you open if you serve the app elsewhere), `LOG_LEVEL`, `ARGON2_MEMORY_KIB`, `ARGON2_TIME_COST`. The backend runs with `NODE_ENV=production` and `COOKIE_SECURE=true`; browsers accept Secure cookies on `http://localhost`, other plain-HTTP hosts need a TLS proxy in front.
+- **API docs:** Swagger UI at <http://localhost:8080/api/docs> (raw spec at `/api/docs/openapi.json`). The compose file sets `API_DOCS_ENABLED=true`, which is otherwise off in production, and the backend image carries `docs/api/openapi.yaml`. Set `API_DOCS_ENABLED` to `'false'` in the compose file to hide it.
 - **OTP codes** (forgot password) are written to the backend log: `docker compose --profile full logs backend`.
 - **Stop:** `docker compose --profile full down` (keeps the data volume). **Reset all data:** `docker compose --profile full down -v`.
 - The dev databases (`db-dev`, `db-test`) are in profile `dev` and never start with `--profile full`, so this does not clash with `pnpm db:up` ports.
@@ -195,6 +197,7 @@ pnpm dev                                        # build shared, then run backend
 | --- | --- |
 | Frontend (Vite dev server) | http://localhost:5173 |
 | Backend API | http://localhost:3000/api/v1 (health: `/api/v1/health`) |
+| API docs (Swagger UI) | http://localhost:3000/api/docs |
 
 The Vite dev server proxies `/api` to `VITE_API_PROXY_TARGET`, so the browser sees one origin.
 
@@ -215,6 +218,7 @@ Defined in `.env.example` and validated at startup by `backend/src/config/env.ts
 | `APP_ORIGIN` | backend | Origin accepted by the Origin check on `/auth/refresh` and `/auth/logout`. |
 | `COOKIE_SECURE` | backend | `true` in production so the refresh cookie is `Secure`. |
 | `JOBS_ENABLED` | backend | Run background jobs (trash purge, housekeeping). `false` in tests. |
+| `API_DOCS_ENABLED` | backend | Serve Swagger UI at `/api/docs` and the spec at `/api/docs/openapi.json`. Unset: `true` in development and test, `false` in production. |
 | `ARGON2_MEMORY_KIB` | backend | Argon2id memory cost (default 19456). Lower values are rejected in production. |
 | `ARGON2_TIME_COST` | backend | Argon2id time cost (default 2). Lower values are rejected in production. |
 | `VITE_API_PROXY_TARGET` | frontend dev | Backend URL the Vite proxy forwards `/api` to. |
@@ -286,7 +290,7 @@ pnpm check:scenarios       # scenario coverage
 
 ## API overview
 
-Base path `/api/v1`, JSON only. The full description is in [`docs/api/openapi.yaml`](docs/api/openapi.yaml); status and error codes are binding in [`docs/SDS.md`](docs/SDS.md) section 7.
+Base path `/api/v1`, JSON only. The full OpenAPI 3.1 description of all 28 endpoints is in [`docs/api/openapi.yaml`](docs/api/openapi.yaml) and is browsable as Swagger UI (see [API docs](#api-docs)); status and error codes are binding in [`docs/SDS.md`](docs/SDS.md) section 7.
 
 **Error body:**
 
@@ -328,6 +332,27 @@ Base path `/api/v1`, JSON only. The full description is in [`docs/api/openapi.ya
 | GET | `/notes/:noteId/versions` | Bearer | List versions |
 | GET | `/notes/:noteId/versions/:versionNumber` | Bearer | Read one version |
 | POST | `/notes/:noteId/versions/:versionNumber/restore` | Bearer | Restore a version (creates a new one) |
+
+### API docs
+
+With the backend running (`pnpm dev`), the API is documented at:
+
+| URL | What |
+| --- | --- |
+| http://localhost:3000/api/docs | Swagger UI |
+| http://localhost:3000/api/docs/openapi.json | The raw spec as JSON, converted from `docs/api/openapi.yaml` |
+
+Both are public and sit outside `/api/v1`. They are on by default in development and test, and off in production unless you set `API_DOCS_ENABLED=true`; when off, they return `404 ROUTE_NOT_FOUND`.
+
+**Try it out.**
+
+1. Open `POST /auth/register` (or `/auth/login`), click **Try it out** and **Execute**. The request body is pre-filled with an example.
+2. Copy `accessToken` from the response, click **Authorize** at the top, paste it into `bearerAuth` and confirm. The token is kept across reloads (`persistAuthorization`) and is valid for 15 minutes.
+3. Call any lock-marked endpoint. The server URL is `/api/v1`, so requests go to the same origin as the page.
+
+`/auth/refresh` and `/auth/logout` need the `HttpOnly` refresh cookie and pass the Origin check, so from Swagger UI they return `403 FORBIDDEN_ORIGIN` unless `APP_ORIGIN` equals the origin serving the docs. Use the frontend for those flows.
+
+The YAML is the source of truth. `backend/tests/integration/api-docs/` validates it with `@apidevtools/swagger-parser` and fails if a route registered on the Express app is missing from it (or the reverse), so it cannot drift silently.
 
 ## Development workflow (SDD)
 
@@ -393,7 +418,7 @@ Every ticket follows the same path, defined in [`CLAUDE.md`](CLAUDE.md) and [`do
 
 ## Project status
 
-All 16 tickets are merged. Pull requests are in [ankitmfsi22/note-taking-app](https://github.com/ankitmfsi22/note-taking-app/pulls).
+All 16 tickets are merged; a final-polish change for the API docs is in review. Pull requests are in [ankitmfsi22/note-taking-app](https://github.com/ankitmfsi22/note-taking-app/pulls).
 
 | Ticket | Scope | Status | PR |
 | --- | --- | --- | --- |
@@ -413,6 +438,7 @@ All 16 tickets are merged. Pull requests are in [ankitmfsi22/note-taking-app](ht
 | AB-1014 | Frontend: share modal, links, public page | Merged | [#13](https://github.com/ankitmfsi22/note-taking-app/pull/13) |
 | AB-1015 | Frontend: version drawer | Merged | [#16](https://github.com/ankitmfsi22/note-taking-app/pull/16) |
 | AB-1016 | E2E: Playwright journey | Merged | [#17](https://github.com/ankitmfsi22/note-taking-app/pull/17) |
+| AB-1016 | API docs: Swagger UI and complete OpenAPI spec (`api-docs` change) | In review | [#21](https://github.com/ankitmfsi22/note-taking-app/pull/21) |
 | AB-1016 | Infra: Docker images and `full` compose profile | In review | |
 
 ## Decisions and deviations
