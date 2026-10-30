@@ -229,7 +229,7 @@ A git worktree should use its own dev database name in `DATABASE_URL`.
 
 ## Docker
 
-[`docker-compose.yml`](docker-compose.yml) runs two PostgreSQL 16.15 containers:
+[`docker-compose.yml`](docker-compose.yml) runs two PostgreSQL 16.15 containers in profile `dev` (the app itself is the `full` profile, see [Run with Docker](#run-with-docker)):
 
 | Service | Host port | Databases | Storage | Used for |
 | --- | --- | --- | --- | --- |
@@ -261,7 +261,7 @@ Root `package.json` scripts:
 | `pnpm test:e2e` | Playwright tests in `e2e/`. |
 | `pnpm spec:validate` | `openspec validate --all --strict`. |
 | `pnpm check:scenarios` | Fails unless every spec scenario ID has exactly one test. |
-| `pnpm db:up` / `pnpm db:down` | Start / stop the Docker databases. |
+| `pnpm db:up` / `pnpm db:down` | Start / stop the dev and test Docker databases (compose profile `dev`). |
 | `pnpm perf:lighthouse` | Runs Lighthouse (mobile and desktop) against the production build. See [Performance and accessibility](#performance-and-accessibility). |
 | `pnpm prepare` | Installs the Husky hooks (runs on install). |
 | `pnpm postinstall` | Runs `prisma generate` for the backend. |
@@ -461,7 +461,7 @@ Every ticket follows the same path, defined in [`CLAUDE.md`](CLAUDE.md) and [`do
 
 ## Project status
 
-All 16 tickets are merged. The API docs change (Swagger UI and OpenAPI spec) is merged too, and a Lighthouse polish pass for AB-1016 (performance, accessibility, SEO) is in review. Pull requests are in [ankitmfsi22/note-taking-app](https://github.com/ankitmfsi22/note-taking-app/pulls).
+All 16 tickets are merged, together with three AB-1016 polish changes: API docs (Swagger UI and OpenAPI spec), a Lighthouse pass (performance, accessibility, SEO) and Docker packaging. Pull requests are in [ankitmfsi22/note-taking-app](https://github.com/ankitmfsi22/note-taking-app/pulls).
 
 | Ticket | Scope | Status | PR |
 | --- | --- | --- | --- |
@@ -483,7 +483,7 @@ All 16 tickets are merged. The API docs change (Swagger UI and OpenAPI spec) is 
 | AB-1016 | E2E: Playwright journey | Merged | [#17](https://github.com/ankitmfsi22/note-taking-app/pull/17) |
 | AB-1016 | API docs: Swagger UI and complete OpenAPI spec (`api-docs` change) | Merged | [#21](https://github.com/ankitmfsi22/note-taking-app/pull/21) |
 | AB-1016 | Lighthouse: performance, accessibility, SEO | Merged | [#22](https://github.com/ankitmfsi22/note-taking-app/pull/22) |
-| AB-1016 | Infra: Docker images and `full` compose profile | In review | [#23](https://github.com/ankitmfsi22/note-taking-app/pull/23) |
+| AB-1016 | Infra: Docker images and `full` compose profile | Merged | [#23](https://github.com/ankitmfsi22/note-taking-app/pull/23) |
 
 ## Decisions and deviations
 
