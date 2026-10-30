@@ -1,8 +1,13 @@
 import { Link, useNavigate } from 'react-router';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { useDocumentMeta } from '@/lib/use-document-meta';
 import { RegisterForm } from '../components/register-form';
 
 export function Component() {
+  useDocumentMeta({
+    title: 'Create account',
+    description: 'Create a free Note App account to write, tag, search and share rich-text notes.',
+  });
   const navigate = useNavigate();
   return (
     <Card>

@@ -19,10 +19,11 @@ const SELECT_CLASS =
 interface ListToolbarProps {
   params: ListParams;
   tags: TagWithCount[];
+  tagsLoading?: boolean;
   onChange: (next: Partial<Pick<ListParams, 'sortBy' | 'sortOrder' | 'tagIds'>>) => void;
 }
 
-export function ListToolbar({ params, tags, onChange }: ListToolbarProps) {
+export function ListToolbar({ params, tags, tagsLoading = false, onChange }: ListToolbarProps) {
   const toggleTag = (tagId: string) =>
     onChange({
       tagIds: params.tagIds.includes(tagId)
@@ -65,8 +66,14 @@ export function ListToolbar({ params, tags, onChange }: ListToolbarProps) {
           </select>
         </div>
       </div>
+      {/* The row keeps its height while the tags load, so the list below does not move. */}
+      {tagsLoading && <div aria-hidden="true" className="h-6" />}
       {tags.length > 0 && (
-        <div className="flex flex-wrap items-center gap-2" role="group" aria-label="Filter by tag">
+        <div
+          className="flex min-h-6 flex-wrap items-center gap-2"
+          role="group"
+          aria-label="Filter by tag"
+        >
           {tags.map((tag) => {
             const selected = params.tagIds.includes(tag.id);
             return (

@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { ApiError } from '@/lib/api-client';
 import { formatDate } from '@/lib/format-date';
+import { useDocumentMeta } from '@/lib/use-document-meta';
 import { daysRemaining } from '../days-remaining';
 import { useRestoreNoteMutation, useTrashQuery } from '../queries';
 
@@ -16,6 +17,11 @@ const parsePage = (raw: string | null) => {
 };
 
 export function Component() {
+  useDocumentMeta({
+    title: 'Trash',
+    description: 'Restore notes you deleted in the last 30 days.',
+    noindex: true,
+  });
   const [searchParams, setSearchParams] = useSearchParams();
   const page = parsePage(searchParams.get('page'));
   const trash = useTrashQuery(page);
@@ -98,7 +104,7 @@ export function Component() {
   return (
     <section className="flex flex-col gap-6">
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <h2 className="text-xl font-semibold">Trash</h2>
+        <h1 className="text-xl font-semibold">Trash</h1>
         <Link to="/notes" className="text-sm text-primary underline-offset-4 hover:underline">
           Back to notes
         </Link>

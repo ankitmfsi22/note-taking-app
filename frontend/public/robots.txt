@@ -1,0 +1,7 @@
+# Sign-in and registration pages may be indexed; everything behind a login or a private link may not.
+User-agent: *
+Allow: /
+Disallow: /notes
+Disallow: /shares
+Disallow: /s/
+Disallow: /reset-password

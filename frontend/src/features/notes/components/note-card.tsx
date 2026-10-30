@@ -13,7 +13,7 @@ export function NoteCard({ note, onDelete }: NoteCardProps) {
   return (
     <article className="flex flex-col gap-2 rounded-lg border p-4">
       <div className="flex items-start justify-between gap-3">
-        <h3 className="font-medium break-words">{note.title}</h3>
+        <h2 className="font-medium break-words">{note.title}</h2>
         <Button
           variant="ghost"
           size="sm"

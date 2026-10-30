@@ -7,12 +7,18 @@ import { Button } from '@/components/ui/button';
 import { SearchSection } from '@/features/search/components/search-section';
 import { TagManager } from '@/features/tags/components/tag-manager';
 import { useTagsQuery } from '@/features/tags/queries';
+import { useDocumentMeta } from '@/lib/use-document-meta';
 import { ListToolbar } from '../components/list-toolbar';
 import { NoteList } from '../components/note-list';
 import { parseListParams, toSearchParams, type ListParams } from '../list-params';
 import { useCreateNoteMutation, useDeleteNoteMutation, useNotesQuery } from '../queries';
 
 function NotesList() {
+  useDocumentMeta({
+    title: 'Your notes',
+    description: 'Browse, sort, tag and search your notes.',
+    noindex: true,
+  });
   const [searchParams, setSearchParams] = useSearchParams();
   // The URL is the only copy of page, sort and tag filter (AC-FELIST-03).
   const params = parseListParams(searchParams);
@@ -40,7 +46,7 @@ function NotesList() {
   return (
     <section className="flex flex-col gap-6">
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <h2 className="text-xl font-semibold">Your notes</h2>
+        <h1 className="text-xl font-semibold">Your notes</h1>
         <div className="flex items-center gap-3">
           <Link
             to="/notes/trash"
@@ -62,7 +68,12 @@ function NotesList() {
         </p>
       )}
 
-      <ListToolbar params={params} tags={tags.data?.items ?? []} onChange={changeView} />
+      <ListToolbar
+        params={params}
+        tags={tags.data?.items ?? []}
+        tagsLoading={tags.isPending}
+        onChange={changeView}
+      />
 
       <NoteList
         items={notes.data?.items}
@@ -83,7 +94,9 @@ function NotesList() {
         />
       )}
 
-      <TagManager />
+      {/* Mounted once the list has settled: it sits below the list, so showing it next to the
+          loading skeleton would push it down when the notes arrive (layout shift). */}
+      {!notes.isPending && <TagManager />}
 
       <ConfirmDialog
         open={pendingDelete !== null}

@@ -1,8 +1,13 @@
 import { Link, useNavigate } from 'react-router';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { useDocumentMeta } from '@/lib/use-document-meta';
 import { LoginForm } from '../components/login-form';
 
 export function Component() {
+  useDocumentMeta({
+    title: 'Sign in',
+    description: 'Sign in to Note App to open your notes, tags and shared links.',
+  });
   const navigate = useNavigate();
   return (
     <Card>

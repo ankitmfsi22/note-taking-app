@@ -92,9 +92,9 @@ export function TagManager() {
 
   return (
     <section aria-labelledby="tag-manager-heading" className="flex flex-col gap-3">
-      <h3 id="tag-manager-heading" className="text-lg font-semibold">
+      <h2 id="tag-manager-heading" className="text-lg font-semibold">
         Tags
-      </h3>
+      </h2>
       <CreateTagForm onSubmit={(body) => createTag.mutateAsync(body)} />
       {renderBody()}
       {deleteTag.isError && (
