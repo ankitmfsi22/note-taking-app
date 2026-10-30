@@ -14,7 +14,7 @@ const service = (compose, name) => {
   return match[1];
 };
 
-test('S-AB1016-06: the backend image is pinned, non-root, migrating and health-checked', () => {
+test('S-AB1016-26: the backend image is pinned, non-root, migrating and health-checked', () => {
   const dockerfile = read('backend/Dockerfile');
   const bases = [...dockerfile.matchAll(/^FROM\s+(\S+)/gm)].map((match) => match[1]);
   assert.ok(bases.length >= 2, 'multi-stage build');
@@ -23,9 +23,11 @@ test('S-AB1016-06: the backend image is pinned, non-root, migrating and health-c
   assert.match(dockerfile, /prisma migrate deploy\) && exec node dist\/server\.js/);
   assert.match(dockerfile, /HEALTHCHECK[\s\S]*\/api\/v1\/health/);
   assert.doesNotMatch(dockerfile, /curl/);
+  // The API docs module reads docs/api/openapi.yaml at runtime.
+  assert.match(dockerfile, /cp \/repo\/docs\/api\/openapi\.yaml \/out\/docs\/api\/openapi\.yaml/);
 });
 
-test('S-AB1016-07: nginx serves the SPA with caching rules and proxies the API', () => {
+test('S-AB1016-27: nginx serves the SPA with caching rules and proxies the API', () => {
   const dockerfile = read('frontend/Dockerfile');
   assert.match(dockerfile, /^FROM nginxinc\/nginx-unprivileged:\d+\.\d+\.\d+-alpine AS runtime$/m);
   const conf = read('frontend/nginx.conf');
@@ -41,7 +43,7 @@ test('S-AB1016-07: nginx serves the SPA with caching rules and proxies the API',
   assert.match(conf, /proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;/);
 });
 
-test('S-AB1016-08: the full profile is health-gated, persistent and exposes only the frontend', () => {
+test('S-AB1016-28: the full profile is health-gated, persistent and exposes only the frontend', () => {
   const compose = read('docker-compose.yml');
   const db = service(compose, 'db');
   const backend = service(compose, 'backend');
@@ -60,7 +62,7 @@ test('S-AB1016-08: the full profile is health-gated, persistent and exposes only
   assert.doesNotMatch(compose, /:latest/);
 });
 
-test('S-AB1016-09: the dev databases keep their ports and are started by the db scripts', () => {
+test('S-AB1016-29: the dev databases keep their ports and are started by the db scripts', () => {
   const compose = read('docker-compose.yml');
   const dev = service(compose, 'db-dev');
   const testDb = service(compose, 'db-test');
@@ -73,7 +75,7 @@ test('S-AB1016-09: the dev databases keep their ports and are started by the db 
   assert.match(scripts['db:down'], /--profile dev/);
 });
 
-test('S-AB1016-10: env files and build output stay out of the build context', () => {
+test('S-AB1016-30: env files and build output stay out of the build context', () => {
   const ignore = read('.dockerignore').split('\n');
   for (const entry of ['.env*', '**/node_modules', '**/dist', '.git']) {
     assert.ok(ignore.includes(entry), `.dockerignore lists ${entry}`);
@@ -86,11 +88,12 @@ test('S-AB1016-10: env files and build output stay out of the build context', ()
   assert.match(backend, /OTP_HMAC_SECRET: \$\{OTP_HMAC_SECRET:\?[^}]+\}/);
 });
 
-test('S-AB1016-11: the backend origin matches the published frontend origin', () => {
+test('S-AB1016-31: the backend origin matches the published frontend origin', () => {
   const compose = read('docker-compose.yml');
   const backend = service(compose, 'backend');
   assert.match(backend, /APP_ORIGIN: \$\{DOCKER_APP_ORIGIN:-http:\/\/localhost:8080\}/);
   assert.match(backend, /NODE_ENV: production/);
   assert.match(backend, /COOKIE_SECURE: 'true'/);
+  assert.match(backend, /API_DOCS_ENABLED: 'true'/);
   assert.match(service(compose, 'frontend'), /ports: \['8080:8080'\]/);
 });

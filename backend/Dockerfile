@@ -19,11 +19,15 @@ RUN pnpm install --frozen-lockfile --ignore-scripts
 COPY tsconfig.base.json ./
 COPY packages/shared packages/shared
 COPY backend backend
+COPY docs/api/openapi.yaml docs/api/openapi.yaml
 RUN pnpm --filter @note-app/shared run build && pnpm --filter backend run build
 
 # /out/app: the server with production dependencies only.
 RUN pnpm --filter backend deploy --prod --legacy /out/app \
-  && cp -r /repo/backend/dist /out/app/dist
+  && cp -r /repo/backend/dist /out/app/dist \
+  && mkdir -p /out/docs/api && cp /repo/docs/api/openapi.yaml /out/docs/api/openapi.yaml
+# The API docs module resolves docs/api/openapi.yaml four levels above dist/modules/docs,
+# which is /srv/docs/api here (see backend/src/modules/docs/openapi-document.ts).
 
 # /out/migrate: the prisma CLI (a devDependency in the workspace, so absent from the server
 # folder) with the schema, migrations and prisma.config.ts, used only by `prisma migrate deploy`.

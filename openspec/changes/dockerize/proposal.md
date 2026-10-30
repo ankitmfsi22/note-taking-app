@@ -17,14 +17,14 @@ Infrastructure only: no FRS acceptance criterion changes. It does not alter any 
 
 | Concern | Scenarios |
 | --- | --- |
-| Backend image | S-AB1016-06 |
-| Frontend image and proxy | S-AB1016-07 |
-| Compose full profile | S-AB1016-08 |
-| Dev databases unchanged | S-AB1016-09 |
-| Build context hygiene, no secrets in images | S-AB1016-10 |
-| Origin check works behind the proxy | S-AB1016-11 |
+| Backend image | S-AB1016-26 |
+| Frontend image and proxy | S-AB1016-27 |
+| Compose full profile | S-AB1016-28 |
+| Dev databases unchanged | S-AB1016-29 |
+| Build context hygiene, no secrets in images | S-AB1016-30 |
+| Origin check, API docs enabled in the container | S-AB1016-31 |
 
-Authorization-denied and validation-failure scenarios do not apply: the change adds no endpoint. The existing origin check keeps its `403 FORBIDDEN_ORIGIN` behaviour; S-AB1016-11 only pins the configuration that makes the browser origin pass it.
+Authorization-denied and validation-failure scenarios do not apply: the change adds no endpoint. The existing origin check keeps its `403 FORBIDDEN_ORIGIN` behaviour; S-AB1016-31 only pins the configuration that makes the browser origin pass it.
 
 ## Out of scope
 

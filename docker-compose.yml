@@ -67,6 +67,8 @@ services:
       # Production requires Secure cookies; browsers accept them on http://localhost.
       COOKIE_SECURE: 'true'
       JOBS_ENABLED: 'true'
+      # Swagger UI at /api/docs (off by default in production).
+      API_DOCS_ENABLED: 'true'
       ARGON2_MEMORY_KIB: ${ARGON2_MEMORY_KIB:-19456}
       ARGON2_TIME_COST: ${ARGON2_TIME_COST:-2}
   frontend:

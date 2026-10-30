@@ -12,7 +12,8 @@
 backend/src/generated
 e2e/*
 !e2e/package.json
-docs
+docs/*
+!docs/api
 openspec
 playwright-report
 test-results
