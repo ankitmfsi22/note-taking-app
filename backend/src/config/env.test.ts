@@ -22,7 +22,18 @@ describe('loadEnv', () => {
       ARGON2_MEMORY_KIB: 19456,
       ARGON2_TIME_COST: 2,
       JOBS_ENABLED: true,
+      API_DOCS_ENABLED: true,
     });
+  });
+
+  it('S-AB1016-11: API_DOCS_ENABLED defaults by environment and rejects bad values', () => {
+    const production = { ...valid, NODE_ENV: 'production', COOKIE_SECURE: 'true' };
+    expect(loadEnv({ ...valid, NODE_ENV: 'development' }).API_DOCS_ENABLED).toBe(true);
+    expect(loadEnv({ ...valid, NODE_ENV: 'test' }).API_DOCS_ENABLED).toBe(true);
+    expect(loadEnv(production).API_DOCS_ENABLED).toBe(false);
+    expect(loadEnv({ ...production, API_DOCS_ENABLED: 'true' }).API_DOCS_ENABLED).toBe(true);
+    expect(loadEnv({ ...valid, API_DOCS_ENABLED: 'false' }).API_DOCS_ENABLED).toBe(false);
+    expect(() => loadEnv({ ...valid, API_DOCS_ENABLED: 'maybe' })).toThrow(/API_DOCS_ENABLED/);
   });
 
   it('turns the job scheduler off with JOBS_ENABLED=false', () => {
