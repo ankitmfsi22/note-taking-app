@@ -87,7 +87,6 @@ export function Component() {
   useDocumentMeta({
     title: query.data?.title ?? 'Edit note',
     description: 'Edit your note, tag it, share it and restore earlier versions.',
-    noindex: true,
   });
 
   if (query.isPending) {

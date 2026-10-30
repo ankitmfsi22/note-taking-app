@@ -18,10 +18,11 @@ describe('static assets and headers', () => {
     expect(html.match(/<title>/g)).toHaveLength(1);
 
     const robots = read('public/robots.txt');
-    for (const route of ['/notes', '/shares', '/s/']) {
-      expect(robots).toContain(`Disallow: ${route}`);
-    }
-    expect(robots).not.toMatch(/^Disallow: \/login/m);
+    // Nothing is disallowed: authenticated routes cannot be crawled anyway, and the private pages
+    // rely on a meta noindex that a crawler can only read if it may fetch the page.
+    expect(robots).toMatch(/^User-agent: \*$/m);
+    expect(robots).toMatch(/^Allow: \/$/m);
+    expect(robots).not.toMatch(/^Disallow:/m);
   });
 
   it('S-AB1016-25: hashed assets are immutable and the HTML is revalidated', () => {

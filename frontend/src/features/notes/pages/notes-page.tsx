@@ -17,7 +17,6 @@ function NotesList() {
   useDocumentMeta({
     title: 'Your notes',
     description: 'Browse, sort, tag and search your notes.',
-    noindex: true,
   });
   const [searchParams, setSearchParams] = useSearchParams();
   // The URL is the only copy of page, sort and tag filter (AC-FELIST-03).

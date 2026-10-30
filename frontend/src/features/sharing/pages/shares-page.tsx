@@ -15,7 +15,6 @@ export function Component() {
   useDocumentMeta({
     title: 'Shared links',
     description: 'Review and revoke the public links to your notes.',
-    noindex: true,
   });
   const [params, setParams] = useSearchParams();
   const page = readPage(params.get('page'));

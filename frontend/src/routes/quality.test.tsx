@@ -42,7 +42,7 @@ describe('route metadata', () => {
     expect(document.head.querySelectorAll('title')).toHaveLength(1);
   });
 
-  it('S-AB1016-16: private routes are noindex', async () => {
+  it('S-AB1016-16: only private links, the reset page and 404 are noindex', async () => {
     signInViaRefresh();
     notesApi();
     server.use(
@@ -57,11 +57,30 @@ describe('route metadata', () => {
       ),
     );
     const descriptions = new Set<string | null>();
+    // Authenticated routes need a login, so they carry no robots tag.
     for (const [path, title] of [
       ['/notes', 'Your notes'],
       ['/notes/trash', 'Trash'],
       ['/shares', 'Shared links'],
-      [`/s/${TOKEN}`, 'Shared plan'],
+    ] as const) {
+      renderRoute(path);
+      await waitForTitle(title);
+      expect(metaContent('robots')).toBeNull();
+      descriptions.add(metaContent('description'));
+      cleanup();
+    }
+    // A private share link stays out of search indexes.
+    renderRoute(`/s/${TOKEN}`);
+    await waitForTitle('Shared plan');
+    expect(metaContent('robots')).toBe('noindex, nofollow');
+    descriptions.add(metaContent('description'));
+    cleanup();
+
+    useAuthStore.setState(useAuthStore.getInitialState(), true); // a fresh page load, signed out
+    server.resetHandlers();
+    for (const [path, title] of [
+      ['/reset-password', 'Reset your password'],
+      ['/no-such-page', 'Page not found'],
     ] as const) {
       renderRoute(path);
       await waitForTitle(title);
@@ -69,7 +88,7 @@ describe('route metadata', () => {
       descriptions.add(metaContent('description'));
       cleanup();
     }
-    expect(descriptions.size).toBe(4);
+    expect(descriptions.size).toBe(6);
   });
 });
 

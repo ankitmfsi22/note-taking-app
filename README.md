@@ -13,7 +13,7 @@ Business truth lives in [`docs/FRS.md`](docs/FRS.md), technical truth in [`docs/
 - **Search:** PostgreSQL full-text search with safely highlighted snippets.
 - **Sharing:** many public read-only links per note, with expiry, revoke, and an atomic view counter.
 - **Version history:** full snapshots on every change, newest 50 kept, restore creates a new version.
-- **Performance, accessibility and SEO:** route-split bundles, no layout shift, immutable cache headers for hashed assets, landmarks and a skip link, per-route titles and descriptions, `noindex` on private pages. See [Performance and accessibility](#performance-and-accessibility).
+- **Performance, accessibility and SEO:** route-split bundles, no layout shift, immutable cache headers for hashed assets, landmarks and a skip link, per-route titles and descriptions, `noindex` on private share links. See [Performance and accessibility](#performance-and-accessibility).
 - **API docs:** Swagger UI at `/api/docs` over a complete OpenAPI 3.1 spec of all 28 endpoints, checked against the real routes by a test.
 
 ## Tech stack
@@ -261,7 +261,7 @@ pnpm check:scenarios       # scenario coverage
 
 ## Performance and accessibility
 
-Lighthouse (13.6.0, headless Chromium, default simulated throttling for mobile, desktop preset for desktop) against the production build. Scores are the median of 3 runs for BEFORE and 5 runs for AFTER, on a busy laptop, so expect a few points of noise.
+Lighthouse (13.6.0, headless Chromium, default simulated throttling for mobile, desktop preset for desktop) against the production build. Scores are the median of 3 runs for BEFORE and 5 runs for AFTER, on a busy laptop, so expect a few points of noise. The `/notes`, `/notes/:id` and `/s/:token` rows were measured again (5 runs) after the final indexing change.
 
 | Page | Form factor | Performance | Accessibility | Best practices | SEO |
 | --- | --- | --- | --- | --- | --- |
@@ -269,16 +269,16 @@ Lighthouse (13.6.0, headless Chromium, default simulated throttling for mobile, 
 | `/login` | desktop | 100 → 100 | 100 → 100 | 96 → 96 | 82 → 100 |
 | `/register` | mobile | 100 → 100 | 100 → 100 | 96 → 96 | 82 → 100 |
 | `/register` | desktop | 100 → 100 | 100 → 100 | 96 → 96 | 82 → 100 |
-| `/notes` (signed in, 25 notes) | mobile | 83 → 100 | 100 → 100 | 100 → 100 | 82 → 63 |
-| `/notes` | desktop | 90 → 100 | 100 → 100 | 100 → 100 | 82 → 63 |
-| `/notes/:id` (editor) | mobile | 78 → 99 | 100 → 100 | 100 → 100 | 82 → 63 |
-| `/notes/:id` | desktop | 98 → 100 | 100 → 100 | 100 → 100 | 82 → 63 |
+| `/notes` (signed in, 25 notes) | mobile | 83 → 100 | 100 → 100 | 100 → 100 | 82 → 100 |
+| `/notes` | desktop | 90 → 100 | 100 → 100 | 100 → 100 | 82 → 100 |
+| `/notes/:id` (editor) | mobile | 78 → 100 | 100 → 100 | 100 → 100 | 82 → 100 |
+| `/notes/:id` | desktop | 98 → 100 | 100 → 100 | 100 → 100 | 82 → 100 |
 | `/s/:token` (public share) | mobile | 100 → 100 | 100 → 100 | 96 → 96 | 82 → 63 |
 | `/s/:token` | desktop | 100 → 100 | 100 → 100 | 96 → 96 | 82 → 63 |
 
-Everything is at 96 or above except two deliberate cases:
+Everything is at 96 or above except one deliberate case, and Best Practices stays at 96 on the guest pages:
 
-- **SEO 63 on `/notes`, `/notes/:id` and `/s/:token`.** These pages carry `noindex, nofollow` (and `robots.txt` disallows them) because they are private: behind a login or a private link. Lighthouse's `is-crawlable` audit fails every page that blocks indexing, and it is the only SEO audit that fails. Every other SEO audit passes. Remove the `noindex` and the score is 100, but then private notes could be indexed.
+- **SEO 63 on `/s/:token`.** A shared note is reachable by anyone with the link, so the page carries `<meta name="robots" content="noindex, nofollow">` to stay out of search indexes. Lighthouse's `is-crawlable` audit fails every page that blocks indexing, and it is the only SEO audit that fails; the score would be 100 without the `noindex`. The authenticated pages (`/notes`, `/notes/:id`, `/notes/trash`, `/shares`) carry no robots tag: they need a login, a crawler only ever sees the sign-in page there, and a `noindex` on them only lowered the score (63 in an earlier iteration, now 100). The reset-password and 404 pages keep `noindex`. `robots.txt` disallows nothing, on purpose: a `Disallow` stops crawlers from fetching a page, so they would never see its `noindex`. See [SDS 9.7](docs/SDS.md).
 - **Best practices 96 on the guest pages.** On a page without a session the app silently calls `POST /api/v1/auth/refresh`, which answers `401` (SDS binding), and Chrome logs that as a console error. Removing it would need a readable "has a session" flag in web storage (forbidden by scenario S-AB1010-04) or an API change.
 
 What changed (frontend only; no API or business-rule change):
@@ -286,7 +286,7 @@ What changed (frontend only; no API or business-rule change):
 - **Performance:** the stylesheet is inlined into `index.html` by the build and the Geist latin font is preloaded (self-hosted through `@fontsource-variable/geist`, `font-display: swap`). The notes list reserves the tag-filter row and mounts the tag manager after the list has loaded, which removed a layout shift of 0.63 (CLS is now 0). Routes were already split with `lazy`: TipTap and ProseMirror live only in the editor chunk; the public share view renders without them.
 - **Caching:** the backend serves only `/api/v1`, so the production build is served by `vite preview`. `frontend/vite-plugins.ts` makes it send `Cache-Control: public, max-age=31536000, immutable` for hashed files under `/assets/` and `no-cache` for the HTML and other files; `vite preview` also gzips responses. Any other static host should do the same.
 - **Accessibility:** skip link, `header` and a labelled `nav` (Notes, Shared links; the shares page had no link before), one `h1` per page and a logical heading order, a darker `--destructive` colour so destructive buttons pass WCAG AA contrast (found by axe in a real browser). Inputs have labels, icon buttons have names, and the save status and toasts are live regions.
-- **SEO:** `index.html` has `lang`, viewport, description, `theme-color` and a favicon; `useDocumentMeta` (`frontend/src/lib/use-document-meta.ts`) sets a unique title and description per route and `noindex` on private routes, the reset-password page and 404; `frontend/public/robots.txt` disallows `/notes`, `/shares`, `/s/` and `/reset-password`.
+- **SEO:** `index.html` has `lang`, viewport, description, `theme-color` and a favicon; `useDocumentMeta` (`frontend/src/lib/use-document-meta.ts`) sets a unique title and description per route and `noindex` on the private share page, the reset-password page and 404; `frontend/public/robots.txt` allows crawling and has no `Disallow`.
 - **Tests:** axe-core checks in component tests (`frontend/src/routes/quality.test.tsx`) and a Playwright check with `@axe-core/playwright` on the real pages (`e2e/tests/a11y.spec.ts`), scenarios S-AB1016-13 to S-AB1016-25.
 
 Reproduce the measurement (needs Docker for the dev Postgres container; it uses its own database `noteapp_lighthouse` and ports 3101, 4301 and 9341):

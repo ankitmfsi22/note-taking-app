@@ -20,7 +20,6 @@ export function Component() {
   useDocumentMeta({
     title: 'Trash',
     description: 'Restore notes you deleted in the last 30 days.',
-    noindex: true,
   });
   const [searchParams, setSearchParams] = useSearchParams();
   const page = parsePage(searchParams.get('page'));

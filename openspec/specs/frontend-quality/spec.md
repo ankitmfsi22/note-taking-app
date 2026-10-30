@@ -6,7 +6,7 @@ Defines the non-functional quality of the frontend: SEO metadata, accessibility,
 ## Requirements
 
 ### Requirement: Per-route document metadata
-Every route SHALL set a unique document title (`<page> | Note App`) and a meta description, and exactly one of each tag SHALL exist in the head. Authenticated pages, private share pages, the password-reset page and the not-found page SHALL carry `<meta name="robots" content="noindex, nofollow">`; the sign-in, registration and forgot-password pages SHALL NOT. **[ASSUMPTION — confirm]** Private share links default to noindex.
+Every route SHALL set a unique title (`<page> | Note App`) and meta description, with one of each tag in the head. Only private share, password-reset and not-found pages SHALL carry `noindex, nofollow`; authenticated pages need a login and carry no robots tag. **[ASSUMPTION — confirm]** Share links default to noindex.
 
 #### Scenario: S-AB1016-13 the hook sets the title and description
 - **WHEN** a component calls `useDocumentMeta` with a title and a description
@@ -21,15 +21,15 @@ Every route SHALL set a unique document title (`<page> | Note App`) and a meta d
 - **THEN** each has its own title and description and no robots tag
 
 #### Scenario: S-AB1016-16 private routes are noindex
-- **WHEN** the notes list, trash, shared links and a public share page render
-- **THEN** each has its own title and the robots tag `noindex, nofollow`
+- **WHEN** the notes list, trash, shared links, a public share page, the reset-password page and an unknown route render
+- **THEN** each has its own title and description, the first three carry no robots tag, and the share page, the reset page and the 404 page carry `noindex, nofollow`
 
 ### Requirement: Static SEO assets
-The build SHALL ship `index.html` with `lang`, viewport, a description, `theme-color`, a favicon link and a preload of the critical font, and a `robots.txt` that disallows the authenticated routes and private share links.
+The build SHALL ship `index.html` with `lang`, viewport, a description, `theme-color`, a favicon link and a preload of the critical font, and a `robots.txt` that allows crawling and disallows nothing. A `Disallow` would stop crawlers from fetching the private share page and the reset page, so they would never see the meta `noindex` that keeps them out of the index.
 
 #### Scenario: S-AB1016-17 index.html and robots.txt carry the SEO basics
 - **WHEN** `frontend/index.html` and `frontend/public/robots.txt` are read
-- **THEN** the page declares `lang="en"`, a viewport, a description, a theme colour, an icon and a font preload, and robots.txt disallows `/notes`, `/shares` and `/s/`
+- **THEN** the page declares `lang="en"`, a viewport, a description, a theme colour, an icon and a font preload, and robots.txt has `User-agent: *` and `Allow: /` with no `Disallow` line
 
 ### Requirement: Accessible structure
 Every page SHALL have a labelled `main` landmark and one `h1`; the signed-in shell SHALL provide a skip link, a header and a labelled `nav`; every control SHALL have an accessible name; saving and toast status SHALL be announced through live regions.
