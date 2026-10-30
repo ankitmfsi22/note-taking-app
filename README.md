@@ -400,6 +400,10 @@ All 16 tickets are merged. Pull requests are in [ankitmfsi22/note-taking-app](ht
 **Deviations from the intended process**, stated plainly:
 
 - **Two human gates after AB-1003.** Because of the deadline, tickets after AB-1003 follow the SDD guide: only the spec approval and the PR review are human gates. Design and tasks are still written, but have no approval gate.
+- **Rule 3 plan and tasks approvals.** Plan and tasks approvals are recorded only for AB-1001, AB-1002, AB-1003, AB-1010, AB-1011 and AB-1012. The other ten tickets follow the guide's two-gate flow (spec approval and PR review).
+- **AC-AUTH-12 narrowed.** A logged-out token is not reuse; only a rotated token triggers revocation of the user's whole refresh-token family. The FRS, SDS and ADR-0003 were updated and approved on 2026-10-29.
+- **Manual smoke tests waived.** The manual smoke tests for AB-1011, AB-1012 and AB-1015 were waived and are covered by the AB-1016 Playwright journey.
+- **Commit format.** All commits conform to `type(scope): description AB#ticket`, except the initial `first commit` (before the tooling existed) and GitHub's standard `Merge pull request` commits.
 - **Backend and frontend in parallel on two machines (Rule 7).** Backend and frontend tickets were built at the same time on two machines, each ticket on its own branch and worktree, and merged in ticket order.
 - **PR #1 was merged by mistake.** The AB-1001 setup branch was merged into `main` through PR #1 (2026-10-28) when that was not intended. Project setup is tracked under PR #2 in the status table.
 - **Hook bypass on the frontend machine.** The Windows machine had no Docker database, so the pre-commit hook could not run the backend tests there; frontend commits from that machine used `--no-verify`. Every one of those branches was verified by the full CI (build, lint, format, tests with coverage against PostgreSQL, spec checks, E2E) before its PR was merged.

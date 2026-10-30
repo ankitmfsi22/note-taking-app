@@ -1,6 +1,6 @@
 # ADR-0008: Share links, plaintext tokens and an atomic view count
 
-- Status: Proposed (approved together with `docs/SDS.md`)
+- Status: Accepted (accepted with `docs/SDS.md` on 2026-10-28)
 - Date: 2026-10-28
 - Tickets: AB-1008 (backend), AB-1014 (frontend)
 - SDS: Sections 6.2, 8.3

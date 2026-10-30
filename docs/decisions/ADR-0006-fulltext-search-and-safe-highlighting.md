@@ -1,6 +1,6 @@
 # ADR-0006: PostgreSQL full-text search with safely escaped highlighting
 
-- Status: Proposed (approved together with `docs/SDS.md`)
+- Status: Accepted (accepted with `docs/SDS.md` on 2026-10-28)
 - Date: 2026-10-28
 - Tickets: AB-1007 (backend), AB-1013 (frontend)
 - SDS: Sections 6.4, 8.2, 9.5

@@ -1,6 +1,6 @@
 # ADR-0004: OTP delivery by console log, and a test-only OTP file
 
-- Status: Proposed (approved together with `docs/SDS.md`)
+- Status: Accepted (accepted with `docs/SDS.md` on 2026-10-28)
 - Date: 2026-10-28
 - Tickets: AB-1003 (mechanism), AB-1016 (consumer)
 - SDS: Sections 5.5, 5.6, 11.5

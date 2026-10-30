@@ -1,6 +1,6 @@
 # ADR-0005: Soft delete with a 30-day window and a purge job
 
-- Status: Proposed (approved together with `docs/SDS.md`)
+- Status: Accepted (accepted with `docs/SDS.md` on 2026-10-28)
 - Date: 2026-10-28
 - Tickets: AB-1004 (design and purge), AB-1011 (Trash view)
 - SDS: Sections 6.5, 8.5
