@@ -13,6 +13,7 @@ Business truth lives in [`docs/FRS.md`](docs/FRS.md), technical truth in [`docs/
 - **Search:** PostgreSQL full-text search with safely highlighted snippets.
 - **Sharing:** many public read-only links per note, with expiry, revoke, and an atomic view counter.
 - **Version history:** full snapshots on every change, newest 50 kept, restore creates a new version.
+- **Docker:** `docker compose --profile full up --build` runs database, API and web UI (see [Run with Docker](#run-with-docker)).
 
 ## Tech stack
 
@@ -121,7 +122,8 @@ sequenceDiagram
 ├── packages/shared/         Zod schemas, inferred types, limits (the only place types live)
 ├── e2e/                     Playwright tests, support/, .output/ (gitignored)
 ├── docker/postgres/         init-test.sql (creates noteapp_e2e)
-├── docker-compose.yml       dev and test PostgreSQL containers
+├── docker-compose.yml       profile dev: dev/test PostgreSQL; profile full: db + backend + frontend
+├── .dockerignore            build-context rules (backend/ and frontend/ hold the Dockerfiles)
 ├── docs/
 │   ├── FRS.md  SDS.md       requirements and design
 │   ├── decisions/           ADR-0001 to ADR-0008
@@ -135,6 +137,34 @@ sequenceDiagram
 ├── AGENTS.md  CLAUDE.md     context for AI tools
 └── .env.example             template for the root .env
 ```
+
+## Run with Docker
+
+Run the whole app (PostgreSQL, API, web UI) with Docker only, no Node or pnpm on the host. The `full` profile of [`docker-compose.yml`](docker-compose.yml) builds one image per app from the repository root ([`backend/Dockerfile`](backend/Dockerfile), [`frontend/Dockerfile`](frontend/Dockerfile)).
+
+```sh
+# the backend needs two secrets of at least 32 bytes each, different from each other;
+# export them, or put them in the root .env (see .env.example)
+export JWT_ACCESS_SECRET="$(openssl rand -base64 48)"
+export OTP_HMAC_SECRET="$(openssl rand -base64 48)"
+
+docker compose --profile full up --build
+```
+
+Open <http://localhost:8080>. The first build downloads dependencies and takes a few minutes.
+
+| Service | Image | Exposed | Notes |
+| --- | --- | --- | --- |
+| `frontend` | `nginxinc/nginx-unprivileged:1.31.7-alpine` | **host port 8080** (the only published port) | Serves the SPA (client-route fallback, gzip, immutable cache for `/assets/`, `no-cache` for `index.html`) and proxies `/api/` to `backend`. |
+| `backend` | `node:22.21.0-slim`, non-root | none (port 3000 inside the network) | Runs `prisma migrate deploy`, then the API. Health: `/api/v1/health`. |
+| `db` | `postgres:16.15-bookworm` | none | Data in the named volume `noteapp_full_data`. |
+
+`backend` waits for a healthy `db`, and `frontend` for a healthy `backend`. All three restart unless stopped.
+
+- **Environment:** `JWT_ACCESS_SECRET` and `OTP_HMAC_SECRET` are required (compose fails without them). Optional: `DOCKER_DB_PASSWORD` (default `noteapp_docker_only`, the database is not published), `DOCKER_APP_ORIGIN` (default `http://localhost:8080`; set it to the URL you open if you serve the app elsewhere), `LOG_LEVEL`, `ARGON2_MEMORY_KIB`, `ARGON2_TIME_COST`. The backend runs with `NODE_ENV=production` and `COOKIE_SECURE=true`; browsers accept Secure cookies on `http://localhost`, other plain-HTTP hosts need a TLS proxy in front.
+- **OTP codes** (forgot password) are written to the backend log: `docker compose --profile full logs backend`.
+- **Stop:** `docker compose --profile full down` (keeps the data volume). **Reset all data:** `docker compose --profile full down -v`.
+- The dev databases (`db-dev`, `db-test`) are in profile `dev` and never start with `--profile full`, so this does not clash with `pnpm db:up` ports.
 
 ## Getting started
 
@@ -204,11 +234,11 @@ A git worktree should use its own dev database name in `DATABASE_URL`.
 `db-test` mounts [`docker/postgres/init-test.sql`](docker/postgres/init-test.sql), which creates `noteapp_e2e` on first start (`noteapp_test` is the container's default database). Both services have a `pg_isready` healthcheck, and `pnpm db:up` uses `--wait` so it returns once they are healthy.
 
 ```sh
-pnpm db:up      # docker compose up -d --wait
-pnpm db:down    # docker compose down (keeps the dev volume)
+pnpm db:up      # docker compose --profile dev up -d --wait
+pnpm db:down    # docker compose --profile dev down (keeps the dev volume)
 ```
 
-**Reset the dev data:** `docker compose down -v` removes the `noteapp_dev_data` volume, then run `pnpm db:up` and the migrate command again. The test database needs no reset, because its storage is a `tmpfs`.
+**Reset the dev data:** `docker compose --profile dev down -v` removes the `noteapp_dev_data` volume, then run `pnpm db:up` and the migrate command again. The test database needs no reset, because its storage is a `tmpfs`.
 
 ## Scripts
 
@@ -383,6 +413,7 @@ All 16 tickets are merged. Pull requests are in [ankitmfsi22/note-taking-app](ht
 | AB-1014 | Frontend: share modal, links, public page | Merged | [#13](https://github.com/ankitmfsi22/note-taking-app/pull/13) |
 | AB-1015 | Frontend: version drawer | Merged | [#16](https://github.com/ankitmfsi22/note-taking-app/pull/16) |
 | AB-1016 | E2E: Playwright journey | Merged | [#17](https://github.com/ankitmfsi22/note-taking-app/pull/17) |
+| AB-1016 | Infra: Docker images and `full` compose profile | In review | |
 
 ## Decisions and deviations
 

@@ -19,8 +19,8 @@
     "spec:validate": "openspec validate --all --strict",
     "check:scenarios": "node scripts/check-scenarios.mjs",
     "test:e2e": "pnpm --filter e2e run test:e2e",
-    "db:up": "docker compose up -d --wait",
-    "db:down": "docker compose down"
+    "db:up": "docker compose --profile dev up -d --wait",
+    "db:down": "docker compose --profile dev down"
   },
   "devDependencies": {
     "@commitlint/cli": "21.2.4",

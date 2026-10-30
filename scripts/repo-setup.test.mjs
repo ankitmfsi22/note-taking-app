@@ -14,8 +14,10 @@ const MANIFESTS = ['package.json', ...PACKAGES.map((dir) => `${dir}/package.json
 
 test('S-AB1001-10: docker-compose pins a PostgreSQL 16.x image for the dev and test databases', () => {
   const compose = read('docker-compose.yml');
-  const images = [...compose.matchAll(/^\s+image:\s*(\S+)\s*$/gm)].map((match) => match[1]);
-  assert.equal(images.length, 2);
+  const images = [...compose.matchAll(/^\s+image:\s*(postgres:\S+)\s*$/gm)].map(
+    (match) => match[1],
+  );
+  assert.equal(images.length, 3); // db-dev, db-test and the db of the full profile
   for (const image of images) assert.match(image, /^postgres:16\.\d+(?:\.\d+)?-[a-z]+$/);
   assert.match(compose, /^ {2}db-dev:/m);
   assert.match(compose, /^ {2}db-test:/m);

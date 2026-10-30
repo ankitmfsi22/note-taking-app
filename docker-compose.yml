@@ -1,5 +1,8 @@
 services:
+  # Profile `dev` keeps these out of `--profile full` runs (host ports 5432/5433 would clash).
+  # `pnpm db:up` and `pnpm db:down` pass --profile dev.
   db-dev:
+    profiles: ['dev']
     image: postgres:16.15-bookworm
     environment:
       POSTGRES_USER: noteapp
@@ -12,6 +15,7 @@ services:
       interval: 2s
       retries: 20
   db-test:
+    profiles: ['dev']
     image: postgres:16.15-bookworm
     environment:
       POSTGRES_USER: noteapp
@@ -24,5 +28,58 @@ services:
       test: ['CMD-SHELL', 'pg_isready -U noteapp -d noteapp_test']
       interval: 2s
       retries: 20
+
+  # Profile `full`: the whole app. `docker compose --profile full up --build`, then open
+  # http://localhost:8080. Secrets come from the root env file (see .env.example); nothing but
+  # the frontend is published to the host.
+  db:
+    profiles: ['full']
+    image: postgres:16.15-bookworm
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: noteapp
+      POSTGRES_PASSWORD: ${DOCKER_DB_PASSWORD:-noteapp_docker_only}
+      POSTGRES_DB: noteapp
+    volumes: ['noteapp_full_data:/var/lib/postgresql/data']
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U noteapp -d noteapp']
+      interval: 3s
+      retries: 20
+  backend:
+    profiles: ['full']
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    image: noteapp-backend:1.0.0
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      NODE_ENV: production
+      PORT: '3000'
+      LOG_LEVEL: ${LOG_LEVEL:-info}
+      DATABASE_URL: postgresql://noteapp:${DOCKER_DB_PASSWORD:-noteapp_docker_only}@db:5432/noteapp
+      JWT_ACCESS_SECRET: ${JWT_ACCESS_SECRET:?set JWT_ACCESS_SECRET}
+      OTP_HMAC_SECRET: ${OTP_HMAC_SECRET:?set OTP_HMAC_SECRET}
+      # The browser origin is the nginx frontend, not the Vite dev server.
+      APP_ORIGIN: ${DOCKER_APP_ORIGIN:-http://localhost:8080}
+      # Production requires Secure cookies; browsers accept them on http://localhost.
+      COOKIE_SECURE: 'true'
+      JOBS_ENABLED: 'true'
+      ARGON2_MEMORY_KIB: ${ARGON2_MEMORY_KIB:-19456}
+      ARGON2_TIME_COST: ${ARGON2_TIME_COST:-2}
+  frontend:
+    profiles: ['full']
+    build:
+      context: .
+      dockerfile: frontend/Dockerfile
+    image: noteapp-frontend:1.0.0
+    restart: unless-stopped
+    depends_on:
+      backend:
+        condition: service_healthy
+    ports: ['8080:8080']
 volumes:
   noteapp_dev_data:
+  noteapp_full_data:
