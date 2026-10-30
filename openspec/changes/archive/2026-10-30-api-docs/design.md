@@ -4,6 +4,8 @@ A small backend module `modules/docs/` loads `docs/api/openapi.yaml`, converts i
 
 ## Decisions
 
+- **No `delta-openapi.yaml` (deviation from SA-44).** This change edits `docs/api/openapi.yaml` directly: it adds no endpoint, it corrects the existing document, and the route-coverage test now keeps that file in sync with the code. A delta file would only duplicate it.
+
 - **Spec location.** The path is resolved from `import.meta.url` as `../../../../docs/api/openapi.yaml`. `src/modules/docs/` (tsx) and `dist/modules/docs/` (built) have the same depth under `backend/`, so one relative path works in both. The file is read only when the flag is on. There is no Docker image in the repo; a future one must copy `docs/api/openapi.yaml` or keep the flag off (the production default).
 - **DI.** `createApp` already receives `env`. It also accepts an optional `openApiDocument` dep (tests pass none and get the real file); the docs module never imports `env`.
 - **Mounting order.** The docs router is mounted after the request logger and before the global Helmet and `express.json`, with its own Helmet whose CSP is the default minus `upgrade-insecure-requests`, which breaks Swagger UI over plain http. Helmet's default already allows inline styles, same-origin scripts and data: images, so nothing else is relaxed. Routes outside `/api/docs` keep the strict policy. Docs are outside `/api/v1`, so the origin check (only on refresh and logout) and `requireAuth` never see them. When the flag is off nothing is mounted and the normal `notFoundHandler` returns `404 ROUTE_NOT_FOUND`.
