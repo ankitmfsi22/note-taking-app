@@ -1,3 +1,5 @@
+import { existsSync } from 'node:fs';
+import path from 'node:path';
 import type { Plugin } from 'vite';
 
 // The stylesheet blocks first paint, and it is small, so the production build inlines it into
@@ -37,8 +39,13 @@ export const cacheControlFor = (url: string): string | null => {
 export const cacheHeaders = (): Plugin => ({
   name: 'note-app:cache-headers',
   configurePreviewServer(server) {
+    const outDir = path.resolve(server.config.root, server.config.build.outDir);
     server.middlewares.use((req, res, next) => {
-      const value = cacheControlFor(req.url ?? '');
+      const url = req.url ?? '';
+      let value = cacheControlFor(url);
+      // A missing hashed file falls back to index.html, which must not be cached for a year.
+      const file = path.join(outDir, decodeURIComponent(url.split('?')[0] ?? ''));
+      if (value === IMMUTABLE && !existsSync(file)) value = 'no-cache';
       if (value) res.setHeader('Cache-Control', value);
       next();
     });
