@@ -7,7 +7,7 @@ import { ListToolbar } from './list-toolbar';
 const params: ListParams = { page: 1, sortBy: 'updatedAt', sortOrder: 'desc', tagIds: [] };
 
 describe('ListToolbar layout', () => {
-  it('S-AB1016-16: the tag filter row keeps its space while tags load', () => {
+  it('S-AB1016-23: the tag filter row keeps its space while tags load', () => {
     const view = render(
       <ListToolbar params={params} tags={[]} tagsLoading onChange={() => undefined} />,
     );

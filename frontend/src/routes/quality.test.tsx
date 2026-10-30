@@ -23,7 +23,7 @@ const notesApi = (items = [noteListItem(1, { title: 'Groceries' })]) =>
   );
 
 describe('route metadata', () => {
-  it('S-AB1016-08: public routes have distinct titles and stay indexable', async () => {
+  it('S-AB1016-15: public routes have distinct titles and stay indexable', async () => {
     const seen = new Map<string, string | null>();
     for (const [path, title] of [
       ['/login', 'Sign in'],
@@ -42,7 +42,7 @@ describe('route metadata', () => {
     expect(document.head.querySelectorAll('title')).toHaveLength(1);
   });
 
-  it('S-AB1016-09: private routes are noindex', async () => {
+  it('S-AB1016-16: private routes are noindex', async () => {
     signInViaRefresh();
     notesApi();
     server.use(
@@ -74,7 +74,7 @@ describe('route metadata', () => {
 });
 
 describe('accessible structure', () => {
-  it('S-AB1016-11: the signed-in shell has landmarks and a skip link', async () => {
+  it('S-AB1016-18: the signed-in shell has landmarks and a skip link', async () => {
     signInViaRefresh();
     notesApi();
     renderRoute('/notes');
@@ -94,7 +94,7 @@ describe('accessible structure', () => {
     expect(skip.compareDocumentPosition(nav) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
   });
 
-  it('S-AB1016-12: form fields have accessible names', async () => {
+  it('S-AB1016-19: form fields have accessible names', async () => {
     const forms = [
       ['/login', ['Email', 'Password']],
       ['/register', ['Email', 'Password']],
@@ -113,7 +113,7 @@ describe('accessible structure', () => {
     }
   });
 
-  it('S-AB1016-13: pages have no axe violations', async () => {
+  it('S-AB1016-20: pages have no axe violations', async () => {
     renderRoute('/login');
     await screen.findByRole('heading', { name: 'Sign in' }, LOAD);
     expect(await axeViolations()).toEqual([]);
@@ -128,7 +128,7 @@ describe('accessible structure', () => {
     expect(await axeViolations()).toEqual([]);
   });
 
-  it('S-AB1016-14: the notes page has a logical heading order', async () => {
+  it('S-AB1016-21: the notes page has a logical heading order', async () => {
     signInViaRefresh();
     notesApi([noteListItem(1, { title: 'Groceries' }), noteListItem(2, { title: 'Ideas' })]);
     renderRoute('/notes');
@@ -147,7 +147,7 @@ describe('accessible structure', () => {
 });
 
 describe('stable layout', () => {
-  it('S-AB1016-17: the tag manager waits for the notes', async () => {
+  it('S-AB1016-24: the tag manager waits for the notes', async () => {
     signInViaRefresh();
     let release = () => {};
     const gate = new Promise<void>((resolve) => {

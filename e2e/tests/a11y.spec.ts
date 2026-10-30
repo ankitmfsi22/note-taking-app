@@ -14,7 +14,7 @@ const violationsOn = async (page: Page) => {
   );
 };
 
-test('S-AB1016-15 browsers pass axe on the real pages', async ({ browser, page }) => {
+test('S-AB1016-22 browsers pass axe on the real pages', async ({ browser, page }) => {
   await page.goto('/login');
   await expect(page.getByRole('heading', { name: 'Sign in' })).toBeVisible();
   expect(await violationsOn(page)).toEqual([]);

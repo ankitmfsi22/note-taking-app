@@ -14,8 +14,8 @@
 
 ## Phase 3: tests
 
-- [x] 3.1 Component tests S-AB1016-06 to S-AB1016-14, S-AB1016-16, S-AB1016-17, S-AB1016-18
-- [x] 3.2 Playwright axe test S-AB1016-15
+- [x] 3.1 Component tests S-AB1016-13 to S-AB1016-21, S-AB1016-23, S-AB1016-24, S-AB1016-25
+- [x] 3.2 Playwright axe test S-AB1016-22
 
 ## Phase 4: verify and document
 

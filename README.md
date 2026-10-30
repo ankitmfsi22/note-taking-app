@@ -287,7 +287,7 @@ What changed (frontend only; no API or business-rule change):
 - **Caching:** the backend serves only `/api/v1`, so the production build is served by `vite preview`. `frontend/vite-plugins.ts` makes it send `Cache-Control: public, max-age=31536000, immutable` for hashed files under `/assets/` and `no-cache` for the HTML and other files; `vite preview` also gzips responses. Any other static host should do the same.
 - **Accessibility:** skip link, `header` and a labelled `nav` (Notes, Shared links; the shares page had no link before), one `h1` per page and a logical heading order, a darker `--destructive` colour so destructive buttons pass WCAG AA contrast (found by axe in a real browser). Inputs have labels, icon buttons have names, and the save status and toasts are live regions.
 - **SEO:** `index.html` has `lang`, viewport, description, `theme-color` and a favicon; `useDocumentMeta` (`frontend/src/lib/use-document-meta.ts`) sets a unique title and description per route and `noindex` on private routes, the reset-password page and 404; `frontend/public/robots.txt` disallows `/notes`, `/shares`, `/s/` and `/reset-password`.
-- **Tests:** axe-core checks in component tests (`frontend/src/routes/quality.test.tsx`) and a Playwright check with `@axe-core/playwright` on the real pages (`e2e/tests/a11y.spec.ts`), scenarios S-AB1016-06 to S-AB1016-18.
+- **Tests:** axe-core checks in component tests (`frontend/src/routes/quality.test.tsx`) and a Playwright check with `@axe-core/playwright` on the real pages (`e2e/tests/a11y.spec.ts`), scenarios S-AB1016-13 to S-AB1016-25.
 
 Reproduce the measurement (needs Docker for the dev Postgres container; it uses its own database `noteapp_lighthouse` and ports 3101, 4301 and 9341):
 

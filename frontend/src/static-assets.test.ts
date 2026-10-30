@@ -7,7 +7,7 @@ const frontendDir = path.resolve(import.meta.dirname, '..');
 const read = (file: string) => readFileSync(path.join(frontendDir, file), 'utf8');
 
 describe('static assets and headers', () => {
-  it('S-AB1016-10: index.html and robots.txt carry the SEO basics', () => {
+  it('S-AB1016-17: index.html and robots.txt carry the SEO basics', () => {
     const html = read('index.html');
     expect(html).toMatch(/<html lang="en">/);
     expect(html).toMatch(/<meta name="viewport"/);
@@ -24,7 +24,7 @@ describe('static assets and headers', () => {
     expect(robots).not.toMatch(/^Disallow: \/login/m);
   });
 
-  it('S-AB1016-18: hashed assets are immutable and the HTML is revalidated', () => {
+  it('S-AB1016-25: hashed assets are immutable and the HTML is revalidated', () => {
     expect(IMMUTABLE).toBe('public, max-age=31536000, immutable');
     expect(cacheControlFor('/assets/index-CXBcvjVs.js')).toBe(IMMUTABLE);
     expect(cacheControlFor('/')).toBe('no-cache');

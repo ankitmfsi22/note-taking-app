@@ -16,7 +16,7 @@ afterEach(() => {
 });
 
 describe('useDocumentMeta', () => {
-  it('S-AB1016-06: the hook sets the title and description', () => {
+  it('S-AB1016-13: the hook sets the title and description', () => {
     const view = render(<Page title="Sign in" description="First description" />);
     expect(document.title).toBe('Sign in | Note App');
     expect(meta('description')[0]).toHaveAttribute('content', 'First description');
@@ -27,7 +27,7 @@ describe('useDocumentMeta', () => {
     expect(meta('description')[0]).toHaveAttribute('content', 'Second description');
   });
 
-  it('S-AB1016-07: noindex is added and removed with the route', () => {
+  it('S-AB1016-14: noindex is added and removed with the route', () => {
     const view = render(<Page title="Notes" description="Private" noindex />);
     expect(meta('robots')[0]).toHaveAttribute('content', 'noindex, nofollow');
 

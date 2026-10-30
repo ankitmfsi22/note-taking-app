@@ -7,66 +7,66 @@ Defines the non-functional quality of the frontend: SEO metadata, accessibility,
 ### Requirement: Per-route document metadata
 Every route SHALL set a unique document title (`<page> | Note App`) and a meta description, and exactly one of each tag SHALL exist in the head. Authenticated pages, private share pages, the password-reset page and the not-found page SHALL carry `<meta name="robots" content="noindex, nofollow">`; the sign-in, registration and forgot-password pages SHALL NOT. **[ASSUMPTION — confirm]** Private share links default to noindex.
 
-#### Scenario: S-AB1016-06 the hook sets the title and description
+#### Scenario: S-AB1016-13 the hook sets the title and description
 - **WHEN** a component calls `useDocumentMeta` with a title and a description
 - **THEN** `document.title` is `<title> | Note App`, `meta[name=description]` holds the description and only one description tag exists after a second call
 
-#### Scenario: S-AB1016-07 noindex is added and removed with the route
+#### Scenario: S-AB1016-14 noindex is added and removed with the route
 - **WHEN** a route with `noindex` is replaced by one without
 - **THEN** `meta[name=robots]` is `noindex, nofollow` first and absent afterwards
 
-#### Scenario: S-AB1016-08 public routes have distinct titles and stay indexable
+#### Scenario: S-AB1016-15 public routes have distinct titles and stay indexable
 - **WHEN** the sign-in, registration and forgot-password routes render
 - **THEN** each has its own title and description and no robots tag
 
-#### Scenario: S-AB1016-09 private routes are noindex
+#### Scenario: S-AB1016-16 private routes are noindex
 - **WHEN** the notes list, trash, shared links and a public share page render
 - **THEN** each has its own title and the robots tag `noindex, nofollow`
 
 ### Requirement: Static SEO assets
 The build SHALL ship `index.html` with `lang`, viewport, a description, `theme-color`, a favicon link and a preload of the critical font, and a `robots.txt` that disallows the authenticated routes and private share links.
 
-#### Scenario: S-AB1016-10 index.html and robots.txt carry the SEO basics
+#### Scenario: S-AB1016-17 index.html and robots.txt carry the SEO basics
 - **WHEN** `frontend/index.html` and `frontend/public/robots.txt` are read
 - **THEN** the page declares `lang="en"`, a viewport, a description, a theme colour, an icon and a font preload, and robots.txt disallows `/notes`, `/shares` and `/s/`
 
 ### Requirement: Accessible structure
 Every page SHALL have a labelled `main` landmark and one `h1`; the signed-in shell SHALL provide a skip link, a header and a labelled `nav`; every control SHALL have an accessible name; saving and toast status SHALL be announced through live regions.
 
-#### Scenario: S-AB1016-11 the signed-in shell has landmarks and a skip link
+#### Scenario: S-AB1016-18 the signed-in shell has landmarks and a skip link
 - **WHEN** the app shell renders for a signed-in user
 - **THEN** the page has a `banner`, a `navigation` named Main with Notes and Shared links, a `main` landmark and a first focusable Skip to main content link that targets it
 
-#### Scenario: S-AB1016-12 form fields have accessible names
+#### Scenario: S-AB1016-19 form fields have accessible names
 - **WHEN** the sign-in, registration, forgot-password and reset-password forms render
 - **THEN** every input is found by its label
 
-#### Scenario: S-AB1016-13 pages have no axe violations
+#### Scenario: S-AB1016-20 pages have no axe violations
 - **WHEN** axe runs on the sign-in page, the notes list and the signed-in shell
 - **THEN** it reports no violations
 
-#### Scenario: S-AB1016-14 the notes page has a logical heading order
+#### Scenario: S-AB1016-21 the notes page has a logical heading order
 - **WHEN** the notes list renders with notes and tags
 - **THEN** the page has one level-1 heading, and the tag manager and each note card are level-2 headings
 
-#### Scenario: S-AB1016-15 browsers pass axe on the real pages
+#### Scenario: S-AB1016-22 browsers pass axe on the real pages
 - **WHEN** Playwright runs axe on the sign-in, registration, notes, editor and public share pages
 - **THEN** no violations are reported
 
 ### Requirement: Stable layout
 The notes list SHALL reserve the tag-filter row while tags load, and SHALL mount the tag manager only after the list has settled, so loading data does not move visible content.
 
-#### Scenario: S-AB1016-16 the tag filter row keeps its space while tags load
+#### Scenario: S-AB1016-23 the tag filter row keeps its space while tags load
 - **WHEN** the list toolbar renders with `tagsLoading` and no tags
 - **THEN** a hidden placeholder of the filter-row height is present and no filter group is exposed
 
-#### Scenario: S-AB1016-17 the tag manager waits for the notes
+#### Scenario: S-AB1016-24 the tag manager waits for the notes
 - **WHEN** the notes request is pending, then resolves
 - **THEN** the Tags section is absent while it is pending and present afterwards
 
 ### Requirement: Cache headers for the production build
 `vite preview`, which serves the production build, SHALL answer hashed files under `/assets/` with `Cache-Control: public, max-age=31536000, immutable` and everything else except `/api` with `no-cache`.
 
-#### Scenario: S-AB1016-18 hashed assets are immutable and the HTML is revalidated
+#### Scenario: S-AB1016-25 hashed assets are immutable and the HTML is revalidated
 - **WHEN** the preview server is asked for a hashed asset and for `/`
 - **THEN** the asset has the immutable one-year header and the document has `no-cache`
