@@ -1,0 +1,4 @@
+# Documentation placeholder in docs/api/openapi.yaml (an example accessToken in the AuthResponse
+# example), introduced in AB-1016 and replaced by a plain placeholder in a later commit. It is not
+# a real secret; history cannot be rewritten.
+32c6b0b25924d7f28f8c41646c180818a41bd489:docs/api/openapi.yaml:generic-api-key:1118

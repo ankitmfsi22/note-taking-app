@@ -19,6 +19,8 @@ import { createAuthRouter } from './modules/auth/auth.routes.js';
 import { createAuthService } from './modules/auth/auth.service.js';
 import { createPasswordResetController } from './modules/auth/password-reset.controller.js';
 import { createPasswordResetService } from './modules/auth/password-reset.service.js';
+import { createDocsRouter } from './modules/docs/docs.routes.js';
+import { loadOpenApiDocument, type OpenApiDocument } from './modules/docs/openapi-document.js';
 import type { EmailService } from './modules/email/email.service.js';
 import { healthRouter } from './modules/health/health.routes.js';
 import { createNotesController } from './modules/notes/notes.controller.js';
@@ -52,14 +54,23 @@ export interface AppDeps {
   emailService: EmailService;
   // Tests inject a spy; production keys one with OTP_HMAC_SECRET.
   otpHasher?: OtpHasher;
+  // Tests may inject a document; otherwise docs/api/openapi.yaml is read when the docs are on.
+  openApiDocument?: OpenApiDocument;
 }
 
 export const createApp = (deps: AppDeps): Express => {
   const app = express();
   app.disable('x-powered-by');
 
-  app.use(helmet());
   app.use(createRequestLogger(deps.logger));
+  // Before the strict helmet below: the docs router brings its own, with the CSP Swagger UI needs.
+  if (deps.env.API_DOCS_ENABLED) {
+    app.use(
+      '/api/docs',
+      createDocsRouter({ document: deps.openApiDocument ?? loadOpenApiDocument() }),
+    );
+  }
+  app.use(helmet());
   app.use(express.json({ limit: '1mb' }));
 
   const repository = createAuthRepository(deps.prisma);
