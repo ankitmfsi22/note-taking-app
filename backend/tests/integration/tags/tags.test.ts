@@ -8,6 +8,7 @@ import {
 import type { Express } from 'express';
 import request from 'supertest';
 import { describe, expect, it } from 'vitest';
+import { createTagsRepository } from '../../../src/modules/tags/tags.repository.js';
 import { useTestDatabase } from '../../support/db.js';
 import { createMutableClock, createTestApp, registerUser } from '../../support/test-app.js';
 
@@ -212,6 +213,19 @@ describe('tags', () => {
     const second = await a.setTags(note.id, []);
     expect(second.status).toBe(200);
     expect(noteOf(second.body).tags).toEqual([]);
+  });
+
+  it("the repository never replaces another user's note tags, even when called directly", async () => {
+    const { a, b } = await setup();
+    const work = await b.newTag('Work');
+    const theirs = await b.createNote('Theirs');
+    const mine = await a.createNote('Mine');
+    await b.setTags(theirs.id, [work.id]);
+    const owner = await prisma.note.findUniqueOrThrow({ where: { id: mine.id } });
+
+    await createTagsRepository(prisma).replaceNoteTags(theirs.id, owner.userId, []);
+
+    expect(await noteTagRows()).toBe(1);
   });
 
   it('returns the note tags on GET /notes/:id and lists none for an untagged note', async () => {

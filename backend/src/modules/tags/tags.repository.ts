@@ -69,8 +69,8 @@ const methodsFor = (db: Db) => ({
     db.note.findFirst({ where: { id: noteId, userId, deletedAt: null }, select: { id: true } }),
 
   // Never touches Note, so updatedAt stays as it was (SA-24).
-  replaceNoteTags: async (noteId: string, tagIds: string[]) => {
-    await db.noteTag.deleteMany({ where: { noteId } });
+  replaceNoteTags: async (noteId: string, userId: string, tagIds: string[]) => {
+    await db.noteTag.deleteMany({ where: { noteId, note: { userId } } });
     if (tagIds.length > 0) {
       await db.noteTag.createMany({ data: tagIds.map((tagId) => ({ noteId, tagId })) });
     }

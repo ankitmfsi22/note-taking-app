@@ -61,7 +61,7 @@ export const createTagsService = ({ repository }: { repository: TagsRepository }
         throw new AppError('NOTE_NOT_FOUND', 'Note not found');
       }
       if ((await tx.countForUser(userId, tagIds)) < tagIds.length) throw tagNotFound();
-      await tx.replaceNoteTags(noteId, tagIds);
+      await tx.replaceNoteTags(noteId, userId, tagIds);
       const note = await tx.findNoteWithTagsForUser(noteId, userId);
       if (!note) throw new AppError('NOTE_NOT_FOUND', 'Note not found');
       return note;
