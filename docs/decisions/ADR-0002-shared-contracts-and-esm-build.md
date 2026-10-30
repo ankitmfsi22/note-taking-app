@@ -1,6 +1,6 @@
 # ADR-0002: Shared contracts in `packages/shared`, ESM build order
 
-- Status: Proposed (approved together with `docs/SDS.md`)
+- Status: Accepted (accepted with `docs/SDS.md` on 2026-10-28)
 - Date: 2026-10-28
 - Tickets: AB-1001 (setup), every later ticket (consumers)
 - SDS: Sections 2.3, 7.2, 11.1, 11.2

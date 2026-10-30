@@ -55,7 +55,7 @@ These scripts exist after AB-1001 scaffolding is complete.
 ## Auth
 
 - Access token: JWT HS256, 15 min, in browser memory only. Refresh token: opaque 256-bit, 7 days, stored as SHA-256 hash, rotated on every use, delivered only as an `HttpOnly` cookie `refresh_token` (`SameSite=Strict`, `Path=/api/v1/auth`, `Secure` in production).
-- Reuse of a revoked refresh token returns 401 and revokes all of that user's refresh tokens (AC-AUTH-12).
+- Reuse of a rotated refresh token returns 401 and revokes all of that user's refresh tokens (AC-AUTH-12).
 - Passwords: Argon2id. OTP: 6 digits, 10 min, single use, 5 attempts, stored as HMAC-SHA256. OTP is logged to the console. Only when `NODE_ENV=test` it is also appended to `e2e/.output/otp.jsonl` (ADR-0004). That mechanism must never run elsewhere.
 
 ## API conventions

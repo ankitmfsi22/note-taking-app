@@ -1,6 +1,6 @@
 # ADR-0003: Token strategy (JWT in memory, rotating refresh cookie)
 
-- Status: Proposed (approved together with `docs/SDS.md`)
+- Status: Accepted (accepted with `docs/SDS.md` on 2026-10-28)
 - Date: 2026-10-28
 - Tickets: AB-1002, AB-1003, AB-1010
 - SDS: Sections 5.1 to 5.3, 9.3

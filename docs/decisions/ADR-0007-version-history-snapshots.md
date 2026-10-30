@@ -1,6 +1,6 @@
 # ADR-0007: Version history as full snapshots in the save transaction
 
-- Status: Proposed (approved together with `docs/SDS.md`)
+- Status: Accepted (accepted with `docs/SDS.md` on 2026-10-28)
 - Date: 2026-10-28
 - Tickets: AB-1009 (backend), AB-1012 and AB-1015 (frontend)
 - SDS: Sections 6.2, 8.4, 9.4
