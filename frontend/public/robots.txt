@@ -1,0 +1,6 @@
+# The authenticated routes need a login, so a crawler only ever sees the sign-in page there.
+# Private share links (/s/) and the reset page carry <meta name="robots" content="noindex">.
+# They are deliberately not disallowed here: a Disallow stops crawlers from fetching the page,
+# so they would never see the noindex and could still list the bare URL.
+User-agent: *
+Allow: /

@@ -7,6 +7,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { ShareButton } from '@/features/sharing/components/share-button';
 import { VersionDrawer } from '@/features/versions/components/version-drawer';
 import { ApiError } from '@/lib/api-client';
+import { useDocumentMeta } from '@/lib/use-document-meta';
 import { LeaveGuard } from '../components/leave-guard';
 import { NoteEditor } from '../components/note-editor';
 import { NoteNotFound } from '../components/note-not-found';
@@ -50,6 +51,7 @@ function NoteEditorView({ note }: { note: NoteResponse }) {
 
   return (
     <div className="flex flex-col gap-4">
+      <h1 className="sr-only">Edit note</h1>
       <div className="flex flex-wrap items-center justify-between gap-2">
         <Link to="/notes" className="text-sm text-muted-foreground underline">
           Back to notes
@@ -82,6 +84,10 @@ function NoteEditorView({ note }: { note: NoteResponse }) {
 export function Component() {
   const { noteId = '' } = useParams();
   const query = useNoteQuery(noteId);
+  useDocumentMeta({
+    title: query.data?.title ?? 'Edit note',
+    description: 'Edit your note, tag it, share it and restore earlier versions.',
+  });
 
   if (query.isPending) {
     return (

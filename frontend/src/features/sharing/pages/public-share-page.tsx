@@ -1,4 +1,5 @@
 import { useParams } from 'react-router';
+import { useDocumentMeta } from '@/lib/use-document-meta';
 import { TiptapView } from '../components/tiptap-view';
 import { usePublicShare } from '../queries';
 
@@ -17,6 +18,13 @@ function Unavailable() {
 export function Component() {
   const { token = '' } = useParams();
   const note = usePublicShare(token);
+  // Shared by a private link: kept out of search indexes, and the description never repeats
+  // note content.
+  useDocumentMeta({
+    title: note.data?.title ?? 'Shared note',
+    description: 'A note shared with you through a private, read-only link.',
+    noindex: true,
+  });
 
   if (note.isPending) return <p>Loading…</p>;
   if (note.isError) return <Unavailable />;

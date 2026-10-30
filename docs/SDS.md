@@ -1014,6 +1014,14 @@ The component renders each segment as a React text node, wrapping highlighted on
 - Copy link uses `navigator.clipboard.writeText` with a visible confirmation (AC-FESHARE-02). The link shown is `window.location.origin + '/s/' + token`.
 - Dates use `Intl.DateTimeFormat` and `Intl.RelativeTimeFormat` in the browser locale. UI strings are plain English constants (FRS A-40).
 
+### 9.7 Document metadata and indexing (AB-1016)
+
+- `index.html` carries the static defaults (`lang`, viewport, description, `theme-color`, favicon). `useDocumentMeta` (`src/lib/use-document-meta.ts`) sets a unique title and description per route by updating those single tags, instead of React 19 `<title>` hoisting, which would add a second `<title>`.
+- **Indexing.** Only the private share page `/s/:token`, the password-reset page and the 404 page carry `<meta name="robots" content="noindex, nofollow">`. The authenticated routes (`/notes`, `/notes/:id`, `/notes/trash`, `/shares`) carry no robots tag: they need a login, so a crawler only ever sees the sign-in page there, and a `noindex` on them only lowers the Lighthouse SEO score.
+- `robots.txt` allows everything and has no `Disallow`. A `Disallow` stops a crawler from fetching a page, so it would never read that page's `noindex` and could still list the bare URL. The meta tag (and, for the share API response, `X-Robots-Tag: noindex`, section 8.3) is the control that keeps share links out of the index.
+- **Trade-off.** Lighthouse's `is-crawlable` audit fails any page that blocks indexing, so `/s/:token` scores 63 in SEO by design; every other audited page scores 100. Best Practices stays at 96 on guest pages because the silent `POST /auth/refresh` (section 9.3) answers `401`, which Chrome logs as a console error.
+- Production static files are served by `vite preview`, because the backend serves only `/api/v1`. It sends `Cache-Control: public, max-age=31536000, immutable` for hashed files under `/assets/` and `no-cache` for everything else (`frontend/vite-plugins.ts`).
+
 ---
 
 ## 10. Testing strategy
