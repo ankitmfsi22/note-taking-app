@@ -13,10 +13,12 @@
     "job:purge": "tsx --env-file=../.env src/jobs/purge-cli.ts"
   },
   "devDependencies": {
+    "@apidevtools/swagger-parser": "13.1.0",
     "@types/cookie-parser": "1.4.10",
     "@types/express": "5.0.6",
     "@types/pg": "8.23.1",
     "@types/supertest": "7.2.1",
+    "@types/swagger-ui-express": "4.1.8",
     "@vitest/coverage-v8": "5.0.5",
     "pino-pretty": "13.2.0",
     "prisma": "7.10.1",
@@ -37,6 +39,8 @@
     "pg": "8.23.1",
     "pino": "10.4.0",
     "pino-http": "11.0.0",
+    "swagger-ui-express": "5.0.1",
+    "yaml": "2.9.1",
     "zod": "4.6.7"
   }
 }

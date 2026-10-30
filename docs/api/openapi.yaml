@@ -2,29 +2,44 @@ openapi: 3.1.0
 info:
   title: Note Taking App API
   version: 0.1.0
-  summary: REST API of the Note Taking App (health, auth, password-reset, notes, tags, search, sharing and version-history endpoints so far).
+  summary: REST API of the Note Taking App, all 28 endpoints (health, auth, password reset, notes, tags, search, sharing, version history).
   description: |
-    OpenAPI 3.1 document. It defines what every endpoint shares: the server
-    base path, the security schemes and the binding error contract
-    (docs/SDS.md Section 4).
+    OpenAPI 3.1 document for every endpoint in docs/SDS.md section 7.1. The
+    backend serves it as Swagger UI at `/api/docs` and as JSON at
+    `/api/docs/openapi.json` when `API_DOCS_ENABLED` is true.
 
-    `paths` grows ticket by ticket. Each ticket describes its endpoints in its
-    own `openspec/changes/<change>/delta-openapi.yaml`, which is merged into
-    this file when the change is archived (docs/SDS.md SA-44). AB-1001 added
-    `GET /health`. AB-1002 added the four auth endpoints. AB-1003 added forgot-password and reset-password. AB-1004 added notes CRUD, trash and restore. AB-1005 added the paginated notes list. AB-1006 added tags and note-tag replacement. AB-1007 added full-text search. AB-1008 added share links and the public read. AB-1009 added version history and `latestVersion` on notes. The executable request and response contracts are the Zod
-    schemas in `packages/shared`.
+    **Try it out.** Call `POST /auth/login` (or `/auth/register`), copy the
+    `accessToken`, click Authorize and paste it into `bearerAuth`. The refresh
+    cookie is `HttpOnly`, so the browser sends it by itself to
+    `/auth/refresh` and `/auth/logout` and Swagger UI never shows it.
+
+    **Errors.** Every non-2xx response has the same body,
+    `{ "error": { "code", "message", "details?", "requestId" } }`, with the
+    binding codes of docs/SDS.md section 4.3. Ownership failures are `404`,
+    never `403`.
+
+    The executable request and response contracts are the Zod schemas in
+    `packages/shared`; a test fails if a registered route is missing here.
 servers:
   - url: /api/v1
     description: Same-origin API base path (SDS SA-01)
 tags:
   - name: health
+    description: Liveness check.
   - name: auth
+    description: Registration, login, token rotation, logout and password reset.
   - name: notes
+    description: Rich-text notes, listing, trash and restore.
   - name: tags
+    description: Per-user tags and note tagging.
   - name: search
+    description: Full-text search over the caller's notes.
   - name: shares
+    description: Public read-only share links, managed by the owner.
   - name: public
+    description: Anonymous endpoints.
   - name: versions
+    description: Version history and restore.
 paths:
   /health:
     get:
@@ -75,6 +90,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+        '413':
+          $ref: '#/components/responses/PayloadTooLarge'
         '500':
           $ref: '#/components/responses/InternalError'
   /auth/login:
@@ -111,6 +128,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+        '413':
+          $ref: '#/components/responses/PayloadTooLarge'
         '500':
           $ref: '#/components/responses/InternalError'
   /auth/refresh:
@@ -123,7 +142,9 @@ paths:
         already rotated (replaced by a newer token) revokes every active
         refresh token of that user first (AC-AUTH-12). A token revoked by
         logout, an unknown token and an expired token revoke nothing.
-        A present `Origin` header must equal the app origin.
+        A present `Origin` header must equal the app origin (`APP_ORIGIN`), so
+        "Try it out" in Swagger UI gets `403 FORBIDDEN_ORIGIN` unless
+        `APP_ORIGIN` is the origin serving the docs.
       tags: [auth]
       security:
         - refreshCookie: []
@@ -159,7 +180,9 @@ paths:
       description: |
         Revokes the presented refresh token if it exists and is active, clears
         the cookie, and always answers 204 (ERR-AUTH-06). Other sessions of the
-        user stay signed in. A present `Origin` header must equal the app origin.
+        user stay signed in. A present `Origin` header must equal the app origin
+        (`APP_ORIGIN`), so "Try it out" in Swagger UI gets `403 FORBIDDEN_ORIGIN`
+        unless `APP_ORIGIN` is the origin serving the docs.
       tags: [auth]
       security:
         - refreshCookie: []
@@ -196,6 +219,8 @@ paths:
           description: Request accepted. No body, the same for a known and an unknown email.
         '400':
           $ref: '#/components/responses/ValidationError'
+        '413':
+          $ref: '#/components/responses/PayloadTooLarge'
         '500':
           $ref: '#/components/responses/InternalError'
   /auth/reset-password:
@@ -230,6 +255,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+        '413':
+          $ref: '#/components/responses/PayloadTooLarge'
         '500':
           $ref: '#/components/responses/InternalError'
   /notes:
@@ -318,6 +345,8 @@ paths:
           $ref: '#/components/responses/ValidationError'
         '401':
           $ref: '#/components/responses/Unauthorized'
+        '413':
+          $ref: '#/components/responses/PayloadTooLarge'
         '500':
           $ref: '#/components/responses/InternalError'
   /notes/trash:
@@ -395,6 +424,8 @@ paths:
           $ref: '#/components/responses/Unauthorized'
         '404':
           $ref: '#/components/responses/NoteNotFound'
+        '413':
+          $ref: '#/components/responses/PayloadTooLarge'
         '500':
           $ref: '#/components/responses/InternalError'
     delete:
@@ -474,6 +505,8 @@ paths:
           $ref: '#/components/responses/Unauthorized'
         '404':
           $ref: '#/components/responses/NoteNotFound'
+        '413':
+          $ref: '#/components/responses/PayloadTooLarge'
         '500':
           $ref: '#/components/responses/InternalError'
     get:
@@ -537,12 +570,7 @@ paths:
       security:
         - bearerAuth: []
       parameters:
-        - name: shareId
-          in: path
-          required: true
-          schema:
-            type: string
-            format: uuid
+        - $ref: '#/components/parameters/ShareId'
       responses:
         '200':
           description: The link after revoke.
@@ -571,12 +599,7 @@ paths:
       tags: [public]
       security: []
       parameters:
-        - name: token
-          in: path
-          required: true
-          schema:
-            type: string
-            pattern: '^[A-Za-z0-9_-]{43}$'
+        - $ref: '#/components/parameters/ShareToken'
       responses:
         '200':
           description: Title, content and last-updated time only (AC-SHARE-06).
@@ -796,16 +819,13 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+        '413':
+          $ref: '#/components/responses/PayloadTooLarge'
         '500':
           $ref: '#/components/responses/InternalError'
   /tags/{tagId}:
     parameters:
-      - name: tagId
-        in: path
-        required: true
-        schema:
-          type: string
-          format: uuid
+      - $ref: '#/components/parameters/TagId'
     patch:
       operationId: updateTag
       summary: Rename or recolour a tag
@@ -838,6 +858,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+        '413':
+          $ref: '#/components/responses/PayloadTooLarge'
         '500':
           $ref: '#/components/responses/InternalError'
     delete:
@@ -896,6 +918,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+        '413':
+          $ref: '#/components/responses/PayloadTooLarge'
         '500':
           $ref: '#/components/responses/InternalError'
 components:
@@ -904,6 +928,7 @@ components:
       name: noteId
       in: path
       required: true
+      description: Note id (UUID).
       schema:
         type: string
         format: uuid
@@ -931,6 +956,30 @@ components:
       schema:
         type: integer
         minimum: 1
+    ShareId:
+      name: shareId
+      in: path
+      required: true
+      description: Share link id (UUID).
+      schema:
+        type: string
+        format: uuid
+    TagId:
+      name: tagId
+      in: path
+      required: true
+      description: Tag id (UUID).
+      schema:
+        type: string
+        format: uuid
+    ShareToken:
+      name: token
+      in: path
+      required: true
+      description: The 256-bit base64url share token (43 characters).
+      schema:
+        type: string
+        pattern: '^[A-Za-z0-9_-]{43}$'
   headers:
     SetRefreshCookie:
       description: |
@@ -987,6 +1036,10 @@ components:
     RegisterRequest:
       type: object
       required: [email, password]
+      examples:
+        - email: ada@example.com
+          password: correct-horse-1
+          displayName: Ada
       properties:
         email:
           type: string
@@ -1006,6 +1059,9 @@ components:
     LoginRequest:
       type: object
       required: [email, password]
+      examples:
+        - email: ada@example.com
+          password: correct-horse-1
       properties:
         email:
           type: string
@@ -1019,6 +1075,8 @@ components:
     ForgotPasswordRequest:
       type: object
       required: [email]
+      examples:
+        - email: ada@example.com
       properties:
         email:
           type: string
@@ -1028,6 +1086,10 @@ components:
     ResetPasswordRequest:
       type: object
       required: [email, otp, newPassword]
+      examples:
+        - email: ada@example.com
+          otp: '123456'
+          newPassword: new-horse-battery-2
       properties:
         email:
           type: string
@@ -1047,6 +1109,14 @@ components:
       type: object
       required: [user, accessToken, expiresIn]
       additionalProperties: false
+      examples:
+        - user:
+            id: 0190b0a0-0000-7000-8000-000000000001
+            email: ada@example.com
+            displayName: Ada
+            createdAt: '2026-10-29T10:00:00.000Z'
+          accessToken: eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIwMTkwYjBhMC0wMDAwLTcwMDAtODAwMC0wMDAwMDAwMDAwMDEifQ.signature
+          expiresIn: 900
       properties:
         user:
           $ref: '#/components/schemas/PublicUser'
@@ -1075,6 +1145,15 @@ components:
       type: object
       required: [title]
       additionalProperties: false
+      examples:
+        - title: Groceries
+          content:
+            type: doc
+            content:
+              - type: paragraph
+                content:
+                  - type: text
+                    text: Milk, eggs, bread
       properties:
         title:
           type: string
@@ -1087,6 +1166,8 @@ components:
       type: object
       minProperties: 1
       additionalProperties: false
+      examples:
+        - title: Groceries (updated)
       description: At least one of `title` and `content`.
       properties:
         title:
@@ -1098,6 +1179,24 @@ components:
     NoteResponse:
       type: object
       required: [id, title, content, tags, latestVersion, createdAt, updatedAt]
+      examples:
+        - id: 0190b0a0-0000-7000-8000-000000000002
+          title: Groceries
+          content:
+            type: doc
+            content:
+              - type: paragraph
+                content:
+                  - type: text
+                    text: Milk, eggs, bread
+          tags:
+            - id: 0190b0a0-0000-7000-8000-000000000003
+              name: home
+              color: '#6B7280'
+              createdAt: '2026-10-29T10:00:00.000Z'
+          latestVersion: 1
+          createdAt: '2026-10-29T10:00:00.000Z'
+          updatedAt: '2026-10-29T10:00:00.000Z'
       properties:
         id:
           type: string
@@ -1173,6 +1272,10 @@ components:
     TagCreateRequest:
       type: object
       required: [name]
+      additionalProperties: false
+      examples:
+        - name: home
+          color: '#6B7280'
       properties:
         name:
           type: string
@@ -1186,6 +1289,9 @@ components:
     TagUpdateRequest:
       type: object
       minProperties: 1
+      additionalProperties: false
+      examples:
+        - color: '#2563EB'
       description: At least one of `name` or `color`.
       properties:
         name:
@@ -1231,6 +1337,10 @@ components:
     SetNoteTagsRequest:
       type: object
       required: [tagIds]
+      additionalProperties: false
+      examples:
+        - tagIds:
+            - 0190b0a0-0000-7000-8000-000000000003
       properties:
         tagIds:
           type: array
@@ -1242,6 +1352,9 @@ components:
             format: uuid
     CreateShareLinkRequest:
       type: object
+      additionalProperties: false
+      examples:
+        - expiresAt: '2026-12-31T23:59:59.000Z'
       properties:
         expiresAt:
           type: string
@@ -1318,8 +1431,7 @@ components:
           minLength: 1
           maxLength: 200
         content:
-          type: object
-          description: TipTap JSON document (TipTapDocSchema, SDS 8.1).
+          $ref: '#/components/schemas/TipTapDoc'
         updatedAt:
           type: string
           format: date-time
@@ -1333,8 +1445,6 @@ components:
           minimum: 1
         title:
           type: string
-          minLength: 1
-          maxLength: 200
         createdAt:
           type: string
           format: date-time
@@ -1358,8 +1468,6 @@ components:
           minimum: 1
         title:
           type: string
-          minLength: 1
-          maxLength: 200
         content:
           $ref: '#/components/schemas/TipTapDoc'
         createdAt:
@@ -1512,6 +1620,11 @@ components:
         application/json:
           schema:
             $ref: '#/components/schemas/ErrorResponse'
+          example:
+            error:
+              code: UNAUTHORIZED
+              message: Authentication required
+              requestId: 0f6c1c3e-6f0a-4a43-9a53-2d8f4a1b7c10
     ForbiddenOrigin:
       description: The `Origin` header is present and is not the app origin (FORBIDDEN_ORIGIN).
       content:
@@ -1519,11 +1632,32 @@ components:
           schema:
             $ref: '#/components/schemas/ErrorResponse'
     ValidationError:
-      description: Body, query or path parameter failed validation (VALIDATION_ERROR).
+      description: |
+        Body, query or path parameter failed validation (VALIDATION_ERROR, with
+        `details`), or the request body is not parseable JSON (MALFORMED_JSON).
       content:
         application/json:
           schema:
             $ref: '#/components/schemas/ErrorResponse'
+          example:
+            error:
+              code: VALIDATION_ERROR
+              message: Request validation failed
+              details:
+                - field: email
+                  message: Invalid email address
+              requestId: 0f6c1c3e-6f0a-4a43-9a53-2d8f4a1b7c10
+    PayloadTooLarge:
+      description: The JSON body is larger than the 1 MB limit (PAYLOAD_TOO_LARGE).
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            error:
+              code: PAYLOAD_TOO_LARGE
+              message: Request body is too large
+              requestId: 0f6c1c3e-6f0a-4a43-9a53-2d8f4a1b7c10
     InternalError:
       description: Unexpected failure (INTERNAL_ERROR).
       content:
@@ -1550,3 +1684,8 @@ components:
         application/json:
           schema:
             $ref: '#/components/schemas/ErrorResponse'
+          example:
+            error:
+              code: NOTE_NOT_FOUND
+              message: Note not found
+              requestId: 0f6c1c3e-6f0a-4a43-9a53-2d8f4a1b7c10

@@ -31,6 +31,11 @@ const EnvSchema = z
       .enum(['true', 'false'])
       .default('true')
       .transform((value) => value === 'true'),
+    // Swagger UI at /api/docs. Unset means on in development and test, off in production.
+    API_DOCS_ENABLED: z
+      .enum(['true', 'false'])
+      .optional()
+      .transform((value) => (value === undefined ? undefined : value === 'true')),
   })
   .superRefine((env, ctx) => {
     if (env.OTP_HMAC_SECRET === env.JWT_ACCESS_SECRET) {
@@ -70,7 +75,11 @@ const EnvSchema = z
         message: `must be at least ${ARGON2_MIN_TIME_COST} in production`,
       });
     }
-  });
+  })
+  .transform((env) => ({
+    ...env,
+    API_DOCS_ENABLED: env.API_DOCS_ENABLED ?? env.NODE_ENV !== 'production',
+  }));
 
 export type Env = z.infer<typeof EnvSchema>;
 
