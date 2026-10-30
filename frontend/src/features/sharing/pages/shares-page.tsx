@@ -1,5 +1,6 @@
 import { useSearchParams } from 'react-router';
 import { Button } from '@/components/ui/button';
+import { useDocumentMeta } from '@/lib/use-document-meta';
 import { useActiveShares } from '../queries';
 import { useState } from 'react';
 import { ShareLinkRow } from '../components/share-link-row';
@@ -11,6 +12,10 @@ const readPage = (value: string | null) => {
 };
 
 export function Component() {
+  useDocumentMeta({
+    title: 'Shared links',
+    description: 'Review and revoke the public links to your notes.',
+  });
   const [params, setParams] = useSearchParams();
   const page = readPage(params.get('page'));
   const shares = useActiveShares(page);

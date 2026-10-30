@@ -1,8 +1,13 @@
 import { Link, useNavigate } from 'react-router';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { useDocumentMeta } from '@/lib/use-document-meta';
 import { ForgotPasswordForm } from '../components/forgot-password-form';
 
 export function Component() {
+  useDocumentMeta({
+    title: 'Forgot your password',
+    description: 'Request a one-time code to reset your Note App password.',
+  });
   const navigate = useNavigate();
   return (
     <Card>
