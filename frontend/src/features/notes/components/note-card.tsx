@@ -1,4 +1,5 @@
 import type { NoteListItem } from '@note-app/shared';
+import { Link } from 'react-router';
 import { Button } from '@/components/ui/button';
 import { TagBadge } from '@/features/tags/components/tag-badge';
 import { formatDate } from '@/lib/format-date';
@@ -13,7 +14,14 @@ export function NoteCard({ note, onDelete }: NoteCardProps) {
   return (
     <article className="flex flex-col gap-2 rounded-lg border p-4">
       <div className="flex items-start justify-between gap-3">
-        <h2 className="font-medium break-words">{note.title}</h2>
+        <h2 className="font-medium break-words">
+          <Link
+            to={`/notes/${note.id}`}
+            className="rounded-sm hover:underline focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:outline-none"
+          >
+            {note.title}
+          </Link>
+        </h2>
         <Button
           variant="ghost"
           size="sm"

@@ -58,4 +58,27 @@ describe('NotesPage actions', () => {
     await user.click(screen.getByRole('button', { name: 'New note' }));
     await waitFor(() => expect(router.state.location.pathname).toBe(`/notes/${created.id}`));
   });
+
+  // Small fix (no spec scenario): the card title is the way back into the editor.
+  it('note card title links to the editor and Delete does not navigate', async () => {
+    signInViaRefresh();
+    const user = userEvent.setup();
+    server.use(
+      http.get('*/api/v1/tags', () => HttpResponse.json({ items: [] })),
+      http.get('*/api/v1/notes', () =>
+        HttpResponse.json(pageOf([noteListItem(1, { title: 'Reopen me' })])),
+      ),
+    );
+    const { router } = renderRoute('/notes');
+
+    const link = await screen.findByRole('link', { name: 'Reopen me' });
+    expect(link).toHaveAttribute('href', `/notes/${uuid(1)}`);
+
+    await user.click(screen.getByRole('button', { name: 'Delete Reopen me' }));
+    expect(router.state.location.pathname).toBe('/notes');
+    await user.click(await screen.findByRole('button', { name: 'Cancel' }));
+
+    await user.click(link);
+    await waitFor(() => expect(router.state.location.pathname).toBe(`/notes/${uuid(1)}`));
+  });
 });
