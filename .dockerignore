@@ -1,0 +1,21 @@
+# Build context is the repository root (pnpm workspace + packages/shared).
+.git
+.github
+.husky
+.claude
+.mcp.json
+.env*
+!.env.example
+**/node_modules
+**/dist
+**/coverage
+backend/src/generated
+e2e/*
+!e2e/package.json
+docs/*
+!docs/api
+openspec
+playwright-report
+test-results
+**/*.md
+.DS_Store
