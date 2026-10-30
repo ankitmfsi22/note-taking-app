@@ -1,0 +1,3 @@
+# Dummy JWT-shaped example in docs/api/openapi.yaml, introduced in AB-1016 and replaced by a
+# plain placeholder in the next commit. It is not a credential; history cannot be rewritten.
+32c6b0b25924d7f28f8c41646c180818a41bd489:docs/api/openapi.yaml:jwt:1118

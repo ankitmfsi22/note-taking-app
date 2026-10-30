@@ -1115,7 +1115,7 @@ components:
             email: ada@example.com
             displayName: Ada
             createdAt: '2026-10-29T10:00:00.000Z'
-          accessToken: eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIwMTkwYjBhMC0wMDAwLTcwMDAtODAwMC0wMDAwMDAwMDAwMDEifQ.signature
+          accessToken: example-access-token-not-a-real-jwt
           expiresIn: 900
       properties:
         user:
